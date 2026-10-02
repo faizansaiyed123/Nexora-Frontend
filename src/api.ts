@@ -41,7 +41,7 @@ export async function api<T>(path:string,init:RequestInit={}):Promise<T>{
   if(res.status===204)return undefined as T;
   return await res.json() as T;
 }
-export async function downloadFile(path:string){let res=await raw(path); if(res.status===401&&tokenStore.refresh()){await refresh();res=await raw(path)} if(!res.ok)throw new Error("Export failed"); const blob=await res.blob(); const cd=res.headers.get("content-disposition")||""; const name=cd.match(/filename=([^;]+)/)?.[1]?.replaceAll('"',"")||"nexora-export.csv"; const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href)}
+export async function downloadFile(path:string){let res=await raw(path); if(res.status===401&&tokenStore.refresh()){await refresh();res=await raw(path)} if(!res.ok)throw new Error("Export failed"); const blob=await res.blob(); const cd=res.headers.get("content-disposition")||""; const name=cd.match(/filename=([^;]+)/)?.[1]?.replaceAll('"',"")||"nexora-export.csv"; const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>{URL.revokeObjectURL(a.href)},1000)}
 
 export const auth={
  login:(email:string,password:string)=>api<AuthResponse>("/v1/auth/login",{method:"POST",body:JSON.stringify({email,password})}),
