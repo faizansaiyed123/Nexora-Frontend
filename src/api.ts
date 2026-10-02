@@ -47,6 +47,7 @@ export const auth={
  login:(email:string,password:string)=>api<AuthResponse>("/v1/auth/login",{method:"POST",body:JSON.stringify({email,password})}),
  register:(organization_name:string,full_name:string,email:string,password:string)=>api<{message:string}>("/v1/auth/register",{method:"POST",body:JSON.stringify({organization_name,full_name,email,password})}),
  verify:(token:string)=>api<{message:string}>(`/v1/auth/verify-email?token=${encodeURIComponent(token)}`),
+ resendVerification:(email:string)=>api<{message:string}>("/v1/auth/resend-verification",{method:"POST",body:JSON.stringify({email})}),
  forgot:(email:string)=>api<{message:string}>("/v1/auth/forgot-password",{method:"POST",body:JSON.stringify({email})}),
  reset:(token:string,new_password:string)=>api<{message:string}>("/v1/auth/reset-password",{method:"POST",body:JSON.stringify({token,new_password})}),
  me:()=>api<User>("/v1/auth/me"),
