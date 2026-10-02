@@ -1,4 +1,4 @@
-import type {AlertLog,AlertRule,AuthResponse,Client,Competitor,DiscoveryJob,Job,Match,Offering,Pagination,Source,User} from "./types";
+import type {AlertLog,AlertRule,AuthResponse,Client,Competitor,DiscoveryJob,Job,Match,Offering,OfferingDetail,Pagination,Source,SourceConfig,User} from "./types";
 
 const API_URL=(import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/,"");
 const ACCESS_KEY="nexora.access";
@@ -8,7 +8,7 @@ const USER_KEY="nexora.user";
 export const tokenStore={
   access:()=>localStorage.getItem(ACCESS_KEY),
   refresh:()=>localStorage.getItem(REFRESH_KEY),
-  user:()=>{const raw=localStorage.getItem(USER_KEY); return raw?JSON.parse(raw) as User:null},
+  user:()=>{const raw=localStorage.getItem(USER_KEY); if(!raw)return null; try{return JSON.parse(raw) as User}catch{localStorage.removeItem(USER_KEY);return null}},
   save:(r:AuthResponse)=>{localStorage.setItem(ACCESS_KEY,r.access_token); if(r.refresh_token)localStorage.setItem(REFRESH_KEY,r.refresh_token); localStorage.setItem(USER_KEY,JSON.stringify(r.user));},
   clear:()=>{localStorage.removeItem(ACCESS_KEY);localStorage.removeItem(REFRESH_KEY);localStorage.removeItem(USER_KEY)}
 };
@@ -35,7 +35,7 @@ export async function api<T>(path:string,init:RequestInit={}):Promise<T>{
   if(res.status===401 && tokenStore.refresh()){const ok=await refresh(); if(ok)res=await raw(path,init);}
   if(!res.ok){
     let message=`Request failed (${res.status})`;
-    try{const body=await res.json(); message=body?.error?.message || body?.detail?.message || body?.detail || body?.message || message;}catch{}
+    try{const body=await res.json(); const detail=body?.detail; message=body?.error?.message || (typeof detail==="object" ? (detail?.message || JSON.stringify(detail)) : detail) || body?.message || message;}catch{}
     throw new Error(typeof message==="string"?message:"Request failed");
   }
   if(res.status===204)return undefined as T;
@@ -71,7 +71,7 @@ export const sources={
 };
 export const offerings={
  list:(params:Record<string,string|number|boolean|undefined>={})=>{const qs=new URLSearchParams();Object.entries(params).forEach(([k,v])=>v!==undefined&&qs.set(k,String(v)));return api<Pagination<Offering>>(`/v1/offerings?${qs}`)},
- get:(id:string)=>api<Offering>(`/v1/offerings/${id}`),
+ get:(id:string)=>api<OfferingDetail>(`/v1/offerings/${id}`),
  create:(body:Record<string,unknown>)=>api<Offering>("/v1/offerings",{method:"POST",body:JSON.stringify(body)}),
  update:(id:string,body:Record<string,unknown>)=>api<Offering>(`/v1/offerings/${id}`,{method:"PATCH",body:JSON.stringify(body)}),
  archive:(id:string)=>api<void>(`/v1/offerings/${id}`,{method:"DELETE"}),
