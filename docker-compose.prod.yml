@@ -1,0 +1,10 @@
+# Production frontend container. Configure a real HTTPS API origin at build time.
+services:
+  frontend:
+    build:
+      context: .
+      args:
+        VITE_API_URL: ${VITE_API_URL:?Set VITE_API_URL to the public HTTPS backend origin}
+    restart: unless-stopped
+    ports:
+      - "80:80"
