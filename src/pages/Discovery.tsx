@@ -72,7 +72,7 @@ export default function Discovery(){
        <div className="metric-card"><span>Updated</span><strong>{job.updated_offerings_count}</strong></div>
        <div className="metric-card"><span>Status</span><StatusPill value={job.status}/></div>
       </div>
-      <div className="subtle">{fmtDate(job.created_at||job.started_at||"")}</div>
+      <div className="subtle">{fmtDate(job.started_at||"")}</div>
       {job.error_message&&<Notice type="error">{job.error_message}</Notice>}
       <div className="list">{job.items.slice(0,12).map((item,i)=><div className="list-row" key={String(item.id||i)}><div className="row-main">{item.image_url?<img className="thumb-image" src={String(item.image_url)} alt=""/>:<div className="thumb">{String(item.name||"?")[0]}</div>}<div><strong>{String(item.name)}</strong><span>{String(item.category||"")}{item.sku?" · "+String(item.sku):""}</span></div></div><div className="row-end"><strong>{money(item.price as string|number|undefined,String(item.currency||"USD"))}</strong><StatusPill value={String(item.action||"")}/></div></div>)}</div>
     </>:<Empty title="No discovery run yet" detail="Run a scan to populate this panel with evidence-backed catalog candidates."/>}
