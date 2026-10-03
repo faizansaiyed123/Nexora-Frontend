@@ -46,6 +46,7 @@ const blankForm: RuleForm = {
 export default function Alerts() {
   const { user } = useAuth();
   const canManage = user?.role === "ORG_ADMIN" || user?.role === "SUPER_ADMIN";
+  const canAnalyze = canManage || user?.role === "ANALYST";
 
   const [rules, setRules] = useState<AlertRule[]>([]);
   const [logs, setLogs] = useState<AlertLog[]>([]);
@@ -240,14 +241,14 @@ export default function Alerts() {
                       <span>{log.message}</span>
                       <small>{fmtDate(log.created_at)}</small>
                     </div>
-                    <button
+                    {canAnalyze && <button
                       className="icon-btn"
                       title={log.is_read ? "Read" : "Mark as read"}
                       disabled={log.is_read}
                       onClick={() => markRead(log)}
                     >
                       <Check size={16} />
-                    </button>
+                    </button>}
                   </div>
                 ))}
               </div>

@@ -104,6 +104,7 @@ function buildOfferingPayload(form: OfferingForm) {
 export default function Offerings() {
   const { user } = useAuth();
   const canManage = user?.role === "ORG_ADMIN" || user?.role === "SUPER_ADMIN";
+  const canAnalyze = canManage || user?.role === "ANALYST";
   const [data, setData] = useState<Pagination<Offering> | null>(null);
   const [fields, setFields] = useState<DynamicFieldDefinition[]>([]);
   const [q, setQ] = useState("");
@@ -365,7 +366,7 @@ export default function Offerings() {
                         <div className="row-main">
                           {o.image_url ? <img className="thumb-image" src={o.image_url} alt="" /> : <div className="thumb">{o.name[0]}</div>}
                           <div>
-                            <button className="link-button" onClick={() => openDetail(o.id)}>{o.name}</button>
+                            {canAnalyze ? <button className="link-button" onClick={() => openDetail(o.id)}>{o.name}</button> : <strong>{o.name}</strong>}
                             <span>{o.sku || "No SKU"} · {o.category || "Uncategorized"}</span>
                           </div>
                         </div>
