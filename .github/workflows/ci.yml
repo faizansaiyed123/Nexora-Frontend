@@ -24,3 +24,4 @@ jobs:
       - run: npm run build
         env:
           VITE_API_URL: https://api.example.invalid
+          VITE_API_BUILD_MODE: production
