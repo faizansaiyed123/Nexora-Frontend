@@ -39,7 +39,7 @@ test("production builds accept a valid HTTPS API URL", () => {
 
 test("production nginx preserves security headers inside locations", () => {
   const config = readFileSync(resolve(root, "nginx.production.conf"), "utf8");
-  assert.match(config, /add_header_inherit\\s+merge;/);
+  assert.match(config, /add_header_inherit\s+merge;/);
   assert.match(config, /add_header Content-Security-Policy/);
   assert.match(config, /add_header Strict-Transport-Security/);
 });
