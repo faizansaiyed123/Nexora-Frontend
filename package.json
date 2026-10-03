@@ -1,9 +1,25 @@
 {
-  "name":"nexora-frontend",
-  "private":true,
-  "version":"0.1.0",
-  "type":"module",
-  "scripts":{"dev":"vite","build":"tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.node.json --noEmit && vite build","preview":"vite preview"},
-  "dependencies":{"react":"latest","react-dom":"latest","react-router-dom":"latest","lucide-react":"latest"},
-  "devDependencies":{"@types/react":"latest","@types/react-dom":"latest","@vitejs/plugin-react":"latest","vite":"latest","typescript":"latest"}
+  "name": "nexora-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "prebuild": "node scripts/validate-api-url.mjs",
+    "build": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.node.json --noEmit && vite build",
+    "test": "node --test tests"
+  },
+  "dependencies": {
+    "react": "latest",
+    "react-dom": "latest",
+    "react-router-dom": "latest",
+    "lucide-react": "latest"
+  },
+  "devDependencies": {
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@vitejs/plugin-react": "latest",
+    "vite": "latest",
+    "typescript": "latest"
+  }
 }
