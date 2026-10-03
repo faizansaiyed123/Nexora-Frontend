@@ -18,10 +18,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - run: npm install
-      - name: Upload generated lockfile
-        uses: actions/upload-artifact@v4
-        with:
-          name: nexora-frontend-lockfile
-          path: package-lock.json
+          cache: npm
+      - run: npm ci
       - run: npm run build
