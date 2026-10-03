@@ -5,13 +5,22 @@ import { auth } from "../api";
 import { useAuth } from "../auth";
 import { Button, Card, Input, Notice } from "../components/ui";
 
-function AuthLayout({ children, eyebrow, title, detail, mode = "default" }: { children: ReactNode; eyebrow: string; title: string; detail: string; mode?: "default" | "success" }) {
+function AuthLayout({ children, eyebrow, title, detail, mode = "default" }: {
+  children: ReactNode; eyebrow: string; title: string; detail: string; mode?: "default" | "success";
+}) {
   return <div className={"auth-screen auth-" + mode}>
     <div className="auth-panel">
-      <div className="auth-brand-row"><Link to="/welcome" className="brand-link"><div className="brand-mark">N</div><div className="brand-copy"><strong>Nexora</strong><span>MARKET INTELLIGENCE</span></div></Link><span className="auth-secure"><LockKeyhole size={13} /> Secure workspace</span></div>
-      <div className="auth-content"><div className="auth-copy"><span className="eyebrow">{eyebrow}</span><h1>{title}</h1><p>{detail}</p></div>{children}</div>
+      <div className="auth-brand-row">
+        <Link to="/welcome" className="brand-link"><div className="brand-mark">N</div><div className="brand-copy"><strong>Nexora</strong><span>MARKET INTELLIGENCE</span></div></Link>
+        <span className="auth-secure"><LockKeyhole size={13} /> Secure workspace</span>
+      </div>
+      <div className="auth-content">
+        <div className="auth-copy"><span className="eyebrow">{eyebrow}</span><h1>{title}</h1><p>{detail}</p></div>
+        {children}
+      </div>
       <div className="auth-footer"><span>© {new Date().getFullYear()} Nexora</span><span>Built for focused market decisions</span></div>
     </div>
+
     <div className="auth-visual">
       <div className="auth-noise" /><div className="visual-grid" />
       <div className="visual-copy"><span className="visual-kicker"><span className="live-pulse" /> Intelligence in motion</span><h2>Turn market signals into calm, confident action.</h2><p>Catalog coverage, competitor pricing, source health, discovery, jobs and alerts—unified in one private workspace.</p></div>
@@ -32,12 +41,16 @@ export function Login() {
   const { signIn } = useAuth(); const nav = useNavigate();
   const [email, setEmail] = useState(""); const [password, setPassword] = useState(""); const [error, setError] = useState(""); const [busy, setBusy] = useState(false);
   return <AuthLayout eyebrow="Secure workspace" title="See what changed before it becomes obvious." detail="Sign in to your private Nexora workspace and get a focused view of pricing, sources, jobs and alerts.">
-    <Card className="auth-card"><form onSubmit={async event => { event.preventDefault(); setError(""); setBusy(true); try { await signIn(email, password); nav("/"); } catch (err) { setError(err instanceof Error ? err.message : "Unable to sign in"); } finally { setBusy(false); } }}>
-      <Input label="Work email" value={email} onChange={event => setEmail(event.target.value)} type="email" required autoComplete="email" placeholder="you@company.com" />
-      <Input label="Password" value={password} onChange={event => setPassword(event.target.value)} type="password" required autoComplete="current-password" placeholder="Enter your password" />
-      {error ? <Notice type="error">{error}</Notice> : null}
-      <Button type="submit" disabled={busy} loading={busy} className="full">{busy ? "Signing in…" : "Sign in"} <ArrowRight size={16} /></Button>
-    </form><div className="auth-links"><Link to="/forgot-password">Forgot password?</Link><span>New to Nexora? <Link to="/register">Create an account</Link></span></div></Card>
+    <Card className="auth-card">
+      <div className="auth-card-kicker"><span className="auth-kicker-dot" /> Workspace access</div>
+      <form onSubmit={async event => { event.preventDefault(); setError(""); setBusy(true); try { await signIn(email, password); nav("/"); } catch (err) { setError(err instanceof Error ? err.message : "Unable to sign in"); } finally { setBusy(false); } }}>
+        <Input label="Work email" value={email} onChange={event => setEmail(event.target.value)} type="email" required autoComplete="email" placeholder="you@company.com" />
+        <Input label="Password" value={password} onChange={event => setPassword(event.target.value)} type="password" required autoComplete="current-password" placeholder="Enter your password" />
+        {error ? <Notice type="error">{error}</Notice> : null}
+        <Button type="submit" disabled={busy} loading={busy} className="full">{busy ? "Signing in…" : "Sign in"} <ArrowRight size={16} /></Button>
+      </form>
+      <div className="auth-links"><Link to="/forgot-password">Forgot password?</Link><span>New to Nexora? <Link to="/register">Create an account</Link></span></div>
+    </Card>
   </AuthLayout>;
 }
 
@@ -55,7 +68,7 @@ export function Register() {
       <Input label="Organization name" value={org} onChange={event => setOrg(event.target.value)} required placeholder="Acme Retail" autoComplete="organization" />
       <Input label="Your full name" value={name} onChange={event => setName(event.target.value)} required placeholder="Jane Smith" autoComplete="name" />
       <Input label="Work email" value={email} onChange={event => setEmail(event.target.value)} required type="email" placeholder="jane@acme.com" autoComplete="email" />
-      <Input label="Password" value={password} onChange={event => setPassword(event.target.value)} required type="password" minLength={8} placeholder="Use at least 8 characters" autoComplete="new-password" />
+      <Input label="Password" value={password} onChange={event => setPassword(event.target.value)} required type="password" minLength={8} placeholder="Use at least 8 characters" autoComplete="new-password" hint="Use a unique password for this workspace." />
       {error ? <Notice type="error">{error}</Notice> : null}
       <Button type="submit" disabled={busy} loading={busy} className="full">{busy ? "Creating workspace…" : "Create workspace"} <ArrowRight size={16} /></Button>
     </form><div className="auth-links"><span>Already have an account? <Link to="/login">Sign in</Link></span></div></Card>
