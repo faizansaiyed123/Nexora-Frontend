@@ -54,9 +54,19 @@ export async function withStorageRefreshLock(fn, {
     if (tryAcquireRefreshLease(effectiveStorage, effectiveOwner, now(), leaseMs)) {
       await sleep(50);
       if (!ownsRefreshLease(effectiveStorage, effectiveOwner, now())) continue;
+      let heartbeat;
       try {
+        heartbeat = setInterval(() => {
+          if (ownsRefreshLease(effectiveStorage, effectiveOwner, now())) {
+            effectiveStorage.setItem(
+              LOCK_KEY,
+              JSON.stringify({ owner: effectiveOwner, expiresAt: now() + leaseMs }),
+            );
+          }
+        }, Math.max(1000, Math.floor(leaseMs / 3)));
         return await fn();
       } finally {
+        clearInterval(heartbeat);
         releaseRefreshLease(effectiveStorage, effectiveOwner);
       }
     }
