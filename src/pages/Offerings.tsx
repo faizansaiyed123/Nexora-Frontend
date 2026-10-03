@@ -111,6 +111,7 @@ export default function Offerings() {
   const [type, setType] = useState("");
   const [page, setPage] = useState(1);
   const [history, setHistory] = useState<import("../types").ObservationHistoryResponse | null>(null);
+  const [historyPage, setHistoryPage] = useState(1);
   const [editor, setEditor] = useState<Offering | null>(null);
   const [detail, setDetail] = useState<OfferingDetail | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
@@ -196,6 +197,7 @@ export default function Offerings() {
       ]);
       setDetail(detailResponse);
       setHistory(historyResponse);
+      setHistoryPage(1);
     } catch (e) {
       show(e instanceof Error ? e.message : "Failed to load offering detail", "error");
     } finally {
@@ -438,7 +440,7 @@ export default function Offerings() {
         </form>
       </Modal>
 
-      <Modal open={!!detail} onClose={() => { setDetail(null); setHistory(null); }} title={detail?.name || "Offering detail"}>
+      <Modal open={!!detail} onClose={() => { setDetail(null); setHistory(null); setHistoryPage(1); }} title={detail?.name || "Offering detail"}>
         {detailLoading ? <Spinner /> : detail && (
           <div className="detail-grid">
             <div><span className="eyebrow">CURRENT PRICE</span><strong className="big-number">{money(detail.current_price, detail.currency || "USD")}</strong></div>
@@ -450,7 +452,7 @@ export default function Offerings() {
             <div className="detail-block"><span>Category</span><strong>{detail.category || "—"}</strong></div>
             <div className="detail-block"><span>SKU</span><strong>{detail.sku || "—"}</strong></div>
             <div className="detail-block full-span"><span>Matches</span><div className="list">{detail.matches.map((m, i) => <div className="list-row" key={String(m.match_id || i)}><div><strong>{String(m.competitor_name || "Competitor")}</strong><span>{String(m.source_name || "Source")}</span></div><div className="row-end"><StatusPill value={String(m.match_status || "")} /> <a href={String(m.target_url || "#")} target="_blank" rel="noreferrer">Open</a></div></div>)}</div></div>
-            <div className="detail-block full-span"><span>Price & availability history</span>{history?.items.length ? <div className="list">{history.items.map(item => <div className="list-row" key={item.id}><div><strong>{money(item.observed_price,item.currency||detail.currency||"USD")}</strong><span>{item.competitor_name} · {item.source_name} · {fmtDate(item.observed_at)}</span></div><div className="row-end"><StatusPill value={item.availability}/><span className="subtle">{item.http_status_code}</span></div></div>)}</div> : <Empty title="No observations yet" detail="Run a collection to begin the historical price series." />}</div>
+            <div className="detail-block full-span"><span>Price & availability history</span>{history?.items.length ? <div className="list">{history.items.map(item => <div className="list-row" key={item.id}><div><strong>{money(item.observed_price,item.currency||detail.currency||"USD")}</strong><span>{item.competitor_name} · {item.source_name} · {fmtDate(item.observed_at)}</span></div><div className="row-end"><StatusPill value={item.availability}/><span className="subtle">{item.http_status_code}</span></div></div>)}{history.total_pages>1&&<div className="pagination"><Button variant="secondary" disabled={historyPage<=1} onClick={async()=>{const next=Math.max(1,historyPage-1);setHistoryPage(next);setHistory(await offerings.history(detail.id,{page:next,page_size:20}))}}>Previous</Button><span>Page {history.page} of {history.total_pages}</span><Button variant="secondary" disabled={!history.has_more} onClick={async()=>{const next=historyPage+1;setHistoryPage(next);setHistory(await offerings.history(detail.id,{page:next,page_size:20}))}}>Next</Button></div>}</div> : <Empty title="No observations yet" detail="Run a collection to begin the historical price series." />}</div>
             <div className="detail-block full-span"><span>Attributes</span><pre>{JSON.stringify(detail.attributes || {}, null, 2)}</pre></div>
           </div>
         )}
