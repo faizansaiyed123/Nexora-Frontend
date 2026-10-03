@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
+import { readFileSync } from "node:fs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const script = resolve(root, "scripts/validate-api-config.mjs");
@@ -33,6 +34,14 @@ test("production builds reject non-HTTPS API URL", () => {
 test("production builds accept a valid HTTPS API URL", () => {
   const result = run({ VITE_API_BUILD_MODE: "production", VITE_API_URL: "https://api.example.com" });
   assert.equal(result.status, 0, result.stderr);
+});
+
+
+test("production nginx preserves security headers inside locations", () => {
+  const config = readFileSync(resolve(root, "nginx.production.conf"), "utf8");
+  assert.match(config, /add_header_inherit\\s+merge;/);
+  assert.match(config, /add_header Content-Security-Policy/);
+  assert.match(config, /add_header Strict-Transport-Security/);
 });
 
 test("development can omit the API URL", () => {
