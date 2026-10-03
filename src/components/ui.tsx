@@ -56,7 +56,7 @@ export function Input({
       {label ? (
         <span className="field-label">
           {label}
-          {required || props.required ? <em aria-hidden="true">*</em> : null}
+          {required ? <em aria-hidden="true">*</em> : null}
         </span>
       ) : null}
       <span className="input-wrap">
