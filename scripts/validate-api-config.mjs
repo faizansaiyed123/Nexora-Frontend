@@ -20,8 +20,13 @@ if (!["http:", "https:"].includes(parsed.protocol)) {
   process.exit(1);
 }
 
-const blockedHosts = new Set(["localhost", "127.0.0.1", "::1"]);
-if (mode === "production" && blockedHosts.has(parsed.hostname.toLowerCase())) {
+if (mode === "production" && parsed.protocol !== "https:") {
+  console.error("Production builds must use an HTTPS VITE_API_URL.");
+  process.exit(1);
+}
+
+const blockedHosts = new Set(["localhost", "127.0.0.1", "::1", "[::1]", "0.0.0.0"]);
+if (mode === "production" && (blockedHosts.has(parsed.hostname.toLowerCase()) || parsed.hostname.toLowerCase().endsWith(".localhost"))) {
   console.error("Production builds may not use localhost/loopback as VITE_API_URL.");
   process.exit(1);
 }
