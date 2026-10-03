@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { offerings } from "../api";
 import { useAuth } from "../auth";
-import type { DynamicFieldDefinition, Offering, OfferingDetail, Pagination } from "../types";
+import type { DynamicFieldDefinition, Offering, OfferingDetail, OfferingHistory, Pagination } from "../types";
 import {
   Button,
   Card,
@@ -109,8 +109,10 @@ export default function Offerings() {
   const [fields, setFields] = useState<DynamicFieldDefinition[]>([]);
   const [q, setQ] = useState("");
   const [type, setType] = useState("");
+  const [page, setPage] = useState(1);
   const [editor, setEditor] = useState<Offering | null>(null);
   const [detail, setDetail] = useState<OfferingDetail | null>(null);
+  const [history, setHistory] = useState<OfferingHistory[]>([]);
   const [editorOpen, setEditorOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [fieldsOpen, setFieldsOpen] = useState(false);
@@ -130,7 +132,7 @@ export default function Offerings() {
       const response = await offerings.list({
         q: q || undefined,
         offering_type: type || undefined,
-        page: 1,
+        page,
         page_size: 50,
       });
       setData(response);
@@ -152,9 +154,13 @@ export default function Offerings() {
   };
 
   useEffect(() => {
+    setPage(1);
+  }, [q, type]);
+
+  useEffect(() => {
     const timer = setTimeout(load, 250);
     return () => clearTimeout(timer);
-  }, [q, type]);
+  }, [q, type, page]);
 
   useEffect(() => {
     if (fieldsOpen) loadFields();
@@ -186,12 +192,19 @@ export default function Offerings() {
   const openDetail = async (id: string) => {
     setDetailLoading(true);
     try {
-      setDetail(await offerings.get(id));
+      const [full, historyRows] = await Promise.all([offerings.get(id), offerings.history(id)]);
+      setDetail(full);
+      setHistory(historyRows);
     } catch (e) {
       show(e instanceof Error ? e.message : "Failed to load offering detail", "error");
     } finally {
       setDetailLoading(false);
     }
+  };
+
+  const closeDetail = () => {
+    setDetail(null);
+    setHistory([]);
   };
 
   const save = async (e: FormEvent) => {
@@ -429,7 +442,7 @@ export default function Offerings() {
         </form>
       </Modal>
 
-      <Modal open={!!detail} onClose={() => setDetail(null)} title={detail?.name || "Offering detail"}>
+      <Modal open={!!detail} onClose={closeDetail} title={detail?.name || "Offering detail"}>
         {detailLoading ? <Spinner /> : detail && (
           <div className="detail-grid">
             <div><span className="eyebrow">CURRENT PRICE</span><strong className="big-number">{money(detail.current_price, detail.currency || "USD")}</strong></div>
@@ -441,10 +454,19 @@ export default function Offerings() {
             <div className="detail-block"><span>Category</span><strong>{detail.category || "—"}</strong></div>
             <div className="detail-block"><span>SKU</span><strong>{detail.sku || "—"}</strong></div>
             <div className="detail-block full-span"><span>Matches</span><div className="list">{detail.matches.map((m, i) => <div className="list-row" key={String(m.match_id || i)}><div><strong>{String(m.competitor_name || "Competitor")}</strong><span>{String(m.source_name || "Source")}</span></div><div className="row-end"><StatusPill value={String(m.match_status || "")} /> <a href={String(m.target_url || "#")} target="_blank" rel="noreferrer">Open</a></div></div>)}</div></div>
+            <div className="detail-block full-span"><span>Observation history</span>{history.length ? <div className="list">{history.slice(0,50).map((row,i) => <div className="list-row" key={row.offering_match_id + ":" + row.observed_at + ":" + i}><div><strong>{row.competitor_name}</strong><span>{row.source_name} · {fmtDate(row.observed_at)}</span></div><div className="row-end"><strong>{money(row.observed_price, row.currency || detail.currency || "USD")}</strong><StatusPill value={row.availability} /></div></div>)}</div> : <span className="subtle">No observations recorded yet.</span>}</div>
             <div className="detail-block full-span"><span>Attributes</span><pre>{JSON.stringify(detail.attributes || {}, null, 2)}</pre></div>
           </div>
         )}
       </Modal>
+
+      {data && data.total_pages > 1 && (
+        <div className="modal-actions" aria-label="Catalog pagination">
+          <Button variant="secondary" disabled={page <= 1 || loading} onClick={() => setPage(p => Math.max(1, p - 1))}>Previous</Button>
+          <span className="subtle">Page {page} of {data.total_pages}</span>
+          <Button variant="secondary" disabled={page >= data.total_pages || loading} onClick={() => setPage(p => Math.min(data.total_pages, p + 1))}>Next</Button>
+        </div>
+      )}
 
       <Modal open={importOpen} onClose={() => setImportOpen(false)} title="Bulk import offerings">
         <form className="form-grid" onSubmit={importBulk}>
