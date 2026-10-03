@@ -13,16 +13,13 @@ export const SESSION_EXPIRED_EVENT="nexora:session-expired";
 function publishSessionChange(){refreshChannel?.postMessage({type:"session-changed",at:Date.now()})}
 function expireSession(){tokenStore.clear();publishSessionChange();window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT))}
 function readRefreshLock():{owner:string;expiresAt:number}|null{
- try{const raw=localStorage.getItem(REFRESH_LOCK_KEY);if(!raw)return null;const value=JSON.parse(raw);return typeof value?.owner==="string"&&typeof value?.expiresAt==="number"?value:null}catch{return null}
+ return readRefreshLease(localStorage,REFRESH_LOCK_KEY);
 }
-function tryAcquireRefreshLease():boolean{
- const now=Date.now();const existing=readRefreshLock();
- if(existing&&existing.expiresAt>now&&existing.owner!==TAB_ID)return false;
- const mine=JSON.stringify({owner:TAB_ID,expiresAt:now+REFRESH_LEASE_MS});
- try{localStorage.setItem(REFRESH_LOCK_KEY,mine);const confirmed=readRefreshLock();return confirmed?.owner===TAB_ID}catch{return false}
+function tryAcquireRefreshLeaseImpl():boolean{
+ return tryAcquireRefreshLease(localStorage,REFRESH_LOCK_KEY,TAB_ID,Date.now(),REFRESH_LEASE_MS);
 }
-function releaseRefreshLease(){
- try{const current=readRefreshLock();if(current?.owner===TAB_ID)localStorage.removeItem(REFRESH_LOCK_KEY)}catch{}
+function releaseRefreshLeaseLock(){
+ releaseRefreshLease(localStorage,REFRESH_LOCK_KEY,TAB_ID);
 }
 function waitForRefreshUpdate(previous:string):Promise<void>{
  return new Promise(resolve=>{
@@ -40,8 +37,8 @@ async function raw(path:string,init:RequestInit={}){const headers=new Headers(in
 async function withLocalRefreshLock<T>(fn:()=>Promise<T>):Promise<T>{
  const previous=tokenStore.refresh();
  if(!previous)return fn();
- if(tryAcquireRefreshLease()){
-   try{return await fn()}finally{releaseRefreshLease()}
+ if(tryAcquireRefreshLeaseImpl()){
+   try{return await fn()}finally{releaseRefreshLeaseLock()}
  }
  await waitForRefreshUpdate(previous);
  if(tokenStore.refresh()!==previous)return fn();
