@@ -24,3 +24,13 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+
+      - name: Validate production Compose
+        env:
+          VITE_API_URL: https://api.example.test
+        run: docker compose -f docker-compose.prod.yml config
+
+      - name: Build frontend production image
+        env:
+          VITE_API_URL: https://api.example.test
+        run: docker build --pull --build-arg VITE_API_URL=$VITE_API_URL -t nexora-frontend:ci .
