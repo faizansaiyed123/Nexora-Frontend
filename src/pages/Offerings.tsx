@@ -109,6 +109,8 @@ export default function Offerings() {
   const [fields, setFields] = useState<DynamicFieldDefinition[]>([]);
   const [q, setQ] = useState("");
   const [type, setType] = useState("");
+  const [page, setPage] = useState(1);
+  const [history, setHistory] = useState<import("../types").ObservationHistoryResponse | null>(null);
   const [editor, setEditor] = useState<Offering | null>(null);
   const [detail, setDetail] = useState<OfferingDetail | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
@@ -130,7 +132,7 @@ export default function Offerings() {
       const response = await offerings.list({
         q: q || undefined,
         offering_type: type || undefined,
-        page: 1,
+        page,
         page_size: 50,
       });
       setData(response);
@@ -154,7 +156,7 @@ export default function Offerings() {
   useEffect(() => {
     const timer = setTimeout(load, 250);
     return () => clearTimeout(timer);
-  }, [q, type]);
+  }, [q, type, page]);
 
   useEffect(() => {
     if (fieldsOpen) loadFields();
@@ -162,6 +164,8 @@ export default function Offerings() {
 
   const list = data?.items || [];
   const monitored = useMemo(() => list.filter(x => x.is_monitored && !x.is_archived).length, [list]);
+
+  useEffect(() => { setPage(1); }, [q, type]);
 
   const openCreate = () => {
     setEditor(null);
@@ -186,7 +190,12 @@ export default function Offerings() {
   const openDetail = async (id: string) => {
     setDetailLoading(true);
     try {
-      setDetail(await offerings.get(id));
+      const [detailResponse, historyResponse] = await Promise.all([
+        offerings.get(id),
+        offerings.history(id, { page: 1, page_size: 20 }),
+      ]);
+      setDetail(detailResponse);
+      setHistory(historyResponse);
     } catch (e) {
       show(e instanceof Error ? e.message : "Failed to load offering detail", "error");
     } finally {
@@ -429,7 +438,7 @@ export default function Offerings() {
         </form>
       </Modal>
 
-      <Modal open={!!detail} onClose={() => setDetail(null)} title={detail?.name || "Offering detail"}>
+      <Modal open={!!detail} onClose={() => { setDetail(null); setHistory(null); }} title={detail?.name || "Offering detail"}>
         {detailLoading ? <Spinner /> : detail && (
           <div className="detail-grid">
             <div><span className="eyebrow">CURRENT PRICE</span><strong className="big-number">{money(detail.current_price, detail.currency || "USD")}</strong></div>
@@ -441,6 +450,7 @@ export default function Offerings() {
             <div className="detail-block"><span>Category</span><strong>{detail.category || "—"}</strong></div>
             <div className="detail-block"><span>SKU</span><strong>{detail.sku || "—"}</strong></div>
             <div className="detail-block full-span"><span>Matches</span><div className="list">{detail.matches.map((m, i) => <div className="list-row" key={String(m.match_id || i)}><div><strong>{String(m.competitor_name || "Competitor")}</strong><span>{String(m.source_name || "Source")}</span></div><div className="row-end"><StatusPill value={String(m.match_status || "")} /> <a href={String(m.target_url || "#")} target="_blank" rel="noreferrer">Open</a></div></div>)}</div></div>
+            <div className="detail-block full-span"><span>Price & availability history</span>{history?.items.length ? <div className="list">{history.items.map(item => <div className="list-row" key={item.id}><div><strong>{money(item.observed_price,item.currency||detail.currency||"USD")}</strong><span>{item.competitor_name} · {item.source_name} · {fmtDate(item.observed_at)}</span></div><div className="row-end"><StatusPill value={item.availability}/><span className="subtle">{item.http_status_code}</span></div></div>)}</div> : <Empty title="No observations yet" detail="Run a collection to begin the historical price series." />}</div>
             <div className="detail-block full-span"><span>Attributes</span><pre>{JSON.stringify(detail.attributes || {}, null, 2)}</pre></div>
           </div>
         )}
@@ -477,6 +487,13 @@ export default function Offerings() {
         </form>
       </Modal>
 
+      {data && data.total_pages > 1 && (
+        <div className="pagination">
+          <Button variant="secondary" disabled={page <= 1 || loading} onClick={() => setPage(value => Math.max(1, value - 1))}>Previous</Button>
+          <span>Page {data.page} of {data.total_pages}</span>
+          <Button variant="secondary" disabled={!data.has_more || loading} onClick={() => setPage(value => value + 1)}>Next</Button>
+        </div>
+      )}
       <Toast toast={toast} />
     </div>
   );
