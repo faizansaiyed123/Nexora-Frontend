@@ -30,6 +30,17 @@ export function releaseRefreshLease(storage, owner) {
   }
 }
 
+export function ownsRefreshLease(storage, owner, now = Date.now()) {
+  const raw = storage.getItem(LOCK_KEY);
+  if (!raw) return false;
+  try {
+    const current = JSON.parse(raw);
+    return current.owner === owner && Number(current.expiresAt) > now;
+  } catch {
+    return false;
+  }
+}
+
 export async function withStorageRefreshLock(fn, {
   storage,
   owner,
@@ -41,6 +52,8 @@ export async function withStorageRefreshLock(fn, {
   const effectiveOwner = owner || `${now()}:${Math.random()}`;
   for (let attempt = 0; attempt < 80; attempt += 1) {
     if (tryAcquireRefreshLease(effectiveStorage, effectiveOwner, now(), leaseMs)) {
+      await sleep(50);
+      if (!ownsRefreshLease(effectiveStorage, effectiveOwner, now())) continue;
       try {
         return await fn();
       } finally {
