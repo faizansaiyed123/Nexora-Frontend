@@ -1,4 +1,4 @@
-declare module "./refresh-coordinator.mjs" {
+declare module "*.mjs" {
   export function withStorageRefreshLock<T>(
     fn: () => Promise<T>,
     options?: {
