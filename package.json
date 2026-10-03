@@ -7,7 +7,7 @@
     "dev": "vite",
     "prebuild": "node scripts/validate-api-url.mjs",
     "build": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.node.json --noEmit && vite build",
-    "test": "node --test tests"
+    "test": "node --test tests/refresh-coordinator.test.mjs tests/api-config.test.mjs"
   },
   "dependencies": {
     "react": "latest",
