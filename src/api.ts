@@ -1,4 +1,5 @@
 import type{AlertLog,AlertRule,AuthResponse,Client,Competitor,DiscoveryJob,Job,Match,Offering,OfferingDetail,OfferingHistory,Pagination,Source,SourceConfig,User}from"./types";
+import{readRefreshLease,tryAcquireRefreshLease,releaseRefreshLease}from"./refreshLock";
 
 const API_URL=(import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/,"");
 const ACCESS_KEY="nexora.access";const REFRESH_KEY="nexora.refresh";const USER_KEY="nexora.user";
@@ -12,9 +13,6 @@ const refreshChannel=typeof BroadcastChannel!=="undefined"?new BroadcastChannel(
 export const SESSION_EXPIRED_EVENT="nexora:session-expired";
 function publishSessionChange(){refreshChannel?.postMessage({type:"session-changed",at:Date.now()})}
 function expireSession(){tokenStore.clear();publishSessionChange();window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT))}
-function readRefreshLock():{owner:string;expiresAt:number}|null{
- return readRefreshLease(localStorage,REFRESH_LOCK_KEY);
-}
 function tryAcquireRefreshLeaseImpl():boolean{
  return tryAcquireRefreshLease(localStorage,REFRESH_LOCK_KEY,TAB_ID,Date.now(),REFRESH_LEASE_MS);
 }
