@@ -4,11 +4,54 @@ const API_URL=(import.meta.env.VITE_API_URL || "http://localhost:8000").replace(
 const ACCESS_KEY="nexora.access";const REFRESH_KEY="nexora.refresh";const USER_KEY="nexora.user";
 export const tokenStore={access:()=>localStorage.getItem(ACCESS_KEY),refresh:()=>localStorage.getItem(REFRESH_KEY),user:()=>{const raw=localStorage.getItem(USER_KEY);if(!raw)return null;try{return JSON.parse(raw)as User}catch{localStorage.removeItem(USER_KEY);return null}},save:(r:AuthResponse)=>{localStorage.setItem(ACCESS_KEY,r.access_token);if(r.refresh_token)localStorage.setItem(REFRESH_KEY,r.refresh_token);localStorage.setItem(USER_KEY,JSON.stringify(r.user))},clear:()=>{localStorage.removeItem(ACCESS_KEY);localStorage.removeItem(REFRESH_KEY);localStorage.removeItem(USER_KEY)}};
 let refreshPromise:Promise<boolean>|null=null;
+const REFRESH_LOCK_KEY="nexora.refresh.lock";
+const REFRESH_CHANNEL_NAME="nexora-auth";
+const TAB_ID=Math.random().toString(36).slice(2)+Date.now().toString(36);
+const REFRESH_LEASE_MS=8000;
+const refreshChannel=typeof BroadcastChannel!=="undefined"?new BroadcastChannel(REFRESH_CHANNEL_NAME):null;
 export const SESSION_EXPIRED_EVENT="nexora:session-expired";
-function expireSession(){tokenStore.clear();window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT))}
+function publishSessionChange(){refreshChannel?.postMessage({type:"session-changed",at:Date.now()})}
+function expireSession(){tokenStore.clear();publishSessionChange();window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT))}
+function readRefreshLock():{owner:string;expiresAt:number}|null{
+ try{const raw=localStorage.getItem(REFRESH_LOCK_KEY);if(!raw)return null;const value=JSON.parse(raw);return typeof value?.owner==="string"&&typeof value?.expiresAt==="number"?value:null}catch{return null}
+}
+function tryAcquireRefreshLease():boolean{
+ const now=Date.now();const existing=readRefreshLock();
+ if(existing&&existing.expiresAt>now&&existing.owner!==TAB_ID)return false;
+ const mine=JSON.stringify({owner:TAB_ID,expiresAt:now+REFRESH_LEASE_MS});
+ try{localStorage.setItem(REFRESH_LOCK_KEY,mine);const confirmed=readRefreshLock();return confirmed?.owner===TAB_ID}catch{return false}
+}
+function releaseRefreshLease(){
+ try{const current=readRefreshLock();if(current?.owner===TAB_ID)localStorage.removeItem(REFRESH_LOCK_KEY)}catch{}
+}
+function waitForRefreshUpdate(previous:string):Promise<void>{
+ return new Promise(resolve=>{
+   const started=Date.now();
+   const done=()=>{cleanup();resolve()};
+   const onStorage=(event:StorageEvent)=>{if(event.key===REFRESH_KEY||event.key===ACCESS_KEY||event.key===REFRESH_LOCK_KEY)done()};
+   const onChannel=()=>done();
+   const timer=window.setInterval(()=>{if(tokenStore.refresh()!==previous||Date.now()-started>=REFRESH_LEASE_MS)done()},100);
+   const cleanup=()=>{window.clearInterval(timer);window.removeEventListener("storage",onStorage);refreshChannel?.removeEventListener("message",onChannel)};
+   window.addEventListener("storage",onStorage);
+   refreshChannel?.addEventListener("message",onChannel);
+ })
+}
 async function raw(path:string,init:RequestInit={}){const headers=new Headers(init.headers);if(init.body&&!headers.has("Content-Type"))headers.set("Content-Type","application/json");const access=tokenStore.access();if(access)headers.set("Authorization",`Bearer ${access}`);return fetch(`${API_URL}${path}`,{...init,headers})}
-function withRefreshLock<T>(fn:()=>Promise<T>):Promise<T>{const locks=(navigator as Navigator&{locks?:LockManager}).locks;return locks?(locks.request("nexora-refresh",fn) as Promise<T>):fn()}
-async function refresh():Promise<boolean>{const before=tokenStore.refresh();if(!before)return false;if(refreshPromise)return refreshPromise;refreshPromise=withRefreshLock(async()=>{const current=tokenStore.refresh();if(!current)return false;if(current!==before)return true;try{const res=await fetch(`${API_URL}/v1/auth/refresh`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({refresh_token:current})});if(!res.ok){expireSession();return false}tokenStore.save(await res.json()as AuthResponse);return true}catch{return false}}).finally(()=>{refreshPromise=null});return refreshPromise}
+async function withLocalRefreshLock<T>(fn:()=>Promise<T>):Promise<T>{
+ const previous=tokenStore.refresh();
+ if(!previous)return fn();
+ if(tryAcquireRefreshLease()){
+   try{return await fn()}finally{releaseRefreshLease()}
+ }
+ await waitForRefreshUpdate(previous);
+ if(tokenStore.refresh()!==previous)return fn();
+ return withLocalRefreshLock(fn);
+}
+function withRefreshLock<T>(fn:()=>Promise<T>):Promise<T>{
+ const locks=(navigator as Navigator&{locks?:LockManager}).locks;
+ return locks?(locks.request("nexora-refresh",fn) as Promise<T>):withLocalRefreshLock(fn);
+}
+async function refresh():Promise<boolean>{const before=tokenStore.refresh();if(!before)return false;if(refreshPromise)return refreshPromise;refreshPromise=withRefreshLock(async()=>{const current=tokenStore.refresh();if(!current)return false;if(current!==before)return true;try{const res=await fetch(`${API_URL}/v1/auth/refresh`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({refresh_token:current})});if(!res.ok){expireSession();return false}tokenStore.save(await res.json()as AuthResponse);publishSessionChange();return true}catch{return false}}).finally(()=>{refreshPromise=null});return refreshPromise}
 async function authed(path:string,init:RequestInit={}){let res=await raw(path,init);if(res.status===401&&tokenStore.access()){if(await refresh())res=await raw(path,init);if(res.status===401)expireSession()}return res}
 function formatDetail(detail:unknown):string|undefined{if(typeof detail==="string")return detail;if(Array.isArray(detail)){const parts=detail.map((d:{loc?:unknown[];msg?:string})=>{const field=Array.isArray(d?.loc)?d.loc.filter(x=>x!=="body"&&x!=="query").join("."):"";const msg=d?.msg??"";return field?field+": "+msg:msg}).filter(Boolean);return parts.length?parts.join("; "):undefined}if(detail&&typeof detail==="object")return(detail as {message?:string}).message;return undefined}
 export async function api<T>(path:string,init:RequestInit={}):Promise<T>{let res=await authed(path,init);if(!res.ok){let message=`Request failed (${res.status})`;try{const body=await res.json();const detail=body?.detail;message=body?.error?.message||formatDetail(detail)||body?.message||message}catch{}throw new Error(typeof message==="string"?message:"Request failed")}if(res.status===204)return undefined as T;return await res.json()as T}
