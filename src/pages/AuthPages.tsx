@@ -55,11 +55,17 @@ export function Login() {
 }
 
 export function Register() {
-  const [org, setOrg] = useState(""); const [name, setName] = useState(""); const [email, setEmail] = useState(""); const [password, setPassword] = useState(""); const [error, setError] = useState(""); const [done, setDone] = useState(false); const [busy, setBusy] = useState(false);
-  const submit = async (event: FormEvent) => { event.preventDefault(); setError(""); setBusy(true); try { await auth.register(org, name, email, password); setDone(true); } catch (err) { setError(err instanceof Error ? err.message : "Unable to create account"); } finally { setBusy(false); } };
+  const [org, setOrg] = useState(""); const [name, setName] = useState(""); const [email, setEmail] = useState(""); const [password, setPassword] = useState(""); const [error, setError] = useState(""); const [resendError, setResendError] = useState(""); const [done, setDone] = useState(false); const [verifyRequired, setVerifyRequired] = useState(true); const [busy, setBusy] = useState(false);
+  const submit = async (event: FormEvent) => { event.preventDefault(); setError(""); setBusy(true); try { const result = await auth.register(org, name, email, password); setVerifyRequired(result.email_verification_required !== false); setDone(true); } catch (err) { setError(err instanceof Error ? err.message : "Unable to create account"); } finally { setBusy(false); } };
+  if (done && !verifyRequired) return <AuthLayout mode="success" eyebrow="Workspace created" title="Your workspace is ready." detail="Sign in with the credentials you just created to enter your workspace.">
+    <Card className="auth-card success-card"><div className="success-icon"><CheckCircle2 size={28} /></div><span className="eyebrow">ALL SET</span><h3>Workspace created</h3><p><strong>{org}</strong> is ready. Email verification is disabled in this environment, so you can sign in now.</p>
+      <div className="success-actions"><Button className="full" onClick={() => window.location.assign("/login")}>Continue to sign in <ArrowRight size={16} /></Button></div>
+    </Card>
+  </AuthLayout>;
   if (done) return <AuthLayout mode="success" eyebrow="Step 2 of 2 · Verify" title="Your workspace is almost ready." detail="Open the verification email, activate your account, then sign in to enter your workspace.">
     <Card className="auth-card success-card"><div className="success-icon"><CheckCircle2 size={28} /></div><span className="eyebrow">CHECK YOUR INBOX</span><h3>Verification required</h3><p>We sent a secure verification link to <strong>{email}</strong>.</p>
-      <div className="success-actions"><Button variant="secondary" className="full" onClick={async () => { try { await auth.resendVerification(email); } catch { /* keep stable */ } }}>Resend email</Button><Button className="full" onClick={() => window.location.assign("/login")}>Continue to sign in <ArrowRight size={16} /></Button></div>
+      <div className="success-actions"><Button variant="secondary" className="full" onClick={async () => { setResendError(""); try { await auth.resendVerification(email); } catch (err) { setResendError(err instanceof Error ? err.message : "Could not resend the verification email."); } }}>Resend email</Button><Button className="full" onClick={() => window.location.assign("/login")}>Continue to sign in <ArrowRight size={16} /></Button></div>
+      {resendError ? <Notice type="error">{resendError}</Notice> : null}
     </Card>
   </AuthLayout>;
   return <AuthLayout eyebrow="Step 1 of 2 · Create workspace" title="Start with a private intelligence workspace." detail="Your organization becomes the tenant boundary for catalog, competitors, collection jobs and alerts.">
