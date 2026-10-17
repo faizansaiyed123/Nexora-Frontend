@@ -1,4 +1,4 @@
-import { useEffect, useId, useState, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
+import { Children, cloneElement, useEffect, useId, useRef, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactElement, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 import { AlertTriangle, Check, CheckCircle2, ChevronDown, Info, Loader2, Sparkles, X } from "lucide-react";
 
 type ButtonVariant = "primary" | "secondary" | "danger" | "ghost";
@@ -88,23 +88,265 @@ export function Input({
 export function Select({
   label,
   hint,
+  error,
   children,
   ...props
 }: {
   label?: string;
   hint?: string;
+  error?: string;
 } & SelectHTMLAttributes<HTMLSelectElement>) {
   const generatedId = useId();
+  const describedBy = [hint ? generatedId + "-hint" : "", error ? generatedId + "-error" : ""].filter(Boolean).join(" ") || undefined;
+  const wrapRef = useRef<HTMLSpanElement>(null);
+  const [open, setOpen] = useState(false);
+  const [internalValue, setInternalValue] = useState<string | undefined>(props.value as string | undefined);
+
+  const options = Children.toArray(children)
+    .filter((c): c is ReactElement =>
+      c !== null && typeof c === "object" && c !== undefined && "props" in (c as any)
+    )
+    .map(c => {
+      const p = (c as any).props;
+      const label = p.children;
+      const value = p.value !== undefined ? p.value : label;
+      return { value, label };
+    });
+
+  const controlled = props.value !== undefined;
+  const currentValue = controlled ? props.value : internalValue;
+  const currentOption = options.find(o => String(o.value) === String(currentValue)) || options[0];
+  const hasValue = currentValue !== undefined && currentValue !== "" && currentValue !== null;
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (event: MouseEvent) => {
+      if (!wrapRef.current || wrapRef.current.contains(event.target as Node)) return;
+      setOpen(false);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const selectValue = (value: any) => {
+    if (!controlled) setInternalValue(value);
+    setOpen(false);
+    props.onChange?.({ target: { value } } as unknown as React.ChangeEvent<HTMLSelectElement>);
+  };
+
+  const move = (dir: 1 | -1) => {
+    const idx = options.findIndex(o => String(o.value) === String(currentValue));
+    const next = options[(idx + dir + options.length) % options.length];
+    if (next) selectValue(next.value);
+  };
+
+  const onKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      setOpen(v => !v);
+      return;
+    }
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      if (!open) setOpen(true);
+      else move(1);
+    }
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      if (!open) setOpen(true);
+      else move(-1);
+    }
+  };
+
   return (
-    <label className="field">
-      {label ? <span className="field-label">{label}</span> : null}
-      <span className="select-wrap">
-        <select id={props.id ?? generatedId} {...props}>{children}</select>
-        <ChevronDown size={16} aria-hidden="true" />
+    <label className={"field " + (error ? "has-error" : "")}>
+      {label ? (
+        <span className="field-label">
+          {label}
+          {props.required ? <em aria-hidden="true">*</em> : null}
+        </span>
+      ) : null}
+      <span
+        className={"select-wrap" + (error ? " is-invalid" : "") + (hasValue ? " has-value" : "") + (open ? " is-open" : "")}
+        ref={wrapRef}
+      >
+        <select
+          id={props.id ?? generatedId}
+          aria-invalid={Boolean(error)}
+          aria-describedby={describedBy}
+          style={{ display: "none" }}
+          value={controlled ? props.value : internalValue}
+          onChange={event => {
+            if (!controlled) setInternalValue(event.target.value);
+            props.onChange?.(event);
+          }}
+          {...props}
+        >{children}</select>
+
+        <button
+          type="button"
+          className="select-trigger"
+          aria-expanded={open}
+          aria-haspopup="listbox"
+          aria-controls={open ? generatedId + "-listbox" : undefined}
+          aria-invalid={Boolean(error)}
+          disabled={props.disabled}
+          onMouseDown={event => {
+            event.preventDefault();
+            setOpen(v => !v);
+          }}
+          onKeyDown={onKeyDown}
+        >
+          <span className="select-value">{currentOption ? String(currentOption.label) : ""}</span>
+          <ChevronDown size={16} aria-hidden="true" />
+        </button>
+
+        {open ? (
+          <ul
+            id={generatedId + "-listbox"}
+            className="select-options"
+            role="listbox"
+          >
+            {options.map((o, i) => (
+              <li
+                key={o.value === undefined ? "opt-" + i : String(o.value)}
+                className={"select-option" + (String(o.value) === String(currentValue) ? " is-selected" : "")}
+                role="option"
+                aria-selected={String(o.value) === String(currentValue)}
+                onMouseDown={event => {
+                  event.preventDefault();
+                  selectValue(o.value);
+                }}
+              >
+                {o.label}
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </span>
-      {hint ? <small className="field-hint">{hint}</small> : null}
+      {hint ? <small id={generatedId + "-hint"} className="field-hint">{hint}</small> : null}
+      {error ? <small id={generatedId + "-error"} className="error-text">{error}</small> : null}
     </label>
   );
+}
+
+export type DropdownDirection = "up" | "down";
+export type DropdownTriggerProps = {
+  className?: string;
+  onClick?: (event: React.MouseEvent) => void;
+  "aria-expanded"?: boolean;
+  "aria-haspopup"?: "menu" | "listbox" | "tree" | "grid" | "dialog" | undefined;
+  "aria-controls"?: string;
+};
+
+export function Dropdown({
+  trigger,
+  children,
+  direction = "down",
+  align = "right",
+  menuClassName = "",
+  menuId,
+}: {
+  trigger: React.ReactElement<DropdownTriggerProps>;
+  children: ReactNode;
+  direction?: DropdownDirection;
+  align?: "left" | "right";
+  menuClassName?: string;
+  menuId?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const generatedId = useId();
+  const menuMenuId = menuId ?? generatedId + "-menu";
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (event: MouseEvent) => {
+      if (!wrapRef.current || wrapRef.current.contains(event.target as Node)) return;
+      setOpen(false);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const enhancedTrigger = cloneElement(trigger, {
+    className: [trigger.props.className, "dropdown-trigger", open ? "is-open" : ""].filter(Boolean).join(" "),
+    onClick: (event: React.MouseEvent) => {
+      trigger.props.onClick?.(event);
+      setOpen(value => !value);
+    },
+    "aria-expanded": open,
+    "aria-haspopup": "menu",
+    "aria-controls": open ? menuMenuId : undefined,
+  });
+
+  return (
+    <div
+      className={"dropdown" + (open ? " is-open" : "") + (direction === "up" ? " dropdown-up" : "")}
+      ref={wrapRef}
+    >
+      {enhancedTrigger}
+      {open ? (
+        <div
+          id={menuMenuId}
+          className={"dropdown-menu dropdown-menu-" + align + " " + menuClassName}
+          role="menu"
+          aria-orientation="vertical"
+        >
+          {children}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+export function DropdownItem({
+  children,
+  onClick,
+  icon,
+  danger = false,
+  disabled = false,
+}: {
+  children: ReactNode;
+  onClick?: () => void;
+  icon?: ReactNode;
+  danger?: boolean;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      className={"dropdown-item " + (danger ? "is-danger" : "")}
+      disabled={disabled}
+      onClick={onClick}
+      role="menuitem"
+    >
+      {icon ? <span className="dropdown-item-icon" aria-hidden="true">{icon}</span> : null}
+      <span>{children}</span>
+    </button>
+  );
+}
+
+export function DropdownSeparator() {
+  return <div className="dropdown-separator" role="separator" />;
+}
+
+export function DropdownLabel({ children }: { children: ReactNode }) {
+  return <div className="dropdown-label">{children}</div>;
 }
 
 export function Textarea({
