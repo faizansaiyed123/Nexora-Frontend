@@ -2,6 +2,7 @@ import { Activity, Bell, Boxes, BriefcaseBusiness, ChevronDown, Compass, Globe2,
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "../auth";
+import { Dropdown, DropdownItem } from "../components/ui";
 
 const groups = [
   { label: "Command center", items: [["/", "Dashboard", Activity]] as const },
@@ -28,14 +29,12 @@ function getInitials(name: string) {
 export default function Shell({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const current = titles[location.pathname] ?? { title: "Workspace", detail: "Nexora intelligence workspace" };
 
   useEffect(() => {
     setMobileOpen(false);
-    setProfileOpen(false);
   }, [location.pathname]);
 
   const doSignOut = async () => {
@@ -80,19 +79,24 @@ export default function Shell({ children }: { children: ReactNode }) {
             <div><strong>Workspace online</strong><span>Data services connected</span></div>
           </NavLink>
 
-          <div className="profile-block">
-            <button className="profile-trigger" onClick={() => setProfileOpen(value => !value)} aria-expanded={profileOpen} aria-haspopup="menu">
-              <div className="avatar">{getInitials(user?.full_name || "Nexora")}</div>
-              <div className="profile-copy"><strong>{user?.full_name || "Nexora user"}</strong><span>{user?.role?.replaceAll("_", " ")}</span></div>
-              <ChevronDown className={profileOpen ? "rotate-180" : ""} size={15} />
-            </button>
-            {profileOpen ? (
-              <div className="profile-menu" role="menu">
-                <button onClick={() => navigate("/settings")} role="menuitem"><Settings size={15} /> Account settings</button>
-                <button onClick={doSignOut} role="menuitem"><LogOut size={15} /> Sign out</button>
-              </div>
-            ) : null}
-          </div>
+          <Dropdown
+            trigger={
+              <button className="profile-trigger" type="button">
+                <div className="avatar">{getInitials(user?.full_name || "Nexora")}</div>
+                <div className="profile-copy"><strong>{user?.full_name || "Nexora user"}</strong><span>{user?.role?.replaceAll("_", " ")}</span></div>
+                <ChevronDown size={15} />
+              </button>
+            }
+            align="right"
+            menuClassName="profile-menu"
+          >
+            <DropdownItem icon={<Settings size={15} />} onClick={() => navigate("/settings")}>
+              Account settings
+            </DropdownItem>
+            <DropdownItem icon={<LogOut size={15} />} danger onClick={doSignOut}>
+              Sign out
+            </DropdownItem>
+          </Dropdown>
         </div>
       </aside>
 
