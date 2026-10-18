@@ -1,5 +1,6 @@
 import type{AlertLog,AlertRule,AuthResponse,Client,Competitor,DiscoveryJob,Job,Match,Offering,OfferingDetail,OfferingHistory,Pagination,Source,SourceConfig,User}from"./types";
 import{readRefreshLease,tryAcquireRefreshLease,releaseRefreshLease}from"./refreshLock";
+import { reportRateLimit } from "./rateLimit";
 
 const API_URL=(import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/,"");
 const ACCESS_KEY="nexora.access";const REFRESH_KEY="nexora.refresh";const USER_KEY="nexora.user";
@@ -49,8 +50,66 @@ function withRefreshLock<T>(fn:()=>Promise<T>):Promise<T>{
 async function refresh():Promise<boolean>{const before=tokenStore.refresh();if(!before)return false;if(refreshPromise)return refreshPromise;refreshPromise=withRefreshLock(async()=>{const current=tokenStore.refresh();if(!current)return false;if(current!==before)return true;try{const res=await fetch(`${API_URL}/v1/auth/refresh`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({refresh_token:current})});if(!res.ok){expireSession();return false}tokenStore.save(await res.json()as AuthResponse);publishSessionChange();return true}catch{return false}}).finally(()=>{refreshPromise=null});return refreshPromise}
 async function authed(path:string,init:RequestInit={}){let res=await raw(path,init);if(res.status===401&&tokenStore.access()){if(await refresh())res=await raw(path,init);if(res.status===401)expireSession()}return res}
 function formatDetail(detail:unknown):string|undefined{if(typeof detail==="string")return detail;if(Array.isArray(detail)){const parts=detail.map((d:{loc?:unknown[];msg?:string})=>{const field=Array.isArray(d?.loc)?d.loc.filter(x=>x!=="body"&&x!=="query").join("."):"";const msg=d?.msg??"";return field?field+": "+msg:msg}).filter(Boolean);return parts.length?parts.join("; "):undefined}if(detail&&typeof detail==="object")return(detail as {message?:string}).message;return undefined}
-export async function api<T>(path:string,init:RequestInit={}):Promise<T>{let res=await authed(path,init);if(!res.ok){let message=`Request failed (${res.status})`;try{const body=await res.json();const detail=body?.detail;message=body?.error?.message||formatDetail(detail)||body?.message||message}catch{}throw new Error(typeof message==="string"?message:"Request failed")}if(res.status===204)return undefined as T;return await res.json()as T}
-export async function downloadFile(path:string){const res=await authed(path);if(!res.ok)throw new Error("Export failed");const blob=await res.blob();const cd=res.headers.get("content-disposition")||"";const name=cd.match(/filename=([^;]+)/)?.[1]?.replaceAll('"',"")||"nexora-export.csv";const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+export class ApiError extends Error {
+  status: number;
+  code?: string;
+  retryAfterSeconds: number;
+  path: string;
+
+  constructor(message: string, status: number, code: string | undefined, retryAfterSeconds: number, path: string) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.code = code;
+    this.retryAfterSeconds = retryAfterSeconds;
+    this.path = path;
+  }
+}
+
+async function buildApiError(path: string, res: Response, fallbackMessage?: string): Promise<ApiError> {
+  let body: any = null;
+  try {
+    body = await res.json();
+  } catch {
+    // Some gateway/proxy failures do not return JSON.
+  }
+
+  const message =
+    body?.error?.message ||
+    formatDetail(body?.detail) ||
+    body?.message ||
+    fallbackMessage ||
+    `Request failed (${res.status})`;
+  const code = typeof body?.error?.code === "string" ? body.error.code : undefined;
+  let retryAfterSeconds = 0;
+
+  if (res.status === 429) {
+    const headerValue = Number(res.headers.get("Retry-After"));
+    const bodyValue = Number(body?.error?.retry_after_seconds ?? body?.retry_after_seconds);
+    const messageMatch = String(message).match(/(?:in|after)\s+(\d+(?:\.\d+)?)\s+seconds?/i);
+    const parsedMessageValue = messageMatch ? Number(messageMatch[1]) : 0;
+    const rawRetryAfter =
+      Number.isFinite(headerValue) && headerValue > 0
+        ? headerValue
+        : Number.isFinite(bodyValue) && bodyValue > 0
+          ? bodyValue
+          : parsedMessageValue > 0
+            ? parsedMessageValue
+            : 60;
+    retryAfterSeconds = Math.max(1, Math.ceil(rawRetryAfter));
+    reportRateLimit(path, retryAfterSeconds);
+  }
+
+  return new ApiError(message, res.status, code, retryAfterSeconds, path);
+}
+
+export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const res = await authed(path, init);
+  if (!res.ok) throw await buildApiError(path, res);
+  if (res.status === 204) return undefined as T;
+  return await res.json() as T;
+}
+export async function downloadFile(path:string){const res=await authed(path);if(!res.ok)throw await buildApiError(path,res,"Export failed");const blob=await res.blob();const cd=res.headers.get("content-disposition")||"";const name=cd.match(/filename=([^;]+)/)?.[1]?.replaceAll('"',"")||"nexora-export.csv";const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 export const auth={login:(email:string,password:string)=>api<AuthResponse>("/v1/auth/login",{method:"POST",body:JSON.stringify({email,password})}),register:(organization_name:string,full_name:string,email:string,password:string)=>api<{message:string;email_verification_required:boolean}>("/v1/auth/register",{method:"POST",body:JSON.stringify({organization_name,full_name,email,password})}),verify:(token:string)=>api<{message:string}>(`/v1/auth/verify-email?token=${encodeURIComponent(token)}`),resendVerification:(email:string)=>api<{message:string}>("/v1/auth/resend-verification",{method:"POST",body:JSON.stringify({email})}),forgot:(email:string)=>api<{message:string}>("/v1/auth/forgot-password",{method:"POST",body:JSON.stringify({email})}),reset:(token:string,new_password:string)=>api<{message:string}>("/v1/auth/reset-password",{method:"POST",body:JSON.stringify({token,new_password})}),me:()=>api<User>("/v1/auth/me"),profile:()=>api<Client>("/v1/auth/profile"),updateProfile:(body:Partial<Client>)=>api<Client>("/v1/auth/profile",{method:"PATCH",body:JSON.stringify(body)}),changePassword:(body:{current_password:string;new_password:string})=>api<{message:string}>("/v1/auth/change-password",{method:"POST",body:JSON.stringify(body)}),logout:()=>api<{message:string}>("/v1/auth/logout",{method:"POST",body:JSON.stringify({refresh_token:tokenStore.refresh()})})};
 export const competitors={list:()=>api<Competitor[]>("/v1/competitors"),create:(body:Pick<Competitor,"name"|"domain">)=>api<Competitor>("/v1/competitors",{method:"POST",body:JSON.stringify(body)}),update:(id:string,body:Record<string,unknown>)=>api<Competitor>(`/v1/competitors/${id}`,{method:"PATCH",body:JSON.stringify(body)}),remove:(id:string)=>api<void>(`/v1/competitors/${id}`,{method:"DELETE"})};
 export const sources={list:(competitor_id?:string)=>api<Source[]>(`/v1/sources${competitor_id?`?competitor_id=${competitor_id}`:""}`),create:(body:Record<string,unknown>)=>api<Source>("/v1/sources",{method:"POST",body:JSON.stringify(body)}),update:(id:string,body:Record<string,unknown>)=>api<Source>(`/v1/sources/${id}`,{method:"PATCH",body:JSON.stringify(body)}),config:(id:string,body:Record<string,unknown>)=>api<SourceConfig>(`/v1/sources/${id}/configuration`,{method:"PATCH",body:JSON.stringify(body)}),remove:(id:string)=>api<void>(`/v1/sources/${id}`,{method:"DELETE"})};

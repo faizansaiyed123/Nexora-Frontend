@@ -1,5 +1,6 @@
 import { Children, cloneElement, useEffect, useId, useRef, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactElement, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
-import { AlertTriangle, Check, CheckCircle2, ChevronDown, Info, Loader2, Sparkles, X } from "lucide-react";
+import { AlertTriangle, Check, CheckCircle2, ChevronDown, Info, Loader2, Sparkles, Timer, X } from "lucide-react";
+import { formatRateLimitCountdown, useRateLimitCountdown } from "../rateLimit";
 
 type ButtonVariant = "primary" | "secondary" | "danger" | "ghost";
 
@@ -11,6 +12,7 @@ export function Button({
   disabled = false,
   className = "",
   loading = false,
+  rateLimitKey,
 }: {
   children: ReactNode;
   onClick?: () => void;
@@ -19,17 +21,57 @@ export function Button({
   disabled?: boolean;
   className?: string;
   loading?: boolean;
+  /** API path which owns this button's server-enforced rate limit. */
+  rateLimitKey?: string;
 }) {
+  const retrySeconds = useRateLimitCountdown(rateLimitKey);
+  const rateLimited = retrySeconds > 0;
+  const countdown = formatRateLimitCountdown(retrySeconds);
+
   return (
     <button
-      className={"btn btn-" + variant + " " + className}
+      className={"btn btn-" + variant + " " + className + (rateLimited ? " is-rate-limited" : "")}
       onClick={onClick}
       type={type}
-      disabled={disabled || loading}
+      disabled={disabled || loading || rateLimited}
       aria-busy={loading}
+      aria-disabled={disabled || loading || rateLimited}
+      title={rateLimited ? `Try again in ${countdown}` : undefined}
     >
       {loading ? <Loader2 size={16} className="spin" /> : null}
-      {children}
+      {rateLimited ? <><Timer size={15} aria-hidden="true" /><span aria-live="polite">Try again in {countdown}</span></> : children}
+    </button>
+  );
+}
+
+export function RateLimitIconButton({
+  children,
+  onClick,
+  disabled = false,
+  title,
+  rateLimitKey,
+}: {
+  children: ReactNode;
+  onClick?: ButtonHTMLAttributes<HTMLButtonElement>["onClick"];
+  disabled?: boolean;
+  title: string;
+  rateLimitKey: string;
+}) {
+  const retrySeconds = useRateLimitCountdown(rateLimitKey);
+  const rateLimited = retrySeconds > 0;
+  const countdown = formatRateLimitCountdown(retrySeconds);
+  const label = rateLimited ? `Try again in ${countdown}` : title;
+
+  return (
+    <button
+      className={"icon-btn" + (rateLimited ? " is-rate-limited" : "")}
+      title={label}
+      aria-label={label}
+      aria-disabled={disabled || rateLimited}
+      disabled={disabled || rateLimited}
+      onClick={onClick}
+    >
+      {rateLimited ? <span className="rate-limit-icon-countdown" aria-live="polite">{countdown}</span> : children}
     </button>
   );
 }
