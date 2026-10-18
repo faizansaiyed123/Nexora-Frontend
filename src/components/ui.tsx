@@ -64,7 +64,7 @@ export function RateLimitIconButton({
 
   return (
     <button
-      className={"icon-btn" + (rateLimited ? " is-rate-limited" : "")}
+      className={"icon-btn rate-limit-icon-btn" + (rateLimited ? " is-rate-limited" : "")}
       title={label}
       aria-label={label}
       aria-disabled={disabled || rateLimited}

@@ -66,7 +66,7 @@ export class ApiError extends Error {
   }
 }
 
-async function buildApiError(path: string, res: Response, fallbackMessage?: string): Promise<ApiError> {
+async function buildApiError(path: string, res: Response, fallbackMessage?: string, rateLimitKey: string = path): Promise<ApiError> {
   let body: any = null;
   try {
     body = await res.json();
@@ -97,15 +97,15 @@ async function buildApiError(path: string, res: Response, fallbackMessage?: stri
             ? parsedMessageValue
             : 60;
     retryAfterSeconds = Math.max(1, Math.ceil(rawRetryAfter));
-    reportRateLimit(path, retryAfterSeconds);
+    reportRateLimit(rateLimitKey, retryAfterSeconds);
   }
 
   return new ApiError(message, res.status, code, retryAfterSeconds, path);
 }
 
-export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
+export async function api<T>(path: string, init: RequestInit = {}, rateLimitKey: string = path): Promise<T> {
   const res = await authed(path, init);
-  if (!res.ok) throw await buildApiError(path, res);
+  if (!res.ok) throw await buildApiError(path, res, undefined, rateLimitKey);
   if (res.status === 204) return undefined as T;
   return await res.json() as T;
 }
@@ -114,7 +114,7 @@ export const auth={login:(email:string,password:string)=>api<AuthResponse>("/v1/
 export const competitors={list:()=>api<Competitor[]>("/v1/competitors"),create:(body:Pick<Competitor,"name"|"domain">)=>api<Competitor>("/v1/competitors",{method:"POST",body:JSON.stringify(body)}),update:(id:string,body:Record<string,unknown>)=>api<Competitor>(`/v1/competitors/${id}`,{method:"PATCH",body:JSON.stringify(body)}),remove:(id:string)=>api<void>(`/v1/competitors/${id}`,{method:"DELETE"})};
 export const sources={list:(competitor_id?:string)=>api<Source[]>(`/v1/sources${competitor_id?`?competitor_id=${competitor_id}`:""}`),create:(body:Record<string,unknown>)=>api<Source>("/v1/sources",{method:"POST",body:JSON.stringify(body)}),update:(id:string,body:Record<string,unknown>)=>api<Source>(`/v1/sources/${id}`,{method:"PATCH",body:JSON.stringify(body)}),config:(id:string,body:Record<string,unknown>)=>api<SourceConfig>(`/v1/sources/${id}/configuration`,{method:"PATCH",body:JSON.stringify(body)}),remove:(id:string)=>api<void>(`/v1/sources/${id}`,{method:"DELETE"})};
 export const offerings={history:(id:string)=>api<OfferingHistory[]>(`/v1/offerings/${id}/history`),list:(params:Record<string,string|number|boolean|undefined>={})=>{const qs=new URLSearchParams();Object.entries(params).forEach(([k,v])=>v!==undefined&&qs.set(k,String(v)));return api<Pagination<Offering>>(`/v1/offerings?${qs}`)},get:(id:string)=>api<OfferingDetail>(`/v1/offerings/${id}`),create:(body:Record<string,unknown>)=>api<Offering>("/v1/offerings",{method:"POST",body:JSON.stringify(body)}),update:(id:string,body:Record<string,unknown>)=>api<Offering>(`/v1/offerings/${id}`,{method:"PATCH",body:JSON.stringify(body)}),archive:(id:string)=>api<void>(`/v1/offerings/${id}`,{method:"DELETE"}),monitor:(id:string)=>api<Record<string,unknown>>(`/v1/offerings/${id}/toggle-monitoring`,{method:"POST"}),bulk:(items:Record<string,unknown>[])=>api<Record<string,unknown>>("/v1/offerings/bulk",{method:"POST",body:JSON.stringify({items})}),bulkArchive:(offering_ids:string[])=>api<Record<string,unknown>>("/v1/offerings/bulk-archive",{method:"POST",body:JSON.stringify({offering_ids})}),fields:()=>api<import("./types").DynamicFieldDefinition[]>("/v1/offerings/fields"),createField:(body:Record<string,unknown>)=>api<import("./types").DynamicFieldDefinition>("/v1/offerings/fields",{method:"POST",body:JSON.stringify(body)}),removeField:(id:string)=>api<void>(`/v1/offerings/fields/${id}`,{method:"DELETE"}),export:(format:"csv"|"json")=>downloadFile(`/v1/offerings/export?format=${format}`)};
-export const matches={list:()=>api<Match[]>("/v1/offering-matches"),create:(body:Record<string,unknown>)=>api<Match>("/v1/offering-matches",{method:"POST",body:JSON.stringify(body)}),update:(id:string,body:Record<string,unknown>)=>api<Match>(`/v1/offering-matches/${id}`,{method:"PATCH",body:JSON.stringify(body)}),remove:(id:string)=>api<void>(`/v1/offering-matches/${id}`,{method:"DELETE"}),run:(id:string)=>api<Record<string,unknown>>(`/v1/collections/run?offering_match_id=${id}`,{method:"POST"})};
+export const matches={list:()=>api<Match[]>("/v1/offering-matches"),create:(body:Record<string,unknown>)=>api<Match>("/v1/offering-matches",{method:"POST",body:JSON.stringify(body)}),update:(id:string,body:Record<string,unknown>)=>api<Match>(`/v1/offering-matches/${id}`,{method:"PATCH",body:JSON.stringify(body)}),remove:(id:string)=>api<void>(`/v1/offering-matches/${id}`,{method:"DELETE"}),run:(id:string,sourceId?:string)=>api<Record<string,unknown>>(`/v1/collections/run?offering_match_id=${id}`,{method:"POST"},sourceId?`/v1/collections/source/${sourceId}`:"/v1/collections/run")};
 export const discovery={list:()=>api<DiscoveryJob[]>("/v1/discovery/jobs"),run:(body:{website_url:string;max_pages:number;default_offering_type:string})=>api<DiscoveryJob>("/v1/discovery/run",{method:"POST",body:JSON.stringify(body)}),get:(id:string)=>api<DiscoveryJob>(`/v1/discovery/jobs/${id}`)};
 export const jobs={list:()=>api<Job[]>("/v1/jobs"),get:(id:string)=>api<Job>(`/v1/jobs/${id}`)};
 export const alerts={listRules:()=>api<AlertRule[]>("/v1/alerts/rules"),createRule:(body:Record<string,unknown>)=>api<AlertRule>("/v1/alerts/rules",{method:"POST",body:JSON.stringify(body)}),updateRule:(id:string,body:Record<string,unknown>)=>api<AlertRule>(`/v1/alerts/rules/${id}`,{method:"PATCH",body:JSON.stringify(body)}),removeRule:(id:string)=>api<void>(`/v1/alerts/rules/${id}`,{method:"DELETE"}),listLogs:()=>api<AlertLog[]>("/v1/alerts/logs"),markRead:(id:string)=>api<AlertLog>(`/v1/alerts/logs/${id}/read`,{method:"PATCH"})};
