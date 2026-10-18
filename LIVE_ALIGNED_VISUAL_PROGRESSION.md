@@ -34,13 +34,25 @@ Every functional flow below is structured into an aligned chronological transiti
 | **During (Filled)** | `02_register_filled.png` | Form populated with enterprise tenant credentials | `Vanguard Global Intelligence`, `Elena Vance`, `elena.vance@vanguard-intel.io` |
 | **After (Success)** | `03_register_success.png` | Confirmation toast with transition prompt to secure sign-in | Tenant boundary established in PostgreSQL |
 
-![Initial Blank Registration Form](tests/screenshots_aligned/01_register_blank.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/01_register_blank.png">
+    <img src="tests/screenshots_aligned/01_register_blank.png" alt="Initial Blank Registration Form" width="1100" loading="lazy" />
+  </a>
+</p>
 *Initial Blank Registration Form*
 
-![Registration Form Populated with Real Enterprise Identity](tests/screenshots_aligned/02_register_filled.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/02_register_filled.png">
+    <img src="tests/screenshots_aligned/02_register_filled.png" alt="Registration Form Populated with Real Enterprise Identity" width="1100" loading="lazy" />
+  </a>
+</p>
 *Registration Form Populated with Real Enterprise Identity*
 
-![Workspace Created Confirmation](tests/screenshots_aligned/03_register_success.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/03_register_success.png">
+    <img src="tests/screenshots_aligned/03_register_success.png" alt="Workspace Created Confirmation" width="1100" loading="lazy" />
+  </a>
+</p>
 *Workspace Created Confirmation*
 
 ---
@@ -53,13 +65,25 @@ Every functional flow below is structured into an aligned chronological transiti
 | **During (Filled)** | `05_login_filled.png` | Login screen populated with real registered admin credentials | `elena.vance@vanguard-intel.io` |
 | **After (Dashboard)**| `06_dashboard_authenticated.png` | Full authenticated Command Center with status indicators | Session token active, ORG_ADMIN badge, system metrics |
 
-![Blank Login Interface](tests/screenshots_aligned/04_login_blank.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/04_login_blank.png">
+    <img src="tests/screenshots_aligned/04_login_blank.png" alt="Blank Login Interface" width="1100" loading="lazy" />
+  </a>
+</p>
 *Blank Login Interface*
 
-![Login with Authenticated Tenant Credentials](tests/screenshots_aligned/05_login_filled.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/05_login_filled.png">
+    <img src="tests/screenshots_aligned/05_login_filled.png" alt="Login with Authenticated Tenant Credentials" width="1100" loading="lazy" />
+  </a>
+</p>
 *Login with Authenticated Tenant Credentials*
 
-![Authenticated Operating Picture Dashboard](tests/screenshots_aligned/06_dashboard_authenticated.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/06_dashboard_authenticated.png">
+    <img src="tests/screenshots_aligned/06_dashboard_authenticated.png" alt="Authenticated Operating Picture Dashboard" width="1100" loading="lazy" />
+  </a>
+</p>
 *Authenticated Operating Picture Dashboard*
 
 ---
@@ -73,16 +97,32 @@ Every functional flow below is structured into an aligned chronological transiti
 | **After (Populated Table)**| `09_competitors_table_populated.png` | Table displaying multi-niche enterprise competitors | `AWS`, `Datadog`, `Snowflake` with `ACTIVE` badges |
 | **Action (Inline Edit)** | `10_competitor_edited.png` | Inline edit state updating entity classification | Renamed entity to `Snowflake Enterprise Cloud Corp` |
 
-![Add Competitor Modal (Initial Blank State)](tests/screenshots_aligned/07_competitor_modal_blank.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/07_competitor_modal_blank.png">
+    <img src="tests/screenshots_aligned/07_competitor_modal_blank.png" alt="Add Competitor Modal (Initial Blank State)" width="1100" loading="lazy" />
+  </a>
+</p>
 *Add Competitor Modal (Initial Blank State)*
 
-![Add Competitor Modal (Populated with AWS)](tests/screenshots_aligned/08_competitor_modal_filled.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/08_competitor_modal_filled.png">
+    <img src="tests/screenshots_aligned/08_competitor_modal_filled.png" alt="Add Competitor Modal (Populated with AWS)" width="1100" loading="lazy" />
+  </a>
+</p>
 *Add Competitor Modal (Populated with AWS)*
 
-![Competitors Table (Populated Multi-Niche Real Enterprises)](tests/screenshots_aligned/09_competitors_table_populated.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/09_competitors_table_populated.png">
+    <img src="tests/screenshots_aligned/09_competitors_table_populated.png" alt="Competitors Table (Populated Multi-Niche Real Enterprises)" width="1100" loading="lazy" />
+  </a>
+</p>
 *Competitors Table (Populated Multi-Niche Real Enterprises)*
 
-![Competitor Table After Inline Edit](tests/screenshots_aligned/10_competitor_edited.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/10_competitor_edited.png">
+    <img src="tests/screenshots_aligned/10_competitor_edited.png" alt="Competitor Table After Inline Edit" width="1100" loading="lazy" />
+  </a>
+</p>
 *Competitor Table After Inline Edit*
 
 ---
@@ -96,16 +136,32 @@ Every functional flow below is structured into an aligned chronological transiti
 | **After (Populated Table)**| `13_sources_table_populated.png` | Sources table showing multiple live collection endpoints | `AWS EC2`, `Datadog Pro Feed`, `Snowflake Catalog` (`HEALTHY`, `CLOSED`) |
 | **Action (Config Modal)** | `14_source_config_modal.png` | Technical configuration for rate limits, headers, and DOM selectors | `45 RPM`, `1.5s delay`, custom headers, custom extraction JSON |
 
-![Add Collection Source Modal (Blank State)](tests/screenshots_aligned/11_source_modal_blank.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/11_source_modal_blank.png">
+    <img src="tests/screenshots_aligned/11_source_modal_blank.png" alt="Add Collection Source Modal (Blank State)" width="1100" loading="lazy" />
+  </a>
+</p>
 *Add Collection Source Modal (Blank State)*
 
-![Add Collection Source Modal (Populated with AWS Feed)](tests/screenshots_aligned/12_source_modal_filled.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/12_source_modal_filled.png">
+    <img src="tests/screenshots_aligned/12_source_modal_filled.png" alt="Add Collection Source Modal (Populated with AWS Feed)" width="1100" loading="lazy" />
+  </a>
+</p>
 *Add Collection Source Modal (Populated with AWS Feed)*
 
-![Collection Sources Table (Populated Multi-Source Endpoints)](tests/screenshots_aligned/13_sources_table_populated.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/13_sources_table_populated.png">
+    <img src="tests/screenshots_aligned/13_sources_table_populated.png" alt="Collection Sources Table (Populated Multi-Source Endpoints)" width="1100" loading="lazy" />
+  </a>
+</p>
 *Collection Sources Table (Populated Multi-Source Endpoints)*
 
-![Source Ingestion Parameters Modal (Rate Limit & Selectors)](tests/screenshots_aligned/14_source_config_modal.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/14_source_config_modal.png">
+    <img src="tests/screenshots_aligned/14_source_config_modal.png" alt="Source Ingestion Parameters Modal (Rate Limit & Selectors)" width="1100" loading="lazy" />
+  </a>
+</p>
 *Source Ingestion Parameters Modal (Rate Limit & Selectors)*
 
 ---
@@ -122,25 +178,53 @@ Every functional flow below is structured into an aligned chronological transiti
 | **Action (Monitor Toggle)** | `20_monitoring_toggled.png` | Active monitoring status toggle interaction | State transitioned from PAUSED to MONITORED |
 | **Action (Filter Search)** | `21_catalog_filtered.png` | Dynamic client-side search filtering catalog table | Real-time search query for "Sentinel" |
 
-![Add Catalog Offering Modal (Blank State)](tests/screenshots_aligned/15_offering_modal_blank.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/15_offering_modal_blank.png">
+    <img src="tests/screenshots_aligned/15_offering_modal_blank.png" alt="Add Catalog Offering Modal (Blank State)" width="1100" loading="lazy" />
+  </a>
+</p>
 *Add Catalog Offering Modal (Blank State)*
 
-![Add Catalog Offering Modal (Populated Real Product Data)](tests/screenshots_aligned/16_offering_modal_filled.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/16_offering_modal_filled.png">
+    <img src="tests/screenshots_aligned/16_offering_modal_filled.png" alt="Add Catalog Offering Modal (Populated Real Product Data)" width="1100" loading="lazy" />
+  </a>
+</p>
 *Add Catalog Offering Modal (Populated Real Product Data)*
 
-![Offerings Catalog Table (Populated Real Enterprise Products)](tests/screenshots_aligned/17_offerings_catalog_populated.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/17_offerings_catalog_populated.png">
+    <img src="tests/screenshots_aligned/17_offerings_catalog_populated.png" alt="Offerings Catalog Table (Populated Real Enterprise Products)" width="1100" loading="lazy" />
+  </a>
+</p>
 *Offerings Catalog Table (Populated Real Enterprise Products)*
 
-![Dynamic Field Definition Modal (Custom Schema Attribute)](tests/screenshots_aligned/18_dynamic_field_modal.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/18_dynamic_field_modal.png">
+    <img src="tests/screenshots_aligned/18_dynamic_field_modal.png" alt="Dynamic Field Definition Modal (Custom Schema Attribute)" width="1100" loading="lazy" />
+  </a>
+</p>
 *Dynamic Field Definition Modal (Custom Schema Attribute)*
 
-![Offering Detail Modal (Live Telemetry & Price Comparison)](tests/screenshots_aligned/19_offering_telemetry_modal.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/19_offering_telemetry_modal.png">
+    <img src="tests/screenshots_aligned/19_offering_telemetry_modal.png" alt="Offering Detail Modal (Live Telemetry & Price Comparison)" width="1100" loading="lazy" />
+  </a>
+</p>
 *Offering Detail Modal (Live Telemetry & Price Comparison)*
 
-![Offering Monitoring Toggled (Active Collection Monitoring Pill)](tests/screenshots_aligned/20_monitoring_toggled.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/20_monitoring_toggled.png">
+    <img src="tests/screenshots_aligned/20_monitoring_toggled.png" alt="Offering Monitoring Toggled (Active Collection Monitoring Pill)" width="1100" loading="lazy" />
+  </a>
+</p>
 *Offering Monitoring Toggled (Active Collection Monitoring Pill)*
 
-![Offerings Catalog Filtered (Real-Time Search for 'Sentinel')](tests/screenshots_aligned/21_catalog_filtered.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/21_catalog_filtered.png">
+    <img src="tests/screenshots_aligned/21_catalog_filtered.png" alt="Offerings Catalog Filtered (Real-Time Search for 'Sentinel')" width="1100" loading="lazy" />
+  </a>
+</p>
 *Offerings Catalog Filtered (Real-Time Search for 'Sentinel')*
 
 ---
@@ -154,16 +238,32 @@ Every functional flow below is structured into an aligned chronological transiti
 | **After (Populated Table)**| `24_matches_table_populated.png` | Offering Matches table displaying live pairings | `Nexora Merchant Engine` $\leftrightarrow$ `Datadog` (`100%`, `APPROVED`) |
 | **Action (Trigger Run)** | `25_collection_run_active.png` | Live collection run triggered directly from row action | Execution spinner active, dispatching scraper job |
 
-![Map Offering Match Modal (Blank State)](tests/screenshots_aligned/22_match_modal_blank.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/22_match_modal_blank.png">
+    <img src="tests/screenshots_aligned/22_match_modal_blank.png" alt="Map Offering Match Modal (Blank State)" width="1100" loading="lazy" />
+  </a>
+</p>
 *Map Offering Match Modal (Blank State)*
 
-![Map Offering Match Modal (Populated Real Competitor Pairing)](tests/screenshots_aligned/23_match_modal_filled.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/23_match_modal_filled.png">
+    <img src="tests/screenshots_aligned/23_match_modal_filled.png" alt="Map Offering Match Modal (Populated Real Competitor Pairing)" width="1100" loading="lazy" />
+  </a>
+</p>
 *Map Offering Match Modal (Populated Real Competitor Pairing)*
 
-![Offering Matches Table (Populated Live Benchmark Pairing)](tests/screenshots_aligned/24_matches_table_populated.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/24_matches_table_populated.png">
+    <img src="tests/screenshots_aligned/24_matches_table_populated.png" alt="Offering Matches Table (Populated Live Benchmark Pairing)" width="1100" loading="lazy" />
+  </a>
+</p>
 *Offering Matches Table (Populated Live Benchmark Pairing)*
 
-![Collection Run Triggered (Live Benchmark Execution Active)](tests/screenshots_aligned/25_collection_run_active.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/25_collection_run_active.png">
+    <img src="tests/screenshots_aligned/25_collection_run_active.png" alt="Collection Run Triggered (Live Benchmark Execution Active)" width="1100" loading="lazy" />
+  </a>
+</p>
 *Collection Run Triggered (Live Benchmark Execution Active)*
 
 ---
@@ -176,13 +276,25 @@ Every functional flow below is structured into an aligned chronological transiti
 | **During (Filled Form)** | `27_discovery_form_filled.png` | Form populated with live public storefront target | `https://www.datadoghq.com/pricing`, `5 pages`, `PRODUCT` type |
 | **After (Scan Active)** | `28_discovery_results_live.png` | Real-time crawl telemetry and candidate discovery | Discovery scanner active, evaluating DOM structure |
 
-![Website Discovery Engine (Initial Blank State)](tests/screenshots_aligned/26_discovery_form_blank.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/26_discovery_form_blank.png">
+    <img src="tests/screenshots_aligned/26_discovery_form_blank.png" alt="Website Discovery Engine (Initial Blank State)" width="1100" loading="lazy" />
+  </a>
+</p>
 *Website Discovery Engine (Initial Blank State)*
 
-![Website Discovery Engine (Populated Real Target Storefront)](tests/screenshots_aligned/27_discovery_form_filled.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/27_discovery_form_filled.png">
+    <img src="tests/screenshots_aligned/27_discovery_form_filled.png" alt="Website Discovery Engine (Populated Real Target Storefront)" width="1100" loading="lazy" />
+  </a>
+</p>
 *Website Discovery Engine (Populated Real Target Storefront)*
 
-![Website Discovery Scan Active (Scanning Storefront)](tests/screenshots_aligned/28_discovery_results_live.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/28_discovery_results_live.png">
+    <img src="tests/screenshots_aligned/28_discovery_results_live.png" alt="Website Discovery Scan Active (Scanning Storefront)" width="1100" loading="lazy" />
+  </a>
+</p>
 *Website Discovery Scan Active (Scanning Storefront)*
 
 ---
@@ -193,7 +305,11 @@ Every functional flow below is structured into an aligned chronological transiti
 | :--- | :--- | :--- | :--- |
 | **Telemetry State** | `29_jobs_telemetry_queue.png` | Real-time job execution queue showing task states | Ingestion jobs, execution durations, and processed item counters |
 
-![Background Jobs Queue (Real-Time Telemetry & Metrics)](tests/screenshots_aligned/29_jobs_telemetry_queue.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/29_jobs_telemetry_queue.png">
+    <img src="tests/screenshots_aligned/29_jobs_telemetry_queue.png" alt="Background Jobs Queue (Real-Time Telemetry & Metrics)" width="1100" loading="lazy" />
+  </a>
+</p>
 *Background Jobs Queue (Real-Time Telemetry & Metrics)*
 
 ---
@@ -206,13 +322,25 @@ Every functional flow below is structured into an aligned chronological transiti
 | **During (Filled Modal)** | `31_alert_modal_filled.png` | Populated rule with real percentage price drop threshold | `Datadog Pro Realtime Price Drop 10%`, threshold: `10%` |
 | **After (Populated Table)**| `32_alerts_table_populated.png` | Alerts dashboard showing active monitoring rule | `ACTIVE` rule, `PERCENTAGE DROP · 10%`, 0 unread alerts |
 
-![Add Alert Rule Modal (Blank State)](tests/screenshots_aligned/30_alert_modal_blank.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/30_alert_modal_blank.png">
+    <img src="tests/screenshots_aligned/30_alert_modal_blank.png" alt="Add Alert Rule Modal (Blank State)" width="1100" loading="lazy" />
+  </a>
+</p>
 *Add Alert Rule Modal (Blank State)*
 
-![Add Alert Rule Modal (Populated Real Drop Threshold 10%)](tests/screenshots_aligned/31_alert_modal_filled.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/31_alert_modal_filled.png">
+    <img src="tests/screenshots_aligned/31_alert_modal_filled.png" alt="Add Alert Rule Modal (Populated Real Drop Threshold 10%)" width="1100" loading="lazy" />
+  </a>
+</p>
 *Add Alert Rule Modal (Populated Real Drop Threshold 10%)*
 
-![Alerts & Event Log View (Active Alert Rules Configured)](tests/screenshots_aligned/32_alerts_table_populated.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/32_alerts_table_populated.png">
+    <img src="tests/screenshots_aligned/32_alerts_table_populated.png" alt="Alerts & Event Log View (Active Alert Rules Configured)" width="1100" loading="lazy" />
+  </a>
+</p>
 *Alerts & Event Log View (Active Alert Rules Configured)*
 
 ---
@@ -223,7 +351,11 @@ Every functional flow below is structured into an aligned chronological transiti
 | :--- | :--- | :--- | :--- |
 | **Populated Settings** | `33_settings_profile_populated.png` | Tenant workspace settings updated with corporate entity | `Vanguard Global Intelligence Systems Inc`, `Cloud Intelligence & Observability` |
 
-![Workspace Settings (Populated Enterprise Tenant Profile)](tests/screenshots_aligned/33_settings_profile_populated.png)
+<p align="center">
+  <a href="tests/screenshots_aligned/33_settings_profile_populated.png">
+    <img src="tests/screenshots_aligned/33_settings_profile_populated.png" alt="Workspace Settings (Populated Enterprise Tenant Profile)" width="1100" loading="lazy" />
+  </a>
+</p>
 *Workspace Settings (Populated Enterprise Tenant Profile)*
 
 ---
