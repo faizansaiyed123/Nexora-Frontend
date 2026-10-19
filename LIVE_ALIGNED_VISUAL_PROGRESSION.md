@@ -356,7 +356,7 @@ Every functional flow below is structured into an aligned chronological transiti
     <img src="tests/screenshots_aligned/33_settings_profile_populated.png" alt="Workspace Settings (Populated Enterprise Tenant Profile)" width="1100" loading="lazy" />
   </a>
 </p>
-*Workspace Settings (Populated Enterprise Tenant Profile)*
+Workspace Settings (Populated Enterprise Tenant Profile)
 
 ---
 
