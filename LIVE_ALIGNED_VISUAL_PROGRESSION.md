@@ -39,21 +39,21 @@ Every functional flow below is structured into an aligned chronological transiti
     <img src="tests/screenshots_aligned/01_register_blank.png" alt="Initial Blank Registration Form" width="1100" loading="lazy" />
   </a>
 </p>
-Initial Blank Registration Form
+<strong>Initial Blank Registration Form</strong>
 
 <p align="center">
   <a href="tests/screenshots_aligned/02_register_filled.png">
     <img src="tests/screenshots_aligned/02_register_filled.png" alt="Registration Form Populated with Real Enterprise Identity" width="1100" loading="lazy" />
   </a>
 </p>
-Registration Form Populated with Real Enterprise Identity
+<strong>Registration Form Populated with Real Enterprise Identity</strong>
 
 <p align="center">
   <a href="tests/screenshots_aligned/03_register_success.png">
     <img src="tests/screenshots_aligned/03_register_success.png" alt="Workspace Created Confirmation" width="1100" loading="lazy" />
   </a>
 </p>
-Workspace Created Confirmation
+<strong>Workspace Created Confirmation</strong>
 
 ---
 
@@ -70,21 +70,21 @@ Workspace Created Confirmation
     <img src="tests/screenshots_aligned/04_login_blank.png" alt="Blank Login Interface" width="1100" loading="lazy" />
   </a>
 </p>
-Blank Login Interface
+<strong>Blank Login Interface</strong>
 
 <p align="center">
   <a href="tests/screenshots_aligned/05_login_filled.png">
     <img src="tests/screenshots_aligned/05_login_filled.png" alt="Login with Authenticated Tenant Credentials" width="1100" loading="lazy" />
   </a>
 </p>
-Login with Authenticated Tenant Credentials
+<strong>Login with Authenticated Tenant Credentials</strong>
 
 <p align="center">
   <a href="tests/screenshots_aligned/06_dashboard_authenticated.png">
     <img src="tests/screenshots_aligned/06_dashboard_authenticated.png" alt="Authenticated Operating Picture Dashboard" width="1100" loading="lazy" />
   </a>
 </p>
-Authenticated Operating Picture Dashboard
+<strong>Authenticated Operating Picture Dashboard</strong>
 
 ---
 
@@ -102,28 +102,28 @@ Authenticated Operating Picture Dashboard
     <img src="tests/screenshots_aligned/07_competitor_modal_blank.png" alt="Add Competitor Modal (Initial Blank State)" width="1100" loading="lazy" />
   </a>
 </p>
-Add Competitor Modal (Initial Blank State)
+<strong>Add Competitor Modal (Initial Blank State)</strong>
 
 <p align="center">
   <a href="tests/screenshots_aligned/08_competitor_modal_filled.png">
     <img src="tests/screenshots_aligned/08_competitor_modal_filled.png" alt="Add Competitor Modal (Populated with AWS)" width="1100" loading="lazy" />
   </a>
 </p>
-Add Competitor Modal (Populated with AWS)
+<strong>Add Competitor Modal (Populated with AWS)</strong>
 
 <p align="center">
   <a href="tests/screenshots_aligned/09_competitors_table_populated.png">
     <img src="tests/screenshots_aligned/09_competitors_table_populated.png" alt="Competitors Table (Populated Multi-Niche Real Enterprises)" width="1100" loading="lazy" />
   </a>
 </p>
-Competitors Table (Populated Multi-Niche Real Enterprises)
+<strong>Competitors Table (Populated Multi-Niche Real Enterprises)</strong>
 
 <p align="center">
   <a href="tests/screenshots_aligned/10_competitor_edited.png">
     <img src="tests/screenshots_aligned/10_competitor_edited.png" alt="Competitor Table After Inline Edit" width="1100" loading="lazy" />
   </a>
 </p>
-Competitor Table After Inline Edit
+<strong>Competitor Table After Inline Edit</strong>
 
 ---
 
@@ -141,28 +141,28 @@ Competitor Table After Inline Edit
     <img src="tests/screenshots_aligned/11_source_modal_blank.png" alt="Add Collection Source Modal (Blank State)" width="1100" loading="lazy" />
   </a>
 </p>
-Add Collection Source Modal (Blank State)
+<strong>Add Collection Source Modal (Blank State)</strong>
 
 <p align="center">
   <a href="tests/screenshots_aligned/12_source_modal_filled.png">
     <img src="tests/screenshots_aligned/12_source_modal_filled.png" alt="Add Collection Source Modal (Populated with AWS Feed)" width="1100" loading="lazy" />
   </a>
 </p>
-Add Collection Source Modal (Populated with AWS Feed)
+<strong>Add Collection Source Modal (Populated with AWS Feed)</strong>
 
 <p align="center">
   <a href="tests/screenshots_aligned/13_sources_table_populated.png">
     <img src="tests/screenshots_aligned/13_sources_table_populated.png" alt="Collection Sources Table (Populated Multi-Source Endpoints)" width="1100" loading="lazy" />
   </a>
 </p>
-Collection Sources Table (Populated Multi-Source Endpoints)
+<strong>Collection Sources Table (Populated Multi-Source Endpoints)</strong>
 
 <p align="center">
   <a href="tests/screenshots_aligned/14_source_config_modal.png">
     <img src="tests/screenshots_aligned/14_source_config_modal.png" alt="Source Ingestion Parameters Modal (Rate Limit & Selectors)" width="1100" loading="lazy" />
   </a>
 </p>
-Source Ingestion Parameters Modal (Rate Limit & Selectors)
+<strong>Source Ingestion Parameters Modal (Rate Limit & Selectors)</strong>
 
 ---
 
@@ -183,49 +183,49 @@ Source Ingestion Parameters Modal (Rate Limit & Selectors)
     <img src="tests/screenshots_aligned/15_offering_modal_blank.png" alt="Add Catalog Offering Modal (Blank State)" width="1100" loading="lazy" />
   </a>
 </p>
-Add Catalog Offering Modal (Blank State)
+<strong>Add Catalog Offering Modal (Blank State)</strong>
 
 <p align="center">
   <a href="tests/screenshots_aligned/16_offering_modal_filled.png">
     <img src="tests/screenshots_aligned/16_offering_modal_filled.png" alt="Add Catalog Offering Modal (Populated Real Product Data)" width="1100" loading="lazy" />
   </a>
 </p>
-Add Catalog Offering Modal (Populated Real Product Data)
+<strong>Add Catalog Offering Modal (Populated Real Product Data)</strong>
 
 <p align="center">
   <a href="tests/screenshots_aligned/17_offerings_catalog_populated.png">
     <img src="tests/screenshots_aligned/17_offerings_catalog_populated.png" alt="Offerings Catalog Table (Populated Real Enterprise Products)" width="1100" loading="lazy" />
   </a>
 </p>
-Offerings Catalog Table (Populated Real Enterprise Products)
+<strong>Offerings Catalog Table (Populated Real Enterprise Products)</strong>
 
 <p align="center">
   <a href="tests/screenshots_aligned/18_dynamic_field_modal.png">
     <img src="tests/screenshots_aligned/18_dynamic_field_modal.png" alt="Dynamic Field Definition Modal (Custom Schema Attribute)" width="1100" loading="lazy" />
   </a>
 </p>
-Dynamic Field Definition Modal (Custom Schema Attribute)
+<strong>Dynamic Field Definition Modal (Custom Schema Attribute)</strong>
 
 <p align="center">
   <a href="tests/screenshots_aligned/19_offering_telemetry_modal.png">
     <img src="tests/screenshots_aligned/19_offering_telemetry_modal.png" alt="Offering Detail Modal (Live Telemetry & Price Comparison)" width="1100" loading="lazy" />
   </a>
 </p>
-Offering Detail Modal (Live Telemetry & Price Comparison)
+<strong>Offering Detail Modal (Live Telemetry & Price Comparison)</strong>
 
 <p align="center">
   <a href="tests/screenshots_aligned/20_monitoring_toggled.png">
     <img src="tests/screenshots_aligned/20_monitoring_toggled.png" alt="Offering Monitoring Toggled (Active Collection Monitoring Pill)" width="1100" loading="lazy" />
   </a>
 </p>
-Offering Monitoring Toggled (Active Collection Monitoring Pill)
+<strong>Offering Monitoring Toggled (Active Collection Monitoring Pill)</strong>
 
 <p align="center">
   <a href="tests/screenshots_aligned/21_catalog_filtered.png">
     <img src="tests/screenshots_aligned/21_catalog_filtered.png" alt="Offerings Catalog Filtered (Real-Time Search for 'Sentinel')" width="1100" loading="lazy" />
   </a>
 </p>
-Offerings Catalog Filtered (Real-Time Search for 'Sentinel')
+<strong>Offerings Catalog Filtered (Real-Time Search for 'Sentinel')</strong>
 
 ---
 
@@ -243,28 +243,28 @@ Offerings Catalog Filtered (Real-Time Search for 'Sentinel')
     <img src="tests/screenshots_aligned/22_match_modal_blank.png" alt="Map Offering Match Modal (Blank State)" width="1100" loading="lazy" />
   </a>
 </p>
-Map Offering Match Modal (Blank State)
+<strong>Map Offering Match Modal (Blank State)</strong>
 
 <p align="center">
   <a href="tests/screenshots_aligned/23_match_modal_filled.png">
     <img src="tests/screenshots_aligned/23_match_modal_filled.png" alt="Map Offering Match Modal (Populated Real Competitor Pairing)" width="1100" loading="lazy" />
   </a>
 </p>
-Map Offering Match Modal (Populated Real Competitor Pairing)
+<strong>Map Offering Match Modal (Populated Real Competitor Pairing)</strong>
 
 <p align="center">
   <a href="tests/screenshots_aligned/24_matches_table_populated.png">
     <img src="tests/screenshots_aligned/24_matches_table_populated.png" alt="Offering Matches Table (Populated Live Benchmark Pairing)" width="1100" loading="lazy" />
   </a>
 </p>
-Offering Matches Table (Populated Live Benchmark Pairing)
+<strong>Offering Matches Table (Populated Live Benchmark Pairing)</strong>
 
 <p align="center">
   <a href="tests/screenshots_aligned/25_collection_run_active.png">
     <img src="tests/screenshots_aligned/25_collection_run_active.png" alt="Collection Run Triggered (Live Benchmark Execution Active)" width="1100" loading="lazy" />
   </a>
 </p>
-Collection Run Triggered (Live Benchmark Execution Active)
+<strong>Collection Run Triggered (Live Benchmark Execution Active)</strong>
 
 ---
 
@@ -281,21 +281,21 @@ Collection Run Triggered (Live Benchmark Execution Active)
     <img src="tests/screenshots_aligned/26_discovery_form_blank.png" alt="Website Discovery Engine (Initial Blank State)" width="1100" loading="lazy" />
   </a>
 </p>
-Website Discovery Engine (Initial Blank State)
+<strong>Website Discovery Engine (Initial Blank State)</strong>
 
 <p align="center">
   <a href="tests/screenshots_aligned/27_discovery_form_filled.png">
     <img src="tests/screenshots_aligned/27_discovery_form_filled.png" alt="Website Discovery Engine (Populated Real Target Storefront)" width="1100" loading="lazy" />
   </a>
 </p>
-Website Discovery Engine (Populated Real Target Storefront)
+<strong>Website Discovery Engine (Populated Real Target Storefront)</strong>
 
 <p align="center">
   <a href="tests/screenshots_aligned/28_discovery_results_live.png">
     <img src="tests/screenshots_aligned/28_discovery_results_live.png" alt="Website Discovery Scan Active (Scanning Storefront)" width="1100" loading="lazy" />
   </a>
 </p>
-Website Discovery Scan Active (Scanning Storefront)
+<strong>Website Discovery Scan Active (Scanning Storefront)</strong>
 
 ---
 
@@ -310,7 +310,7 @@ Website Discovery Scan Active (Scanning Storefront)
     <img src="tests/screenshots_aligned/29_jobs_telemetry_queue.png" alt="Background Jobs Queue (Real-Time Telemetry & Metrics)" width="1100" loading="lazy" />
   </a>
 </p>
-Background Jobs Queue (Real-Time Telemetry & Metrics)
+<strong>Background Jobs Queue (Real-Time Telemetry & Metrics)</strong>
 
 ---
 
@@ -327,21 +327,21 @@ Background Jobs Queue (Real-Time Telemetry & Metrics)
     <img src="tests/screenshots_aligned/30_alert_modal_blank.png" alt="Add Alert Rule Modal (Blank State)" width="1100" loading="lazy" />
   </a>
 </p>
-Add Alert Rule Modal (Blank State)
+<strong>Add Alert Rule Modal (Blank State)</strong>
 
 <p align="center">
   <a href="tests/screenshots_aligned/31_alert_modal_filled.png">
     <img src="tests/screenshots_aligned/31_alert_modal_filled.png" alt="Add Alert Rule Modal (Populated Real Drop Threshold 10%)" width="1100" loading="lazy" />
   </a>
 </p>
-Add Alert Rule Modal (Populated Real Drop Threshold 10%)
+<strong>Add Alert Rule Modal (Populated Real Drop Threshold 10%)</strong>
 
 <p align="center">
   <a href="tests/screenshots_aligned/32_alerts_table_populated.png">
     <img src="tests/screenshots_aligned/32_alerts_table_populated.png" alt="Alerts & Event Log View (Active Alert Rules Configured)" width="1100" loading="lazy" />
   </a>
 </p>
-Alerts & Event Log View (Active Alert Rules Configured)
+<strong>Alerts & Event Log View (Active Alert Rules Configured)</strong>
 
 ---
 
@@ -356,7 +356,7 @@ Alerts & Event Log View (Active Alert Rules Configured)
     <img src="tests/screenshots_aligned/33_settings_profile_populated.png" alt="Workspace Settings (Populated Enterprise Tenant Profile)" width="1100" loading="lazy" />
   </a>
 </p>
-Workspace Settings (Populated Enterprise Tenant Profile)
+<strong>Workspace Settings (Populated Enterprise Tenant Profile)</strong>
 
 ---
 
