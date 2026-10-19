@@ -223,13 +223,29 @@ export function Select({
           id={props.id ?? generatedId}
           aria-invalid={Boolean(error)}
           aria-describedby={describedBy}
-          style={{ display: "none" }}
+          aria-required={props.required}
+          className="sr-only"
+          tabIndex={-1}
+          style={{
+            position: "absolute",
+            width: "1px",
+            height: "1px",
+            padding: 0,
+            margin: "-1px",
+            overflow: "hidden",
+            clip: "rect(0, 0, 0, 0)",
+            whiteSpace: "nowrap",
+            border: 0,
+            opacity: 0,
+            pointerEvents: "none",
+          }}
           value={controlled ? props.value : internalValue}
           onChange={event => {
             if (!controlled) setInternalValue(event.target.value);
             props.onChange?.(event);
           }}
           {...props}
+          required={false}
         >{children}</select>
 
         <button
@@ -452,6 +468,8 @@ export function Card({
   return <section className={"card " + (interactive ? "card-interactive " : "") + className}>{children}</section>;
 }
 
+let openModalsCount = 0;
+
 export function Modal({
   open,
   onClose,
@@ -468,10 +486,14 @@ export function Modal({
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
     };
+    openModalsCount++;
     document.body.classList.add("modal-open");
     window.addEventListener("keydown", onKeyDown);
     return () => {
-      document.body.classList.remove("modal-open");
+      openModalsCount = Math.max(0, openModalsCount - 1);
+      if (openModalsCount === 0) {
+        document.body.classList.remove("modal-open");
+      }
       window.removeEventListener("keydown", onKeyDown);
     };
   }, [open, onClose]);
