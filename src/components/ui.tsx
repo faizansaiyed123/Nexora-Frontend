@@ -21,7 +21,6 @@ export function Button({
   disabled?: boolean;
   className?: string;
   loading?: boolean;
-  /** API path which owns this button's server-enforced rate limit. */
   rateLimitKey?: string;
 }) {
   const retrySeconds = useRateLimitCountdown(rateLimitKey);

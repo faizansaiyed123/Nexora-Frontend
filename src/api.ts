@@ -71,7 +71,6 @@ async function buildApiError(path: string, res: Response, fallbackMessage?: stri
   try {
     body = await res.json();
   } catch {
-    // Some gateway/proxy failures do not return JSON.
   }
 
   const message =

@@ -15,7 +15,6 @@ function getStorage(): Storage | undefined {
   }
 }
 
-/** Query variants of the same endpoint share the same cooldown in the UI. */
 export function normalizeRateLimitKey(path: string): string {
   const pathname = path.split("?")[0].replace(/\/+$/, "");
   return pathname || "/";
@@ -42,7 +41,6 @@ function readDeadlines(): DeadlineMap {
         }
       }
     } catch {
-      // Storage can be blocked or malformed; in-memory countdowns still work.
     }
   }
   return result;
@@ -56,7 +54,6 @@ function writeDeadlines(deadlines: DeadlineMap): void {
     try {
       storage.setItem(STORAGE_KEY, JSON.stringify(deadlines));
     } catch {
-      // Do not fail an API request because browser storage is unavailable.
     }
   }
 }

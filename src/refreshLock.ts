@@ -54,6 +54,5 @@ export function releaseRefreshLease(
       storage.removeItem(key);
     }
   } catch {
-    // Best effort. The lease will expire naturally.
   }
 }
