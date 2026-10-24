@@ -37,6 +37,18 @@ const types = [
   "RENTAL","COURSE","PACKAGE","LISTING","BOOKING","BUNDLE","SKU_BUNDLE","CUSTOM",
 ];
 
+type BulkImportResult = {
+  total_processed: number;
+  successful_count: number;
+  failed_count: number;
+  errors: Array<{
+    index: number;
+    sku?: string | null;
+    name?: string | null;
+    error: string;
+  }>;
+};
+
 type OfferingForm = {
   name: string;
   offering_type: string;
@@ -502,6 +514,34 @@ export default function Offerings() {
             <Button type="submit" disabled={saving}>{saving ? "Saving…" : editor ? "Save changes" : "Create offering"}</Button>
           </div>
         </form>
+      </Modal>
+
+      <Modal open={!!importResult} onClose={() => setImportResult(null)} title="Bulk import results">
+        {importResult ? (
+          <div className="stack">
+            <div className="metric-grid compact">
+              <div className="metric-card"><span>Rows processed</span><strong>{importResult.total_processed}</strong></div>
+              <div className="metric-card"><span>Imported</span><strong>{importResult.successful_count}</strong></div>
+              <div className="metric-card"><span>Rejected</span><strong>{importResult.failed_count}</strong></div>
+            </div>
+            {importResult.errors.length ? (
+              <div className="list" aria-label="Rejected import rows">
+                {importResult.errors.map(error => (
+                  <div className="list-row" key={error.index}>
+                    <div>
+                      <strong>{`Row ${error.index + 1}: ${error.name || error.sku || "Offering"}`}</strong>
+                      <span>{error.error}</span>
+                    </div>
+                    <StatusPill value="REJECTED" />
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            <div className="modal-actions">
+              <Button onClick={() => setImportResult(null)}>Dismiss import results</Button>
+            </div>
+          </div>
+        ) : null}
       </Modal>
 
       <Modal open={!!detail} onClose={closeDetail} title={detail?.name || "Offering detail"}>
