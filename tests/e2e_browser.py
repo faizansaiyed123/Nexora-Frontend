@@ -628,7 +628,8 @@ def main() -> None:
         page.get_by_role("link", name="Alerts", exact=True).click()
         rule_row = page.locator("div.list-row").filter(has_text="Sony retail price drop").first
         rule_row.get_by_title("Edit rule", exact=True).click()
-        page.get_by_label("Threshold").fill("15")
+        edit_rule_dialog = page.get_by_role("dialog", name="Edit alert rule", exact=True)
+        edit_rule_dialog.get_by_label("Threshold").fill("15")
         with page.expect_response(lambda r: r.url.endswith(f"/v1/alerts/rules/{rule_id}") and r.request.method == "PATCH") as rule_edit:
             page.get_by_role("button", name="Save changes", exact=True).click()
         assert rule_edit.value.status == 200, rule_edit.value.text()
