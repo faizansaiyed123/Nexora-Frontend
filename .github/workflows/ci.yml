@@ -195,7 +195,6 @@ jobs:
         run: |
           python - <<'PY'
           import json
-          import re
           from pathlib import Path
 
           folder = Path("docs/testing/visuals")
@@ -204,7 +203,11 @@ jobs:
               raise SystemExit(f"Expected 47 walkthrough screenshots; found {len(screenshots)}")
 
           walkthrough = Path("docs/testing/VISUAL-TEST-WALKTHROUGH.md").read_text(encoding="utf-8")
-          referenced = set(re.findall(r"visuals/([^)/\\s]+\\.png)", walkthrough))
+          referenced = {
+              line.split("visuals/", 1)[1].split(")", 1)[0]
+              for line in walkthrough.splitlines()
+              if "visuals/" in line and ".png)" in line
+          }
           available = {item.name for item in screenshots}
           if referenced != available:
               raise SystemExit(
@@ -233,7 +236,7 @@ jobs:
               },
           }
           Path("docs/testing/visual-manifest.json").write_text(
-              json.dumps(manifest, indent=2) + "\\n", encoding="utf-8"
+              json.dumps(manifest, indent=2), encoding="utf-8"
           )
           print(f"Manifest created for {len(screenshots)} walkthrough screenshots.")
           PY
@@ -245,6 +248,7 @@ jobs:
           name: nexora-visual-walkthrough
           path: |
             docs/testing/visuals/
+            docs/testing/visual-manifest.json
             /tmp/nexora-health.json
             /tmp/nexora-api.log
             /tmp/nexora-frontend.log
