@@ -16,7 +16,7 @@ permissions:
 
 concurrency:
   group: nexora-connected-walkthrough-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   connected-journey:
