@@ -444,7 +444,7 @@ def main() -> None:
 
         page.get_by_role("link", name="Jobs", exact=True).click()
         page.get_by_role("heading", name="Jobs", exact=True).last.wait_for()
-        page.get_by_text("ON DEMAND REFRESH", exact=False).wait_for()
+        page.locator("tbody tr").filter(has_text="ON DEMAND REFRESH").first.wait_for()
         shot(page, "30-collection-job-history.png")
         page.get_by_role("button", name="Details", exact=True).first.click()
         page.get_by_text("Job ID", exact=True).wait_for()
