@@ -234,7 +234,9 @@ jobs:
             /tmp/nexora-api.log
             /tmp/nexora-smtp.log
             /tmp/nexora-frontend.log
+            /tmp/nexora-worker.log
             /tmp/nexora-health.json
+            /tmp/nexora-scheduled-job-db-evidence.json
             /tmp/nexora-db-evidence.json
           retention-days: 21
 
@@ -273,3 +275,5 @@ jobs:
           cat /tmp/nexora-smtp.log 2>/dev/null || true
           echo "===== Frontend ====="
           cat /tmp/nexora-frontend.log 2>/dev/null || true
+          echo "===== Celery worker ====="
+          cat /tmp/nexora-worker.log 2>/dev/null || true
