@@ -1,0 +1,183 @@
+name: Nexora Visitor Walkthrough
+
+on:
+  push:
+    branches:
+      - main
+      - "feat/**"
+      - "audit/**"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  browser-journey:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/nexora
+      REDIS_URL: redis://localhost:6379/0
+      JWT_SECRET_KEY: nexora-ci-only-signing-key-keep-out-of-production-0001
+      ENVIRONMENT: development
+      ALLOWED_HOSTS: 127.0.0.1,localhost
+      CORS_ORIGINS: http://127.0.0.1:4173,http://localhost:4173,http://127.0.0.1:5173,http://localhost:5173
+      EMAIL_VERIFICATION_BYPASS: "false"
+      RATE_LIMIT_ENABLED: "true"
+      RATE_LIMIT_LOGIN_PER_MINUTE: "100"
+      RATE_LIMIT_REGISTER_PER_HOUR: "100"
+      RATE_LIMIT_FORGOT_PASSWORD_PER_HOUR: "100"
+      RATE_LIMIT_RESEND_VERIFICATION_PER_HOUR: "100"
+      SMTP_HOST: 127.0.0.1
+      SMTP_PORT: "2525"
+      SMTP_USERNAME: ci
+      SMTP_PASSWORD: ci-test-only-credential
+      SMTP_FROM_EMAIL: noreply@nexora.example.com
+      SMTP_FROM_NAME: Nexora
+      FRONTEND_URL: http://127.0.0.1:4173
+      GEMINI_DISCOVERY_ENABLED: "false"
+      AUTO_RENDER_ENABLED: "false"
+      NEXORA_FRONTEND_URL: http://127.0.0.1:4173
+      NEXORA_API_URL: http://127.0.0.1:8000
+      NEXORA_MAILBOX: /tmp/nexora-mailbox.jsonl
+    services:
+      postgres:
+        image: postgres:18.6-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: nexora
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d nexora"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      redis:
+        image: redis:7.4.11-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    steps:
+      - name: Check out frontend
+        uses: actions/checkout@v4
+      - name: Check out backend
+        uses: actions/checkout@v4
+        with:
+          repository: faizansaiyed123/Nexora-backend
+          ref: main
+          path: backend-repo
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install uv and email sink dependency
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "uv==0.10.0" "aiosmtpd>=1.4,<2"
+      - name: Install backend dependencies
+        working-directory: backend-repo
+        run: uv sync --python 3.12
+      - name: Apply PostgreSQL migrations
+        working-directory: backend-repo
+        run: uv run --python 3.12 alembic upgrade head
+      - name: Install Chromium
+        working-directory: backend-repo
+        run: uv run --python 3.12 playwright install --with-deps chromium
+      - name: Build frontend for the isolated environment
+        run: |
+          npm ci
+          npm run test:security
+          VITE_API_URL=http://127.0.0.1:8000 VITE_API_BUILD_MODE=development npm run build
+      - name: Create a trusted local STARTTLS certificate
+        run: |
+          openssl req -x509 -newkey rsa:2048 -nodes \
+            -keyout /tmp/nexora-smtp.key \
+            -out /tmp/nexora-smtp.crt \
+            -days 2 -subj "/CN=127.0.0.1" \
+            -addext "subjectAltName=IP:127.0.0.1,DNS:localhost"
+          sudo cp /tmp/nexora-smtp.crt /usr/local/share/ca-certificates/nexora-ci-smtp.crt
+          sudo update-ca-certificates
+      - name: Start isolated SMTP inbox
+        working-directory: backend-repo
+        run: |
+          nohup python tests/support/smtp_sink.py \
+            --host 127.0.0.1 --port 2525 \
+            --cert /tmp/nexora-smtp.crt --key /tmp/nexora-smtp.key \
+            --outbox /tmp/nexora-mailbox.jsonl \
+            >/tmp/nexora-smtp.log 2>&1 &
+          for i in $(seq 1 30); do
+            if grep -q "STARTTLS inbox ready" /tmp/nexora-smtp.log; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/nexora-smtp.log
+          exit 1
+      - name: Start FastAPI
+        working-directory: backend-repo
+        run: |
+          nohup uv run --python 3.12 uvicorn backend.main:app \
+            --host 127.0.0.1 --port 8000 \
+            >/tmp/nexora-api.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:8000/v1/health >/tmp/nexora-health.json; then
+              cat /tmp/nexora-health.json
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/nexora-api.log
+          exit 1
+      - name: Start frontend preview
+        run: |
+          nohup npm run preview -- --host 127.0.0.1 >/tmp/nexora-frontend.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4173/welcome >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/nexora-frontend.log
+          exit 1
+      - name: Run full visitor journey
+        run: uv run --project backend-repo --python 3.12 python backend-repo/tests/browser_walkthrough.py
+      - name: Attach screenshots and service logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexora-visitor-walkthrough
+          path: |
+            docs/walkthrough/screenshots/
+            /tmp/nexora-api.log
+            /tmp/nexora-smtp.log
+            /tmp/nexora-frontend.log
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Publish successful visitor screenshots
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/walkthrough/screenshots/
+          if git diff --cached --quiet; then
+            echo "Visitor screenshots are already current."
+          else
+            git commit -m "Refresh Nexora visitor walkthrough screenshots"
+            git push origin HEAD:main
+          fi
+      - name: Print service logs on failure
+        if: failure()
+        run: |
+          echo "===== FastAPI ====="; cat /tmp/nexora-api.log || true
+          echo "===== SMTP ====="; cat /tmp/nexora-smtp.log || true
+          echo "===== Frontend ====="; cat /tmp/nexora-frontend.log || true
