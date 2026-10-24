@@ -314,7 +314,7 @@ async def assert_discovered_offering(
             "created_via": offering.created_via.value,
         }
     Path("/tmp/nexora-discovery-db-evidence.json").write_text(
-        json.dumps(evidence, indent=2) + "\\n", encoding="utf-8"
+        json.dumps(evidence, indent=2) + "\n", encoding="utf-8"
     )
     print("DISCOVERY POSTGRESQL READ-BACK: " + json.dumps(evidence, sort_keys=True), flush=True)
     return evidence
