@@ -184,7 +184,6 @@ def main():
         page.get_by_role("button",name="Cancel",exact=True).click()
         page.locator("tbody tr").filter(has_text="Retail Product Reference").first.locator("button").first.click()
         page.get_by_label("Name").fill("Retail Product Reference Official")
-        call(page,"/v1/competitors/","PATCH",lambda:page.get_by_role("button",name="Save competitor",exact=True).click()) if False else None
         with page.expect_response(lambda r:f"/v1/competitors/{competitor_id}" in r.url and r.request.method=="PATCH") as ev:
             page.get_by_role("button",name="Save competitor",exact=True).click()
         assert ev.value.status==200,ev.value.text()
