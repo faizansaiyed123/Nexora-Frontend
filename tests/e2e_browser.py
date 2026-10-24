@@ -203,7 +203,7 @@ async def assert_persisted_market_state(
             "tenant_id": str(client_id),
         }
     Path("/tmp/nexora-db-evidence.json").write_text(
-        json.dumps(evidence, indent=2) + "\\n", encoding="utf-8"
+        json.dumps(evidence, indent=2) + "\n", encoding="utf-8"
     )
     print("DIRECT POSTGRESQL READ-BACK: " + json.dumps(evidence, sort_keys=True), flush=True)
     return evidence
