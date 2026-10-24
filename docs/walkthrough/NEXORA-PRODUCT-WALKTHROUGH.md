@@ -132,11 +132,11 @@ The same workspace can support analysts who inspect market data and initiate dis
 
 ## 9. Live public price reference
 
-The connected example also reads the [Sony Electronics official storefront](https://electronics.sony.com/audio/headphones/headband/p/wh1000xm5-b) through the browser-rendering collection path. This observation is captured at run time rather than assigned a fixed price, because retail prices can change by date and market.
+The connected example also reads the [Sony Center retail listing](https://shopatsc.com/collections/all/products/wh1000xm5-pmin) at run time rather than assigning a fixed price, because retail prices can change by date and market.
 
-![Live Sony official-store source](screenshots/45-live-official-source.png)
+![Live Sony Center retail source](screenshots/45-live-retail-source.png)
 
-![Live retail price in the offering comparison](screenshots/46-live-price-comparison.png)
+![Live retail price in the offering comparison](screenshots/46-live-retail-price-comparison.png)
 
 ## 10. Designed for smaller screens
 

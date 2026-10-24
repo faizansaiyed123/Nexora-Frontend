@@ -132,11 +132,11 @@ Analysts can inspect intelligence and run discovery while administrative changes
 
 ## Live public price reference
 
-The same workflow can collect a live product page from the [Sony Electronics store](https://electronics.sony.com/audio/headphones/headband/p/wh1000xm5-b). Unlike the controlled retail pages used to make alert scenarios reproducible, this observation reads the public storefront at run time, so the price can vary by date and region.
+The same workflow can collect a live product page from the [Sony Center retail store](https://shopatsc.com/collections/all/products/wh1000xm5-pmin). Unlike the controlled retail pages used to make alert scenarios reproducible, this observation reads the public storefront at run time, so the price can vary by date and region.
 
-![Live Sony official-store source](./screenshots/45-live-official-source.png)
+![Live Sony Center retail source](./screenshots/45-live-retail-source.png)
 
-![Live retail price in Nexora's offering comparison](./screenshots/46-live-price-comparison.png)
+![Live retail price in Nexora's offering comparison](./screenshots/46-live-retail-price-comparison.png)
 
 ## Responsive public experience
 

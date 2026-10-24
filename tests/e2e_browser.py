@@ -164,7 +164,7 @@ async def assert_live_collection_persisted(
         assert source is not None
         competitor = await session.get(CompetitorModel, source.competitor_id)
         assert competitor is not None and competitor.client_id == client_id
-        assert competitor.domain == "electronics.sony.com", competitor.domain
+        assert competitor.domain == "shopatsc.com", competitor.domain
         observations = list((await session.scalars(
             select(ObservationModel)
             .where(ObservationModel.offering_match_id == match_id)
@@ -823,11 +823,11 @@ def main() -> None:
         assert all(row["id"] != super_competitor_id for row in api_get(page, "/v1/competitors"))
 
         # In addition to deterministic fixture pages for the alert scenario, collect an
-        # actual public product page from Sony's official US storefront. Its price may
+        # actual public product page from the Sony Center retail store. Its price may
         # change by region/date, so the assertion checks valid extracted data, not a fixed amount.
-        live_competitor_name = "Sony Electronics Store"
-        live_source_name = "Sony WH-1000XM5 Official Store"
-        live_url = "https://electronics.sony.com/audio/headphones/headband/p/wh1000xm5-b"
+        live_competitor_name = "Sony Center Retail Store"
+        live_source_name = "Sony Center WH-1000XM5 Retail Page"
+        live_url = "https://shopatsc.com/collections/all/products/wh1000xm5-pmin"
         page.get_by_role("button", name="Add competitor", exact=True).click()
         page.get_by_label("Name").fill(live_competitor_name)
         page.get_by_label("Domain").fill("electronics.sony.com")
@@ -843,7 +843,7 @@ def main() -> None:
         page.get_by_label("Source name").fill(live_source_name)
         page.get_by_label("Base URL").fill(live_url)
         choose(page, "Source type", "OFFICIAL_STORE")
-        choose(page, "Collection method", "PLAYWRIGHT_BROWSER")
+        choose(page, "Collection method", "HTTP_FAST")
         with page.expect_response(lambda r: r.url.endswith("/v1/sources") and r.request.method == "POST") as live_source_event:
             page.get_by_role("button", name="Create source", exact=True).click()
         assert live_source_event.value.status == 201, live_source_event.value.text()
@@ -856,14 +856,19 @@ def main() -> None:
         input_field(page, "Timeout seconds").fill("45")
         input_field(page, "Max retries").fill("0")
         page.get_by_label("Custom headers (JSON)").fill('{"Accept-Language":"en-US,en;q=0.9"}')
-        page.get_by_label("Extraction selectors (JSON)").fill("{}")
+        page.get_by_label("Extraction selectors (JSON)").fill(
+            '{"price_selector":"[itemprop=\'price\'], [data-price], [data-product-price], .price-item--sale, .price-item--regular, .price",'
+            '"name_selector":"h1, [itemprop=\'name\']",'
+            '"sku_selector":"[itemprop=\'sku\'], [data-sku]"}'
+        )
         with page.expect_response(lambda r: r.url.endswith(f"/v1/sources/{live_source_id}/configuration") and r.request.method == "PATCH") as live_config_event:
             page.get_by_role("button", name="Save configuration", exact=True).click()
         assert live_config_event.value.status == 200, live_config_event.value.text()
         live_source = api_get(page, f"/v1/sources/{live_source_id}")
-        assert live_source["configuration"]["requires_javascript"] is True
+        assert live_source["configuration"]["requires_javascript"] is False
+        assert live_source["configuration"]["extraction_selectors"]["price_selector"]
         assert live_source["base_url"] == live_url
-        shot(page, "45-live-official-source.png")
+        shot(page, "45-live-retail-source.png")
 
         page.get_by_role("link", name="Matches", exact=True).click()
         page.get_by_role("button", name="Add match", exact=True).click()
@@ -902,7 +907,7 @@ def main() -> None:
         screenshot_detail_text = page.get_by_role("dialog").inner_text()
         assert live_source_name in screenshot_detail_text, screenshot_detail_text
         assert live_url in screenshot_detail_text, screenshot_detail_text
-        shot(page, "46-live-price-comparison.png")
+        shot(page, "46-live-retail-price-comparison.png")
         page.keyboard.press("Escape")
 
         # Remove only the extra live-source records after evidence is captured.
