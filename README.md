@@ -18,4 +18,6 @@ The production build is served as a static SPA and is container-ready through th
 
 Explore Nexora through the [screen-by-screen visual product walkthrough](docs/walkthrough/README.md). It follows workspace setup, competitor and source configuration, catalogue management, price collection, alerts, discovery, account recovery, role permissions, tenant isolation, and mobile layouts.
 
+The central workflow is to register an offering, link it to a competitor listing, collect a price observation, compare a later observation, and review the resulting alert and job history. Workspace owners manage the market configuration; analysts can work with intelligence and discovery; viewers have read-only access.
+
 The walkthrough uses an example workspace and repeatable structured product pages to illustrate price movement. The displayed prices are examples, not current retail quotes.
