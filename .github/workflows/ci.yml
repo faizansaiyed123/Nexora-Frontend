@@ -43,6 +43,7 @@ jobs:
       NEXORA_API_URL: http://127.0.0.1:8000
       NEXORA_MAILBOX: /tmp/nexora-mailbox.jsonl
       NEXORA_SCREENSHOTS: docs/walkthrough/screenshots
+      NEXORA_BACKEND_ROOT: ${{ github.workspace }}/backend
     services:
       postgres:
         image: postgres:18.6-alpine
@@ -156,22 +157,6 @@ jobs:
             sleep 1
           done
           cat /tmp/nexora-api.log
-          exit 1
-
-      - name: Start Celery worker for queued notifications and scheduled collection
-        run: |
-          nohup uv run --project backend --python 3.12 celery \
-            -A backend.workers.celery_app:celery_app worker \
-            --pool=solo --concurrency=1 --loglevel=INFO \
-            > /tmp/nexora-worker.log 2>&1 &
-          for attempt in $(seq 1 60); do
-            if grep -qi "ready" /tmp/nexora-worker.log; then
-              echo "Celery worker is ready."
-              exit 0
-            fi
-            sleep 1
-          done
-          cat /tmp/nexora-worker.log
           exit 1
 
       - name: Install frontend dependencies
