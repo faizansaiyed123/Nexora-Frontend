@@ -11,3 +11,5 @@ To run the browser journey locally, follow the setup and environment values in `
 Each run also records browser screenshots at each workflow checkpoint and validates the final collection snapshot and notification state directly in PostgreSQL.
 
 The automation is exercised in CI against the current backend main branch; screenshots are committed only after the connected browser journey and PostgreSQL read-back complete successfully.
+
+The verification watcher deliberately accepts the `?token=` query string on the actual API request so it observes the real one-time-token response.
