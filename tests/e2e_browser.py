@@ -43,6 +43,10 @@ def choose(page: Page, label: str, option: str) -> None:
     field.locator("button.select-trigger").click()
     page.get_by_role("option", name=option, exact=True).last.click()
 
+def input_field(page: Page, label: str):
+    pattern = re.compile("^" + re.escape(label), re.IGNORECASE)
+    return page.locator("label.field").filter(has_text=pattern).last.locator("input").first
+
 def token(page: Page) -> str:
     value = page.evaluate("() => localStorage.getItem('nexora.access')")
     assert value, "No browser access token was saved after authentication."
@@ -93,7 +97,7 @@ def email_link(body: str, route: str) -> str:
 
 def login_ui(page: Page, email: str, password: str) -> None:
     page.get_by_label("Work email").fill(email)
-    page.get_by_label("Password").fill(password)
+    input_field(page, "Password").fill(password)
     with page.expect_response(lambda r: r.url.endswith("/v1/auth/login") and r.request.method == "POST") as event:
         page.get_by_role("button", name=re.compile("Sign in")).click()
     assert event.value.status == 200, event.value.text()
@@ -141,7 +145,7 @@ def main() -> None:
         page.get_by_label("Organization name").fill(ORGANIZATION)
         page.get_by_label("Your full name").fill(FULL_NAME)
         page.get_by_label("Work email").fill(EMAIL)
-        page.get_by_label("Password").fill(PASSWORD)
+        input_field(page, "Password").fill(PASSWORD)
         mail_start = len(mailbox())
         with page.expect_response(lambda r: r.url.endswith("/v1/auth/register") and r.request.method == "POST") as reg:
             page.get_by_role("button", name=re.compile("Create workspace")).click()
@@ -475,8 +479,8 @@ def main() -> None:
         assert profile.value.status == 200, profile.value.text()
         assert api_get(page, "/v1/auth/profile")["company_name"] == "Northstar Analytics"
         shot(page, "36-workspace-profile-updated.png")
-        page.get_by_label("Current password").fill(PASSWORD)
-        page.get_by_label("New password").fill(CHANGED_PASSWORD)
+        input_field(page, "Current password").fill(PASSWORD)
+        input_field(page, "New password").fill(CHANGED_PASSWORD)
         with page.expect_response(lambda r: r.url.endswith("/v1/auth/change-password") and r.request.method == "POST") as pw_change:
             page.get_by_role("button", name="Update password", exact=True).click()
         assert pw_change.value.status == 200, pw_change.value.text()
@@ -496,9 +500,9 @@ def main() -> None:
         _, reset_body = wait_email("Reset your Nexora password", EMAIL, reset_mail_start)
         reset_url = email_link(reset_body, "reset-password")
         page.goto(reset_url, wait_until="networkidle")
-        page.get_by_label("New password").wait_for()
+        input_field(page, "New password").wait_for()
         shot(page, "39-password-reset-form.png")
-        page.get_by_label("New password").fill(RESET_PASSWORD)
+        input_field(page, "New password").fill(RESET_PASSWORD)
         with page.expect_response(lambda r: r.url.endswith("/v1/auth/reset-password") and r.request.method == "POST") as reset:
             page.get_by_role("button", name="Update password", exact=True).click()
         assert reset.value.status == 200, reset.value.text()
