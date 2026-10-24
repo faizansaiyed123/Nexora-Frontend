@@ -15,7 +15,7 @@ Follow an example workspace from account setup through a price change detected o
 ### Verification message and one-time link
 ![Verification email sent](./screenshots/02-verification-email-sent.png)
 
-![Verify the account](./screenshots/03-email-verification-page.png)
+![Verify the account](./screenshots/03-verify-email.png)
 
 ![Email verified](./screenshots/04-email-verified.png)
 
@@ -64,15 +64,15 @@ Offerings carry a canonical product identity, SKU, price, market, category, moni
 
 ![Bulk import](./screenshots/19-bulk-import-form.png)
 
-![Import, export and archive](./screenshots/20-catalog-import-export-archive.png)
+![Import, export and archive](./screenshots/20-bulk-import-export-archive.png)
 
 ## Collect prices and act on a signal
 
 Connect an offering to a competitor URL, collect the first observation, and compare a later price. When a monitored price falls beyond the configured threshold, Nexora keeps a historical alert that can be reviewed and marked as read.
 
-![Map an offering to a competitor](./screenshots/21-offering-match-form.png)
+![Map an offering to a competitor](./screenshots/21-match-form.png)
 
-![Offering match](./screenshots/22-offering-match-created.png)
+![Offering match](./screenshots/22-offering-match.png)
 
 ![First observed price](./screenshots/23-first-price-observation.png)
 
@@ -80,13 +80,13 @@ Connect an offering to a competitor URL, collect the first observation, and comp
 
 ![Price alert rule](./screenshots/25-alert-rule-created.png)
 
-![Price alert and read state](./screenshots/26-alert-generated-and-read.png)
+![Price alert and read state](./screenshots/26-price-alert-and-read-state.png)
 
 ### Collection history
 
 The job stream provides a navigable record of collection activity and its outcome.
 
-![Collection jobs](./screenshots/27-collection-job-history.png)
+![Collection jobs](./screenshots/27-collection-jobs.png)
 
 ![Collection job detail](./screenshots/28-collection-job-detail.png)
 
@@ -96,9 +96,9 @@ Nexora can examine public pages for structured product evidence and merge discov
 
 ![Private targets are blocked](./screenshots/29-private-target-blocked.png)
 
-![Discovered product](./screenshots/30-discovery-product-created.png)
+![Discovered product](./screenshots/30-discovery-created.png)
 
-![Discovery update history](./screenshots/31-discovery-upsert-history.png)
+![Discovery update history](./screenshots/31-discovery-update-history.png)
 
 ## Workspace settings and account security
 
@@ -106,7 +106,7 @@ Nexora can examine public pages for structured product evidence and merge discov
 
 ![Workspace profile saved](./screenshots/33-workspace-profile-updated.png)
 
-![Password changed](./screenshots/34-password-changed.png)
+![Password changed](./screenshots/34-password-change.png)
 
 ![Request a password reset](./screenshots/35-password-reset-requested.png)
 
@@ -120,9 +120,9 @@ Nexora can examine public pages for structured product evidence and merge discov
 
 Analysts can inspect intelligence and run discovery while administrative catalog changes remain restricted. Viewer accounts can read the catalog without receiving write controls.
 
-![Analyst workspace](./screenshots/39-analyst-workspace.png)
+![Analyst workspace](./screenshots/39-analyst-access.png)
 
-![Read-only viewer workspace](./screenshots/40-viewer-read-only-workspace.png)
+![Read-only viewer workspace](./screenshots/40-viewer-read-only-access.png)
 
 ## Responsive public experience
 
