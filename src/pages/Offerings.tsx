@@ -516,34 +516,6 @@ export default function Offerings() {
         </form>
       </Modal>
 
-      <Modal open={!!importFeedback} onClose={() => setImportResult(null)} title="Bulk import results">
-        {importFeedback ? (
-          <div className="stack">
-            <div className="metric-grid compact">
-              <div className="metric-card"><span>Rows processed</span><strong>{importFeedback.total_processed}</strong></div>
-              <div className="metric-card"><span>Imported</span><strong>{importFeedback.successful_count}</strong></div>
-              <div className="metric-card"><span>Rejected</span><strong>{importFeedback.failed_count}</strong></div>
-            </div>
-            {importFeedback.errors.length ? (
-              <div className="list" aria-label="Rejected import rows">
-                {importFeedback.errors.map(error => (
-                  <div className="list-row" key={error.index}>
-                    <div>
-                      <strong>{`Row ${error.index + 1}: ${error.name || error.sku || "Offering"}`}</strong>
-                      <span>{error.error}</span>
-                    </div>
-                    <StatusPill value="REJECTED" />
-                  </div>
-                ))}
-              </div>
-            ) : null}
-            <div className="modal-actions">
-              <Button onClick={() => setImportResult(null)}>Dismiss import results</Button>
-            </div>
-          </div>
-        ) : null}
-      </Modal>
-
       <Modal open={!!detail} onClose={closeDetail} title={detail?.name || "Offering detail"}>
         {detailLoading ? <Spinner /> : detail && (
           <div className="detail-grid">
