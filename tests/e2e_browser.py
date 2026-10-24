@@ -645,12 +645,22 @@ def main() -> None:
         assert pagination_import.value.json()["successful_count"] == 51, pagination_import.value.text()
         page.get_by_placeholder("Search name, SKU, category…").fill("Pagination Demo Record")
         page.get_by_text("Page 1 of 2", exact=True).wait_for()
-        assert page.locator("tbody tr").count() == 50
+        page1_rows = page.locator("tbody tr")
+        page1_names = page1_rows.all_inner_texts()
+        assert len(page1_names) == 50, len(page1_names)
         assert page.get_by_role("button", name="Next", exact=True).is_enabled()
         page.get_by_role("button", name="Next", exact=True).click()
-        page.get_by_text("Pagination Demo Record 50", exact=True).wait_for(timeout=15000)
+        # Page state updates before the debounced API request starts; wait for its
+        # single returned row instead of treating the changing page label as ready.
+        page.wait_for_function(
+            "() => document.querySelectorAll('tbody tr').length === 1",
+            timeout=15000,
+        )
         page.get_by_text("Page 2 of 2", exact=True).wait_for()
-        assert page.locator("tbody tr").count() == 1
+        page2_names = page.locator("tbody tr").all_inner_texts()
+        assert len(page2_names) == 1, page2_names
+        assert "Pagination Demo Record" in page2_names[0], page2_names
+        assert page2_names[0] not in page1_names, {"page1": page1_names[-2:], "page2": page2_names}
         shot(page, "23c-catalog-pagination.png")
 
         pagination_query = "/v1/offerings?q=Pagination%20Demo%20Record&include_archived=true&page=1&page_size=100"
