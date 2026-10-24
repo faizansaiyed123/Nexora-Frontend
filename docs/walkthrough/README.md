@@ -46,7 +46,7 @@ Competitors represent the businesses to benchmark. A source identifies the publi
 
 ## 3. Build and maintain the product catalog
 
-Offerings carry the information needed for comparison: name, type, SKU, price, currency, market, category, description, and flexible attributes. The catalog supports editing, detail/history views, monitoring controls, custom field definitions, bulk import, row-level feedback, export, archive, filtering, and pagination.
+Offerings carry the information needed for comparison: name, type, SKU, price, currency, market, category, description, and flexible attributes. The catalog supports editing, detail/history views, monitoring controls, custom field definitions, bulk import, row-level feedback, export, archive, filtering, and pagination. When the catalog spans multiple pages, Next and Previous show the remaining saved records without changing catalog data.
 
 ![Create an offering](screenshots/14-offering-form.png)
 
