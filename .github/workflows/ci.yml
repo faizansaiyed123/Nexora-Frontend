@@ -7,7 +7,8 @@ on:
       - "feat/**"
       - "audit/**"
     paths-ignore:
-      - "docs/testing/**"
+      - "docs/testing/visuals/**"
+      - "docs/testing/visual-manifest.json"
       - "docs/walkthrough/screenshots/**"
       - "docs/walkthrough/manifest.json"
   pull_request:
