@@ -57,7 +57,22 @@ def token(page: Page) -> str:
     return str(value)
 
 def api_get(page: Page, path: str, expected: int = 200):
-    r = page.request.get(API + path, headers={"Authorization": f"Bearer {token(page)}"})
+    # Idempotent read-back calls can see a short TCP reset while the local
+    # Uvicorn process is busy with another browser request. Retry only transport
+    # errors; HTTP errors and application assertions remain visible failures.
+    last_error: Exception | None = None
+    for attempt in range(3):
+        try:
+            r = page.request.get(API + path, headers={"Authorization": f"Bearer {token(page)}"})
+            break
+        except Exception as exc:
+            last_error = exc
+            if attempt == 2:
+                raise RuntimeError(f"GET {path} failed after 3 transport attempts: {exc}") from exc
+            print(f"Transient transport error reading {path}; retry {attempt + 1}/2.", flush=True)
+            time.sleep(0.25 * (attempt + 1))
+    else:
+        raise RuntimeError(f"GET {path} failed: {last_error}")
     assert r.status == expected, f"GET {path}: HTTP {r.status}: {r.text()}"
     return r.json()
 
