@@ -11,8 +11,9 @@ from backend.db.session import AsyncSessionLocal
 from backend.models.alert import AlertLogModel
 from backend.models.client import UserModel
 from backend.models.competitor import CompetitorModel, OfferingMatchModel, SourceModel
-from backend.models.enums import RoleEnum
+from backend.models.enums import JobStatusEnum, JobTypeEnum, RoleEnum
 from backend.models.notification import NotificationOutboxModel
+from backend.workers.celery_app import celery_app
 from backend.models.observation import JobModel, ObservationModel, SnapshotModel
 from backend.models.offering import OfferingModel
 
@@ -290,6 +291,83 @@ async def assert_persisted_market_state(
     )
     print("DIRECT POSTGRESQL READ-BACK: " + json.dumps(evidence, sort_keys=True), flush=True)
     return evidence
+
+
+async def assert_scheduled_collection_state(
+    client_id: uuid.UUID,
+    match_id: uuid.UUID,
+    timeout_seconds: float = 90,
+) -> dict:
+    """Wait for a queued Celery collection and verify its persisted job/output."""
+    deadline = time.monotonic() + timeout_seconds
+    last_status = "not-created"
+
+    while time.monotonic() < deadline:
+        async with AsyncSessionLocal() as session:
+            jobs = list((await session.scalars(
+                select(JobModel)
+                .join(SourceModel, SourceModel.id == JobModel.source_id)
+                .join(CompetitorModel, CompetitorModel.id == SourceModel.competitor_id)
+                .where(
+                    CompetitorModel.client_id == client_id,
+                    JobModel.job_type == JobTypeEnum.SCHEDULED_CRAWL,
+                )
+                .order_by(JobModel.created_at.desc())
+            )).all())
+            scheduled = next(
+                (
+                    job for job in jobs
+                    if str((job.meta_info or {}).get("offering_match_id")) == str(match_id)
+                ),
+                None,
+            )
+            if scheduled is not None:
+                last_status = scheduled.status.value
+                if scheduled.status in (JobStatusEnum.COMPLETED, JobStatusEnum.FAILED):
+                    observation = await session.scalar(
+                        select(ObservationModel)
+                        .where(ObservationModel.job_id == scheduled.id)
+                        .order_by(ObservationModel.observed_at.desc())
+                    )
+                    snapshot = await session.scalar(
+                        select(SnapshotModel).where(
+                            SnapshotModel.offering_match_id == match_id
+                        )
+                    )
+                    evidence = {
+                        "database": "PostgreSQL",
+                        "task_queue": "Celery over Redis",
+                        "job_id": str(scheduled.id),
+                        "job_type": scheduled.job_type.value,
+                        "job_status": scheduled.status.value,
+                        "offering_match_id": str(match_id),
+                        "attempts_processed": scheduled.total_items_processed,
+                        "successful_items": scheduled.successful_items,
+                        "failed_items": scheduled.failed_items,
+                        "http_status_code": observation.http_status_code if observation else None,
+                        "observed_price": str(observation.observed_price) if observation and observation.observed_price is not None else None,
+                        "snapshot_current_price": str(snapshot.current_price) if snapshot else None,
+                    }
+                    Path("/tmp/nexora-scheduled-job-db-evidence.json").write_text(
+                        json.dumps(evidence, indent=2) + "\n", encoding="utf-8"
+                    )
+                    print(
+                        "SCHEDULED CELERY POSTGRESQL READ-BACK: "
+                        + json.dumps(evidence, sort_keys=True),
+                        flush=True,
+                    )
+                    assert scheduled.status == JobStatusEnum.COMPLETED, evidence
+                    assert scheduled.successful_items == 1 and scheduled.failed_items == 0, evidence
+                    assert observation is not None and observation.http_status_code == 200, evidence
+                    assert observation.observed_price is not None and round(float(observation.observed_price), 2) == 349.99, evidence
+                    assert snapshot is not None and round(float(snapshot.current_price), 2) == 349.99, evidence
+                    return evidence
+        await asyncio.sleep(0.5)
+
+    raise AssertionError(
+        f"Scheduled collection did not finish within {timeout_seconds}s; "
+        f"last observed status: {last_status}"
+    )
 
 _async_loop: asyncio.AbstractEventLoop | None = None
 _async_thread: threading.Thread | None = None
@@ -834,17 +912,40 @@ def main() -> None:
         assert any(x["id"] == alert["id"] and x["is_read"] for x in api_get(page, "/v1/alerts/logs"))
         shot(page, "29-alert-generated-and-read.png")
 
+        # Verify the on-demand path first, before the queued refresh changes
+        # snapshot.previous_price. This is a direct PostgreSQL read-back.
+        run_async(assert_persisted_market_state(
+            client_id, uuid.UUID(offering_id), uuid.UUID(match_id), uuid.UUID(rule_id)
+        ))
+
+        # Dispatch the transactional outbox through Redis/Celery, not by calling
+        # the task implementation directly. A real worker accepts and executes it.
         alert_mail_start = len(mailbox())
-        from backend.workers.tasks import _dispatch_pending_notifications
-        sent_count = run_async(_dispatch_pending_notifications())
-        assert int(sent_count) >= 1, {"sent": sent_count}
+        dispatch_task = celery_app.send_task(
+            "backend.workers.tasks.dispatch_pending_notifications"
+        )
+        dispatch_result = dispatch_task.get(timeout=60, propagate=True)
+        assert int(dispatch_result.get("sent", 0)) >= 1, dispatch_result
         _, alert_body = wait_email("Nexora Competitive Alert: Competitor price dropped", EMAIL, alert_mail_start)
         assert "Nexora detected a competitive intelligence event" in alert_body
         assert "SENT" in run_async(sent_statuses(client_id))
 
+        # The scheduled task scans active monitored matches, persists a
+        # SCHEDULED_CRAWL job, and sends its execution task to the same queue.
+        schedule_task = celery_app.send_task(
+            "backend.workers.tasks.enqueue_monitored_match_jobs"
+        )
+        schedule_result = schedule_task.get(timeout=60, propagate=True)
+        assert int(schedule_result.get("scheduled_jobs", 0)) >= 1, schedule_result
+        scheduled_evidence = run_async(
+            assert_scheduled_collection_state(client_id, uuid.UUID(match_id))
+        )
+        assert scheduled_evidence["job_status"] == "COMPLETED", scheduled_evidence
+
         page.get_by_role("link", name="Jobs", exact=True).click()
         page.get_by_role("heading", name="Jobs", exact=True).last.wait_for()
         page.locator("tbody tr").filter(has_text="ON DEMAND REFRESH").first.wait_for()
+        page.locator("tbody tr").filter(has_text="SCHEDULED CRAWL").first.wait_for(timeout=15000)
         shot(page, "30-collection-job-history.png")
         page.get_by_role("button", name="Details", exact=True).first.click()
         page.get_by_text("Job ID", exact=True).wait_for()
@@ -941,11 +1042,6 @@ def main() -> None:
         page.get_by_role("link", name="Continue to sign in", exact=True).click()
         login_ui(page, EMAIL, RESET_PASSWORD)
         shot(page, "41-dashboard-after-password-reset.png")
-
-        # Verify observations, snapshot, alert, discovered item, jobs and outbox directly in PostgreSQL.
-        run_async(assert_persisted_market_state(
-            client_id, uuid.UUID(offering_id), uuid.UUID(match_id), uuid.UUID(rule_id)
-        ))
 
         # Exercise the rest of alert-rule management through the real UI.
         page.get_by_role("link", name="Alerts", exact=True).click()
