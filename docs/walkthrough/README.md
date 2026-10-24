@@ -1,4 +1,4 @@
-# Nexora | Product Walkthrough
+# Nexora — Visual Product Walkthrough
 
 Nexora brings product catalog management, competitor coverage, price collection, website discovery, and market alerts into one workspace. This walkthrough follows a Northstar market-intelligence team from creating its workspace to collecting competitor prices, reacting to a change, and keeping access separated across organizations and roles.
 
