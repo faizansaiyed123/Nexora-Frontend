@@ -1,0 +1,235 @@
+name: Nexora browser walkthrough
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: nexora-e2e-${{github.ref}}
+  cancel-in-progress: false
+
+jobs:
+  browser-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    services:
+      postgres:
+        image: postgres:18.6-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: nexora
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d nexora"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      redis:
+        image: redis:7.4.11-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+
+    env:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/nexora
+      REDIS_URL: redis://127.0.0.1:6379/0
+      JWT_SECRET_KEY: nexora-disposable-ci-secret-only-not-for-production-2026
+      RATE_LIMIT_ENABLED: "true"
+      RATE_LIMIT_LOGIN_PER_MINUTE: "100"
+      RATE_LIMIT_REGISTER_PER_HOUR: "100"
+      RATE_LIMIT_FORGOT_PASSWORD_PER_HOUR: "100"
+      RATE_LIMIT_RESEND_VERIFICATION_PER_HOUR: "100"
+
+    steps:
+      - name: Check out frontend source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check out backend source
+        run: git clone --depth=1 https://github.com/faizansaiyed123/Nexora-backend.git backend
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install "uv==0.10.0"
+          uv sync --frozen --python 3.12
+          uv run --python 3.12 playwright install --with-deps chromium
+
+      - name: Apply PostgreSQL migrations
+        working-directory: backend
+        run: uv run --python 3.12 alembic upgrade head
+
+      - name: Run backend API integration tests
+        working-directory: backend
+        env:
+          ENVIRONMENT: development
+          EMAIL_VERIFICATION_BYPASS: "true"
+          CORS_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
+        run: uv run --python 3.12 pytest -q
+
+      - name: Run frontend security tests and build
+        run: |
+          npm ci
+          npm run test:security
+          VITE_API_URL=http://127.0.0.1:8000 VITE_API_BUILD_MODE=development npm run build
+
+      - name: Create temporary trusted STARTTLS certificate
+        run: |
+          openssl req -x509 -newkey rsa:2048 -nodes \
+            -keyout "$RUNNER_TEMP/nexora-smtp.key" \
+            -out "$RUNNER_TEMP/nexora-smtp.crt" \
+            -days 1 -subj "/CN=localhost" \
+            -addext "subjectAltName=DNS:localhost,IP:127.0.0.1" \
+            -addext "basicConstraints=critical,CA:TRUE"
+
+      - name: Start loopback STARTTLS email sink
+        working-directory: backend
+        env:
+          SSL_CERT_FILE: ${{runner.temp}}/nexora-smtp.crt
+        run: |
+          uv run --python 3.12 --with aiosmtpd==1.4.6 \
+            python "$GITHUB_WORKSPACE/tests/e2e_smtp_sink.py" \
+            --host 127.0.0.1 --port 2525 \
+            --cert "$RUNNER_TEMP/nexora-smtp.crt" \
+            --key "$RUNNER_TEMP/nexora-smtp.key" \
+            --outbox /tmp/nexora-mailbox.jsonl \
+            > /tmp/nexora-smtp.log 2>&1 &
+          echo $! > /tmp/nexora-smtp.pid
+          for attempt in $(seq 1 30); do
+            if grep -q "listening" /tmp/nexora-smtp.log; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/nexora-smtp.log
+          exit 1
+
+      - name: Start Nexora API with disposable PostgreSQL
+        working-directory: backend
+        env:
+          ENVIRONMENT: test
+          EMAIL_VERIFICATION_BYPASS: "false"
+          GEMINI_DISCOVERY_ENABLED: "false"
+          AUTO_RENDER_ENABLED: "false"
+          ALLOWED_HOSTS: 127.0.0.1,localhost
+          CORS_ORIGINS: http://127.0.0.1:4173,http://localhost:4173
+          SMTP_HOST: localhost
+          SMTP_PORT: "2525"
+          SMTP_USERNAME: nexora-ci
+          SMTP_PASSWORD: nexora-ci-only
+          SMTP_FROM_EMAIL: noreply@nexora.example.com
+          SMTP_FROM_NAME: Nexora CI
+          FRONTEND_URL: http://127.0.0.1:4173
+          SSL_CERT_FILE: ${{runner.temp}}/nexora-smtp.crt
+        run: |
+          uv run --python 3.12 uvicorn backend.main:app --host 127.0.0.1 --port 8000 \
+            > /tmp/nexora-api.log 2>&1 &
+          echo $! > /tmp/nexora-api.pid
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:8000/v1/health > /tmp/nexora-health.json; then
+              cat /tmp/nexora-health.json
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/nexora-api.log
+          exit 1
+
+      - name: Start built frontend
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4173 --strictPort \
+            > /tmp/nexora-frontend.log 2>&1 &
+          echo $! > /tmp/nexora-frontend.pid
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4173/welcome > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/nexora-frontend.log
+          exit 1
+
+      - name: Run real browser journey and capture screenshots
+        working-directory: backend
+        env:
+          ENVIRONMENT: test
+          EMAIL_VERIFICATION_BYPASS: "false"
+          GEMINI_DISCOVERY_ENABLED: "false"
+          AUTO_RENDER_ENABLED: "false"
+          ALLOWED_HOSTS: 127.0.0.1,localhost
+          CORS_ORIGINS: http://127.0.0.1:4173,http://localhost:4173
+          SMTP_HOST: localhost
+          SMTP_PORT: "2525"
+          SMTP_USERNAME: nexora-ci
+          SMTP_PASSWORD: nexora-ci-only
+          SMTP_FROM_EMAIL: noreply@nexora.example.com
+          SMTP_FROM_NAME: Nexora CI
+          FRONTEND_URL: http://127.0.0.1:4173
+          SSL_CERT_FILE: ${{runner.temp}}/nexora-smtp.crt
+          NEXORA_FRONTEND_URL: http://127.0.0.1:4173
+          NEXORA_API_URL: http://127.0.0.1:8000
+          NEXORA_SCREENSHOTS: ${{github.workspace}}/docs/testing/screenshots
+          NEXORA_MAILBOX: /tmp/nexora-mailbox.jsonl
+        run: uv run --python 3.12 --with aiosmtpd==1.4.6 python "$GITHUB_WORKSPACE/tests/e2e_browser.py"
+
+      - name: Upload browser screenshots and service logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexora-browser-evidence-${{github.run_id}}
+          path: |
+            docs/testing/screenshots/
+            /tmp/nexora-api.log
+            /tmp/nexora-frontend.log
+            /tmp/nexora-smtp.log
+            /tmp/nexora-mailbox.jsonl
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Publish verified walkthrough and hashes
+        if: success() && github.ref == 'refs/heads/main'
+        env:
+          NEXORA_TESTED_SHA: ${{github.sha}}
+          NEXORA_WORKFLOW_URL: https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}
+        run: |
+          NEXORA_BACKEND_SHA="$(git -C backend rev-parse HEAD)" node scripts/publish-visual-walkthrough.mjs
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/testing/VISUAL-TEST-WALKTHROUGH.md docs/testing/visuals/manifest.json docs/testing/screenshots
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish verified Nexora walkthrough evidence"
+            git push origin HEAD:main
+          fi
+
+      - name: Show service logs on failure
+        if: failure()
+        run: |
+          echo "::group::API log"
+          cat /tmp/nexora-api.log || true
+          echo "::endgroup::"
+          echo "::group::Frontend log"
+          cat /tmp/nexora-frontend.log || true
+          echo "::endgroup::"
+          echo "::group::SMTP log"
+          cat /tmp/nexora-smtp.log || true
+          echo "::endgroup::"
