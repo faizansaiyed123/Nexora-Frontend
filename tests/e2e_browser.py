@@ -358,7 +358,7 @@ def main() -> None:
             page.get_by_role("button", name="Create match", exact=True).click()
         assert create_match.value.status == 201, create_match.value.text()
         match_id = create_match.value.json()["id"]
-        page.get_by_text(HIGH_URL, exact=False).wait_for()
+        page.locator("tbody tr").filter(has_text=OFFERING).first.get_by_role("link", name=re.compile("^" + re.escape(HIGH_URL))).wait_for()
         shot(page, "25-offering-match-created.png")
         row = page.locator("tbody tr").filter(has_text=OFFERING).first
         with page.expect_response(lambda r: "/v1/collections/run" in r.url and r.request.method == "POST") as first_collection:
