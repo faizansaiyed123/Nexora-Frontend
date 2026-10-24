@@ -121,6 +121,7 @@ jobs:
         working-directory: backend
         env:
           EMAIL_VERIFICATION_BYPASS: "true"
+          CORS_ORIGINS: http://localhost:5173
         run: uv run --python 3.12 pytest -q
 
       - name: Start isolated STARTTLS inbox
