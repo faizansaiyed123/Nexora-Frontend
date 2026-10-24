@@ -14,113 +14,123 @@ The public entry introduces Nexora's market-intelligence capabilities. An organi
 
 ![Verification message](screenshots/02-verification-email-sent.png)
 
-![Email verification](screenshots/03-email-verification.png)
+![Email verification](screenshots/03-email-verification-page.png)
 
 ![Verified account](screenshots/04-email-verified.png)
 
-![Workspace dashboard](screenshots/05-workspace-dashboard.png)
+![Nexora sign-in](screenshots/05-login.png)
+
+![Workspace dashboard](screenshots/06-dashboard-empty-workspace.png)
 
 ## 2. Map the competitive landscape
 
 Competitors represent the businesses being monitored. Sources describe the public pages Nexora can collect from, including the source type, retrieval method, request limits, retry behavior, and extraction selectors. Duplicate competitor domains are rejected so the workspace does not accidentally create duplicate market entities.
 
-![Competitor directory](screenshots/06-competitor-directory.png)
+![Competitor directory](screenshots/07-competitors-empty.png)
 
-![Competitor created](screenshots/07-competitor-created.png)
+![Competitor created](screenshots/08-competitor-created.png)
 
-![Duplicate-domain protection](screenshots/08-duplicate-domain-blocked.png)
+![Duplicate-domain protection](screenshots/09-duplicate-domain-rejected.png)
 
-![Create a source](screenshots/09-source-creation-form.png)
+![Create a source](screenshots/10-source-creation-form.png)
 
-![Source collection configuration](screenshots/10-source-configuration.png)
+![Source created](screenshots/11-sources-created.png)
 
-![Configured source](screenshots/11-source-ready.png)
+![Source collection configuration](screenshots/12-source-configuration.png)
+
+![Configured source](screenshots/13-source-configuration-saved.png)
 
 ## 3. Build the canonical catalogue
 
 The catalogue stores the team's own products, services, plans, and other offerings. Core commercial data sits alongside dynamic attributes such as brand, category-specific specifications, and other comparable properties. Teams can review an offering's detail and history, change its monitored state, manage dynamic field definitions, bulk import catalog entries, export CSV or JSON, and archive items that are no longer active.
 
-![Offering editor](screenshots/12-offering-editor.png)
+![Offering editor](screenshots/14-offering-creation-form.png)
 
-![Catalogue offering](screenshots/13-catalog-offering.png)
+![Catalogue offering](screenshots/15-catalog-offering-created.png)
 
-![Offering detail and price history](screenshots/14-offering-detail.png)
+![Offering detail and price history](screenshots/16-offering-detail-and-history.png)
 
-![Monitoring controls](screenshots/15-monitoring-controls.png)
+![Monitoring controls](screenshots/17-catalog-monitoring-active.png)
 
-![Dynamic field definitions](screenshots/16-dynamic-fields.png)
+![Dynamic field definitions](screenshots/18-dynamic-fields.png)
 
-![Dynamic field editor](screenshots/17-dynamic-field-editor.png)
+![Dynamic field editor](screenshots/19-dynamic-field-form.png)
 
-![Bulk import](screenshots/18-bulk-import-form.png)
+![Dynamic field created](screenshots/20-dynamic-field-created.png)
 
-![Bulk catalogue operations](screenshots/19-catalog-bulk-export-archive.png)
+![Bulk import form](screenshots/21-bulk-import-form.png)
+
+![Imported catalogue items](screenshots/22-bulk-imported-catalog.png)
+
+![Bulk catalogue operations](screenshots/23-catalog-import-export-and-archive.png)
 
 ## 4. Connect offers to market observations
 
 An offering match connects one catalogue entry to a competitor's specific product or pricing page. From that connection, Nexora retrieves the page, extracts available price and availability data, and records an observation and current snapshot. Repeated collections establish a history, including the direction and percentage of price movement.
 
-![Offering match editor](screenshots/20-offering-match-editor.png)
+![Offering match editor](screenshots/24-offering-match-form.png)
 
-![Offering match created](screenshots/21-offering-match-created.png)
+![Offering match created](screenshots/25-offering-match-created.png)
 
-![First collected price observation](screenshots/22-first-live-price-observation.png)
+![First collected price observation](screenshots/26-first-price-observation.png)
 
 ## 5. Turn market movements into signals
 
 Alert rules describe which events matter to the team, such as a percentage price drop, a fixed price change, availability changes, or a source circuit breaker. Matching observations produce persistent alert history. Team members can review an event and mark it as read, while email delivery uses the notification outbox so delivery status remains traceable.
 
-![Alert centre](screenshots/23-alert-center.png)
+![Alert centre](screenshots/27-alert-rule-form.png)
 
-![Alert rule editor](screenshots/24-alert-rule-editor.png)
+![Alert rule editor](screenshots/28-alert-rule-created.png)
 
-![Price movement and alert acknowledgement](screenshots/25-alert-event-and-read-state.png)
+![Price movement and alert acknowledgement](screenshots/29-alert-generated-and-read.png)
 
 ## 6. Follow execution and discover new catalogue items
 
 Collection and discovery jobs retain execution status, counts, timestamps, and useful failure context. Website discovery checks public pages for structured product data and can add new offerings or update matching records. Private and loopback destinations are blocked rather than fetched.
 
-![Job history](screenshots/26-job-history.png)
+![Job history](screenshots/30-collection-job-history.png)
 
-![Job detail](screenshots/27-job-detail.png)
+![Job detail](screenshots/31-collection-job-detail.png)
 
-![Private discovery destination blocked](screenshots/28-private-discovery-target-blocked.png)
+![Private discovery destination blocked](screenshots/32-private-target-blocked.png)
 
-![Discovered product](screenshots/29-discovered-product.png)
+![Discovered product](screenshots/33-discovery-product-created.png)
 
-![Discovery history and catalogue update](screenshots/30-discovery-history-and-upsert.png)
+![Discovery history and catalogue update](screenshots/34-discovery-upsert-history.png)
 
 ## 7. Workspace controls and account recovery
 
 Workspace settings hold organisation details such as company, country, currency, market, industry, and timezone. Account security includes changing the current password and a one-time email-based reset flow. These controls help teams keep the workspace details and access credentials current.
 
-![Workspace settings](screenshots/31-workspace-settings.png)
+![Workspace settings](screenshots/35-workspace-settings.png)
 
-![Updated workspace profile](screenshots/32-workspace-profile-updated.png)
+![Updated workspace profile](screenshots/36-workspace-profile-updated.png)
 
-![Password changed](screenshots/33-password-changed.png)
+![Password changed](screenshots/37-password-changed.png)
 
-![Password reset request](screenshots/34-password-reset-requested.png)
+![Password reset request](screenshots/38-password-reset-requested.png)
 
-![Password reset form](screenshots/35-password-reset-form.png)
+![Password reset form](screenshots/39-password-reset-form.png)
 
-![Password reset complete](screenshots/36-password-reset-complete.png)
+![Password reset complete](screenshots/40-password-reset-complete.png)
 
-![Dashboard after recovery](screenshots/37-dashboard-after-reset.png)
+![Dashboard after recovery](screenshots/41-dashboard-after-password-reset.png)
 
 ## 8. Access appropriate to each role
 
 The same workspace can support analysts who inspect market data and initiate discovery, alongside viewers who can inspect permitted data without being able to create catalogue or competitor records. The API enforces these permission boundaries even when requests bypass the interface.
 
-![Analyst workspace](screenshots/38-analyst-workspace.png)
+![Analyst workspace](screenshots/42-analyst-workspace.png)
 
-![Viewer workspace](screenshots/39-viewer-read-only-workspace.png)
+![Viewer workspace](screenshots/43-viewer-read-only-workspace.png)
+
+![Super Admin workspace](screenshots/44-super-admin-workspace.png)
 
 ## 9. Designed for smaller screens
 
 The public entry adapts to a mobile viewport while retaining the key route into the workspace.
 
-![Nexora on mobile](screenshots/40-mobile-homepage.png)
+![Nexora on mobile](screenshots/45-mobile-homepage.png)
 
 ---
 
