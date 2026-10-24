@@ -849,7 +849,8 @@ def main() -> None:
         assert live_source_event.value.status == 201, live_source_event.value.text()
         live_source_id = live_source_event.value.json()["id"]
         page.get_by_text(live_source_name, exact=True).wait_for()
-        page.get_by_title("Configuration", exact=True).click()
+        live_source_row = page.locator("tbody tr").filter(has_text=live_source_name).first
+        live_source_row.get_by_title("Configuration", exact=True).click()
         input_field(page, "Rate / minute").fill("60")
         input_field(page, "Delay seconds").fill("0")
         input_field(page, "Timeout seconds").fill("45")
