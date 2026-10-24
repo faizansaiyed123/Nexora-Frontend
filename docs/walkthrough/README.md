@@ -98,6 +98,14 @@ Map a catalog offering to a competitor URL, collect a first price observation, a
 
 ![Generated price alert and read state](./screenshots/29-alert-generated-and-read.png)
 
+Repeated source failures also become a visible operational signal. When a source reaches the failure threshold, Nexora opens its circuit, temporarily blocks additional collection attempts, and writes a persistent alert to the alert centre.
+
+![Circuit-breaker rule](./screenshots/29b-circuit-breaker-rule-form.png)
+
+![Source circuit opened](./screenshots/29c-source-circuit-open.png)
+
+![Circuit-breaker alert](./screenshots/29d-circuit-breaker-alert.png)
+
 ### Execution history
 
 The job list provides an understandable record of collection and discovery activity, status, outcomes, and relevant details.
