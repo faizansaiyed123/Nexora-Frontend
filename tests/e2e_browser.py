@@ -904,9 +904,17 @@ def main() -> None:
         live_offering_row = page.locator("tbody tr").filter(has_text=OFFERING).first
         live_offering_row.get_by_role("button", name=OFFERING, exact=True).click()
         page.get_by_text("Competitor matches", exact=True).wait_for(timeout=15000)
-        screenshot_detail_text = page.get_by_role("dialog").inner_text()
+        offering_dialog = page.get_by_role("dialog")
+        screenshot_detail_text = offering_dialog.inner_text()
         assert live_source_name in screenshot_detail_text, screenshot_detail_text
-        assert live_url in screenshot_detail_text, screenshot_detail_text
+        assert live_competitor_name in screenshot_detail_text, screenshot_detail_text
+        live_match_detail_row = offering_dialog.locator("div.list-row").filter(has_text=live_source_name).last
+        assert live_match_detail_row.get_by_role("link", name="Open", exact=True).get_attribute("href") == live_url
+        match_read_back = api_get(page, "/v1/offering-matches")
+        assert any(
+            row["id"] == live_match_id and row["target_url"] == live_url
+            for row in match_read_back
+        ), match_read_back
         shot(page, "46-live-retail-price-comparison.png")
         page.keyboard.press("Escape")
 
