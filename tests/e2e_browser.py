@@ -970,12 +970,6 @@ def main() -> None:
         assert any(x["id"] == alert["id"] and x["is_read"] for x in api_get(page, "/v1/alerts/logs"))
         shot(page, "29-alert-generated-and-read.png")
 
-        # Verify the on-demand path first, before the queued refresh changes
-        # snapshot.previous_price. This is a direct PostgreSQL read-back.
-        run_async(assert_persisted_market_state(
-            client_id, uuid.UUID(offering_id), uuid.UUID(match_id), uuid.UUID(rule_id)
-        ))
-
         # Dispatch the transactional outbox through Redis/Celery, not by calling
         # the task implementation directly. A real worker accepts and executes it.
         alert_mail_start = len(mailbox())
@@ -987,6 +981,13 @@ def main() -> None:
         _, alert_body = wait_email("Nexora Competitive Alert: Competitor price dropped", EMAIL, alert_mail_start)
         assert "Nexora detected a competitive intelligence event" in alert_body
         assert "SENT" in run_async(sent_statuses(client_id))
+
+        # Snapshot delta, read alert, outbox SENT state and the two on-demand
+        # observations are now checked before a scheduled refresh updates the
+        # snapshot baseline.
+        run_async(assert_persisted_market_state(
+            client_id, uuid.UUID(offering_id), uuid.UUID(match_id), uuid.UUID(rule_id)
+        ))
 
         # The scheduled task scans active monitored matches, persists a
         # SCHEDULED_CRAWL job, and sends its execution task to the same queue.
