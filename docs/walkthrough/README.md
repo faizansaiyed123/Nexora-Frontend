@@ -148,6 +148,14 @@ Analysts can work with intelligence, inspect records, and start discovery withou
 
 ![Super Admin management workspace](screenshots/45-super-admin-workspace.png)
 
+![Super Admin creates an additional collection source](screenshots/45b-super-admin-source-created.png)
+
+![Super Admin deletes the temporary collection source](screenshots/45c-super-admin-source-deleted.png)
+
+![Super Admin deletes the temporary competitor](screenshots/45d-super-admin-competitor-deleted.png)
+
+![Super Admin deletes the temporary alert rule](screenshots/45e-super-admin-alert-rule-deleted.png)
+
 ## 10. Keep organizations isolated and the interface responsive
 
 A separately registered organization receives a different tenant boundary. Its dashboard, competitors, catalog, and alerts start empty, and it cannot fetch another organization's records by ID. Nexora also adapts to phone-sized viewports for both the authenticated workspace and public homepage.

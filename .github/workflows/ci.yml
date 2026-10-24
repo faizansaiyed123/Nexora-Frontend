@@ -207,8 +207,8 @@ jobs:
 
           folder = Path("docs/testing/visuals")
           screenshots = sorted(folder.glob("*.png"))
-          if len(screenshots) != 60:
-              raise SystemExit(f"Expected 60 walkthrough screenshots; found {len(screenshots)}")
+          if len(screenshots) != 64:
+              raise SystemExit(f"Expected 64 walkthrough screenshots; found {len(screenshots)}")
 
           walkthrough = Path("docs/testing/VISUAL-TEST-WALKTHROUGH.md").read_text(encoding="utf-8")
           referenced = {
@@ -267,8 +267,8 @@ jobs:
               old_image.unlink()
 
           images = sorted(source.glob("*.png"))
-          if len(images) != 60:
-              raise SystemExit(f"Expected 60 fresh screenshots; found {len(images)}")
+          if len(images) != 64:
+              raise SystemExit(f"Expected 64 fresh screenshots; found {len(images)}")
 
           for image in images:
               shutil.copy2(image, destination / image.name)
