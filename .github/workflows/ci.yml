@@ -1,4 +1,4 @@
-name: Nexora Full-Stack Visual Journey
+name: Nexora Full-Stack Visual Journey (PostgreSQL)
 
 on:
   push:
