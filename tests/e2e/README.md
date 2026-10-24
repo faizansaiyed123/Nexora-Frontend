@@ -19,3 +19,5 @@ The sign-in step locates the email and current-password inputs by their explicit
 The latest browser run also waits for page-level headings when the application shell repeats a title in its global header.
 
 The catalog SKU locator targets the visible textbox exactly, avoiding a name collision with the hidden offering-type option `SKU_BUNDLE`.
+
+The post-create match assertion checks the target URL hyperlink rather than generic duplicate URL text.
