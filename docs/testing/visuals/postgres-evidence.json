@@ -1,14 +1,20 @@
 {
-  "tenant_id": "54e21291-93b9-48d0-8782-841d4a7202d9",
-  "competitor_id": "ccd76331-1e79-4372-b261-e962793852ef",
-  "source_id": "5b5a208c-9670-40a7-9a5a-7d80fb8db66a",
-  "offering_id": "a32456fa-4fa5-4ec6-bccf-8c0e318ac6d4",
-  "match_id": "a9f4a426-3409-4547-ba24-483a3635570f",
+  "tenant_id": "5be66430-811e-4e59-8ca1-5a8143cc9487",
+  "isolated_tenant_id": "b8756e15-f6dd-49e2-b7b4-3a9149310fac",
+  "competitor_id": "57fef55f-8023-469f-9427-38770573b103",
+  "source_id": "b1387c7d-46d2-4565-9f5a-411b9a548430",
+  "offering_id": "9c72e8af-7d50-416d-b08d-1675846000cd",
+  "match_id": "73bd1c3a-9bea-4537-b5a6-769887ef7863",
   "snapshot_price": "349.9900",
-  "observations": 2,
-  "jobs": 2,
+  "observations": 7,
+  "jobs": 7,
   "discovered_sku": "WF1000XM5-BLK",
+  "source_circuit_state": "OPEN",
   "notification_statuses": [
     "SENT"
-  ]
+  ],
+  "price_alert_is_read": true,
+  "circuit_alert_saved": true,
+  "super_admin_saved": true,
+  "isolated_tenant_empty": true
 }
