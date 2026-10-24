@@ -57,6 +57,12 @@ def api_get(page: Page, path: str, expected: int = 200):
     assert r.status == expected, f"GET {path}: HTTP {r.status}: {r.text()}"
     return r.json()
 
+def api_post(page: Page, path: str, payload: dict, extra_headers: dict[str, str] | None = None):
+    headers = {"Content-Type": "application/json"}
+    if extra_headers:
+        headers.update(extra_headers)
+    return page.request.post(API + path, data=json.dumps(payload), headers=headers)
+
 def mailbox() -> list[dict]:
     if not MAILBOX.exists(): return []
     rows = []
@@ -504,8 +510,8 @@ def main() -> None:
         with page.expect_response(lambda r: r.url.endswith("/v1/auth/change-password") and r.request.method == "POST") as pw_change:
             page.get_by_role("button", name="Update password", exact=True).click()
         assert pw_change.value.status == 200, pw_change.value.text()
-        assert page.request.post(API + "/v1/auth/login", json={"email": EMAIL, "password": PASSWORD}).status == 401
-        assert page.request.post(API + "/v1/auth/login", json={"email": EMAIL, "password": CHANGED_PASSWORD}).status == 200
+        assert api_post(page, "/v1/auth/login", {"email": EMAIL, "password": PASSWORD}).status == 401
+        assert api_post(page, "/v1/auth/login", {"email": EMAIL, "password": CHANGED_PASSWORD}).status == 200
         shot(page, "37-password-changed.png")
 
         logout_ui(page)
@@ -541,9 +547,9 @@ def main() -> None:
         page.get_by_role("link", name="Competitors", exact=True).click()
         page.get_by_role("heading", name="Competitors", exact=True).last.wait_for()
         assert page.get_by_role("button", name="Add competitor", exact=True).count() == 0
-        denied = page.request.post(API + "/v1/competitors",
-            headers={"Authorization": f"Bearer {token(page)}"},
-            json={"name": "Not Allowed", "domain": "forbidden.example"})
+        denied = api_post(page, "/v1/competitors",
+            {"name": "Not Allowed", "domain": "forbidden.example"},
+            {"Authorization": f"Bearer {token(page)}"})
         assert denied.status == 403, denied.text()
         page.get_by_role("link", name="Discovery", exact=True).click()
         assert page.get_by_role("button", name="Run discovery", exact=True).is_visible()
@@ -558,9 +564,9 @@ def main() -> None:
         assert page.get_by_role("button", name="Dynamic fields", exact=True).count() == 0
         viewer_read = page.request.get(API + "/v1/offerings", headers={"Authorization": f"Bearer {token(page)}"})
         assert viewer_read.status == 200, viewer_read.text()
-        viewer_write = page.request.post(API + "/v1/competitors",
-            headers={"Authorization": f"Bearer {token(page)}"},
-            json={"name": "Viewer Write Attempt", "domain": "viewer-write.example"})
+        viewer_write = api_post(page, "/v1/competitors",
+            {"name": "Viewer Write Attempt", "domain": "viewer-write.example"},
+            {"Authorization": f"Bearer {token(page)}"})
         assert viewer_write.status == 403, viewer_write.text()
         shot(page, "43-viewer-read-only-workspace.png")
 
@@ -571,10 +577,10 @@ def main() -> None:
         page.get_by_role("heading", name="Competitors", exact=True).last.wait_for()
         assert page.get_by_role("button", name="Add competitor", exact=True).is_visible()
         super_domain = "superadmin-" + client_id.hex[:10] + ".example.com"
-        super_create = page.request.post(
-            API + "/v1/competitors",
-            headers={"Authorization": f"Bearer {token(page)}"},
-            json={"name": "Super Admin Verification", "domain": super_domain},
+        super_create = api_post(
+            page, "/v1/competitors",
+            {"name": "Super Admin Verification", "domain": super_domain},
+            {"Authorization": f"Bearer {token(page)}"},
         )
         assert super_create.status == 201, super_create.text()
         super_competitor_id = super_create.json()["id"]
