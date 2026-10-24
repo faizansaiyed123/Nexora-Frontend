@@ -68,6 +68,10 @@ Offerings bring product identity, SKU, pricing, market, category, and flexible a
 
 ![Imported catalog records](./screenshots/22-bulk-imported-catalog.png)
 
+A mixed import keeps successful records and shows the exact rejected row and reason, so users can resolve input issues without losing valid catalogue work.
+
+![Bulk import row-level results](./screenshots/22b-bulk-import-row-errors.png)
+
 ![Import, export and archive](./screenshots/23-catalog-import-export-and-archive.png)
 
 ![Archive an individual catalogue item](./screenshots/23b-single-offering-archived.png)
