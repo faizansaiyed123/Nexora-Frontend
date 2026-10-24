@@ -648,9 +648,9 @@ def main() -> None:
         assert page.locator("tbody tr").count() == 50
         assert page.get_by_role("button", name="Next", exact=True).is_enabled()
         page.get_by_role("button", name="Next", exact=True).click()
+        page.get_by_text("Pagination Demo Record 50", exact=True).wait_for(timeout=15000)
         page.get_by_text("Page 2 of 2", exact=True).wait_for()
         assert page.locator("tbody tr").count() == 1
-        assert page.get_by_text("Pagination Demo Record 50", exact=True).is_visible()
         shot(page, "23c-catalog-pagination.png")
 
         pagination_query = "/v1/offerings?q=Pagination%20Demo%20Record&include_archived=true&page=1&page_size=100"
