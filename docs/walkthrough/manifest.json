@@ -1,5 +1,5 @@
 {
-  "count": 53,
+  "count": 56,
   "screenshots": [
     {
       "filename": "00-public-homepage.png",
@@ -19,7 +19,7 @@
     },
     {
       "filename": "04-email-verified.png",
-      "bytes": 405392
+      "bytes": 406162
     },
     {
       "filename": "05-login.png",
@@ -35,11 +35,11 @@
     },
     {
       "filename": "08-competitor-created.png",
-      "bytes": 141107
+      "bytes": 141104
     },
     {
       "filename": "09-duplicate-domain-rejected.png",
-      "bytes": 167659
+      "bytes": 167739
     },
     {
       "filename": "10-source-creation-form.png",
@@ -59,7 +59,7 @@
     },
     {
       "filename": "13b-source-js-rendering-enabled.png",
-      "bytes": 175022
+      "bytes": 175018
     },
     {
       "filename": "14-offering-creation-form.png",
@@ -67,27 +67,27 @@
     },
     {
       "filename": "15-catalog-offering-created.png",
-      "bytes": 160428
+      "bytes": 160339
     },
     {
       "filename": "16-offering-detail-and-history.png",
-      "bytes": 192989
+      "bytes": 192953
     },
     {
       "filename": "17-catalog-monitoring-active.png",
-      "bytes": 160745
+      "bytes": 160748
     },
     {
       "filename": "18-dynamic-fields.png",
-      "bytes": 179144
+      "bytes": 179141
     },
     {
       "filename": "19-dynamic-field-form.png",
-      "bytes": 175481
+      "bytes": 175460
     },
     {
       "filename": "20-dynamic-field-created.png",
-      "bytes": 182178
+      "bytes": 182141
     },
     {
       "filename": "21-bulk-import-form.png",
@@ -95,27 +95,27 @@
     },
     {
       "filename": "22-bulk-imported-catalog.png",
-      "bytes": 194557
+      "bytes": 194254
     },
     {
       "filename": "22b-bulk-import-row-errors.png",
-      "bytes": 211821
+      "bytes": 211388
     },
     {
       "filename": "23-catalog-import-export-and-archive.png",
-      "bytes": 156442
+      "bytes": 161141
     },
     {
       "filename": "23b-single-offering-archived.png",
-      "bytes": 156588
+      "bytes": 156586
     },
     {
       "filename": "23c-catalog-pagination.png",
-      "bytes": 170745
+      "bytes": 170737
     },
     {
       "filename": "23d-catalog-type-filter.png",
-      "bytes": 168000
+      "bytes": 167879
     },
     {
       "filename": "24-offering-match-form.png",
@@ -139,15 +139,27 @@
     },
     {
       "filename": "29-alert-generated-and-read.png",
-      "bytes": 144697
+      "bytes": 144721
+    },
+    {
+      "filename": "29b-circuit-breaker-rule-form.png",
+      "bytes": 171353
+    },
+    {
+      "filename": "29c-source-circuit-open.png",
+      "bytes": 166594
+    },
+    {
+      "filename": "29d-circuit-breaker-alert.png",
+      "bytes": 140254
     },
     {
       "filename": "30-collection-job-history.png",
-      "bytes": 137166
+      "bytes": 136563
     },
     {
       "filename": "31-collection-job-detail.png",
-      "bytes": 185557
+      "bytes": 185711
     },
     {
       "filename": "32-private-target-blocked.png",
@@ -171,7 +183,7 @@
     },
     {
       "filename": "37-password-changed.png",
-      "bytes": 223146
+      "bytes": 223145
     },
     {
       "filename": "38-password-reset-requested.png",
@@ -199,7 +211,7 @@
     },
     {
       "filename": "44-super-admin-workspace.png",
-      "bytes": 150645
+      "bytes": 150081
     },
     {
       "filename": "45-live-retail-source.png",
@@ -207,7 +219,7 @@
     },
     {
       "filename": "46-live-retail-price-comparison.png",
-      "bytes": 227300
+      "bytes": 227211
     },
     {
       "filename": "47-mobile-homepage.png",
