@@ -9,8 +9,9 @@ on:
     paths-ignore:
       - "docs/testing/visuals/**"
       - "docs/testing/visual-manifest.json"
-      - "docs/walkthrough/screenshots/**"
-      - "docs/walkthrough/manifest.json"
+      - "docs/walkthrough/**"
+      - "docs/PRODUCT-WALKTHROUGH.md"
+      - "docs/VISUAL-WALKTHROUGH.md"
   pull_request:
     branches:
       - main
