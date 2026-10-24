@@ -15,3 +15,5 @@ The automation is exercised in CI against the current backend main branch; scree
 The verification watcher deliberately accepts the `?token=` query string on the actual API request so it observes the real one-time-token response.
 
 The sign-in step locates the email and current-password inputs by their explicit autocomplete purpose, avoiding ambiguity from nested password visibility controls.
+
+The latest browser run also waits for page-level headings when the application shell repeats a title in its global header.
