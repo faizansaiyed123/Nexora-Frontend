@@ -68,6 +68,8 @@ The catalogue stores the team's own products, services, plans, and other offerin
 
 ![Bulk catalogue operations](screenshots/23-catalog-import-export-and-archive.png)
 
+![Archive an individual catalogue item](screenshots/23b-single-offering-archived.png)
+
 ## 4. Connect offers to market observations
 
 An offering match connects one catalogue entry to a competitor's specific product or pricing page. From that connection, Nexora retrieves the page, extracts available price and availability data, and records an observation and current snapshot. Repeated collections establish a history, including the direction and percentage of price movement.
