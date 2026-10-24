@@ -623,6 +623,52 @@ def main() -> None:
         page.get_by_text(OFFERING, exact=True).wait_for()
         shot(page, "23-catalog-import-export-and-archive.png")
 
+        # Force two real catalogue pages and navigate between them in the UI.
+        pagination_payload = [
+            {
+                "name": f"Pagination Demo Record {index:02d}",
+                "offering_type": "PRODUCT",
+                "sku": f"PAGINATION-DEMO-{index:02d}",
+                "current_price": str(10 + index),
+                "currency": "USD",
+                "market": "US",
+                "category": "Integration > Pagination",
+                "attributes": {"batch": "pagination-coverage", "sequence": index},
+            }
+            for index in range(51)
+        ]
+        page.get_by_role("button", name="Bulk import", exact=True).click()
+        page.get_by_label("Offering JSON").fill(json.dumps(pagination_payload))
+        with page.expect_response(lambda r: r.url.endswith("/v1/offerings/bulk") and r.request.method == "POST") as pagination_import:
+            page.get_by_role("button", name="Import offerings", exact=True).click()
+        assert pagination_import.value.status == 200, pagination_import.value.text()
+        assert pagination_import.value.json()["successful_count"] == 51, pagination_import.value.text()
+        page.get_by_placeholder("Search name, SKU, category…").fill("Pagination Demo Record")
+        page.get_by_text("Page 1 of 2", exact=True).wait_for()
+        assert page.locator("tbody tr").count() == 50
+        assert page.get_by_role("button", name="Next", exact=True).is_enabled()
+        page.get_by_role("button", name="Next", exact=True).click()
+        page.get_by_text("Page 2 of 2", exact=True).wait_for()
+        assert page.locator("tbody tr").count() == 1
+        assert page.get_by_text("Pagination Demo Record 50", exact=True).is_visible()
+        shot(page, "23c-catalog-pagination.png")
+
+        pagination_query = "/v1/offerings?q=Pagination%20Demo%20Record&include_archived=true&page=1&page_size=100"
+        pagination_items = api_get(page, pagination_query)["items"]
+        assert len(pagination_items) == 51, pagination_items
+        cleanup = request_json(
+            page,
+            "POST",
+            "/v1/offerings/bulk-archive",
+            {"offering_ids": [item["id"] for item in pagination_items]},
+            expected=200,
+        )
+        assert cleanup["archived_count"] == 51, cleanup
+        archived_pagination = api_get(page, pagination_query)["items"]
+        assert len(archived_pagination) == 51
+        assert all(item["is_archived"] for item in archived_pagination)
+        page.get_by_placeholder("Search name, SKU, category…").fill("")
+
         # Create match and collect the first real price observation.
         page.get_by_role("link", name="Matches", exact=True).click()
         page.get_by_role("heading", name="Offering matches", exact=True).last.wait_for()
@@ -1109,7 +1155,7 @@ def main() -> None:
             "14-offering-creation-form.png","15-catalog-offering-created.png","16-offering-detail-and-history.png",
             "17-catalog-monitoring-active.png","18-dynamic-fields.png","19-dynamic-field-form.png","20-dynamic-field-created.png",
             "21-bulk-import-form.png","22-bulk-imported-catalog.png","22b-bulk-import-row-errors.png","23-catalog-import-export-and-archive.png",
-            "23b-single-offering-archived.png","24-offering-match-form.png","25-offering-match-created.png","26-first-price-observation.png",
+            "23b-single-offering-archived.png","23c-catalog-pagination.png","24-offering-match-form.png","25-offering-match-created.png","26-first-price-observation.png",
             "27-alert-rule-form.png","28-alert-rule-created.png","29-alert-generated-and-read.png",
             "30-collection-job-history.png","31-collection-job-detail.png","32-private-target-blocked.png",
             "33-discovery-product-created.png","34-discovery-upsert-history.png","35-workspace-settings.png",
