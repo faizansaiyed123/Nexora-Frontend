@@ -158,6 +158,22 @@ jobs:
           cat /tmp/nexora-api.log
           exit 1
 
+      - name: Start Celery worker for queued notifications and scheduled collection
+        run: |
+          nohup uv run --project backend --python 3.12 celery \
+            -A backend.workers.celery_app:celery_app worker \
+            --pool=solo --concurrency=1 --loglevel=INFO \
+            > /tmp/nexora-worker.log 2>&1 &
+          for attempt in $(seq 1 60); do
+            if grep -qi "ready" /tmp/nexora-worker.log; then
+              echo "Celery worker is ready."
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/nexora-worker.log
+          exit 1
+
       - name: Install frontend dependencies
         run: npm ci
 
