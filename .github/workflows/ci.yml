@@ -8,6 +8,8 @@ on:
       - "audit/**"
     paths-ignore:
       - "docs/testing/**"
+      - "docs/walkthrough/screenshots/**"
+      - "docs/walkthrough/manifest.json"
   pull_request:
     branches:
       - main
@@ -246,6 +248,52 @@ jobs:
           print(f"Manifest created for {len(screenshots)} walkthrough screenshots.")
           PY
 
+      - name: Sync visitor-facing screenshot gallery
+        if: success()
+        run: |
+          python - <<'PY'
+          import json
+          import re
+          import shutil
+          from pathlib import Path
+
+          source = Path("docs/testing/visuals")
+          destination = Path("docs/walkthrough/screenshots")
+          destination.mkdir(parents=True, exist_ok=True)
+
+          # Replace stale public screenshots with the ones captured in this run.
+          for old_image in destination.glob("*.png"):
+              old_image.unlink()
+
+          images = sorted(source.glob("*.png"))
+          if len(images) != 48:
+              raise SystemExit(f"Expected 48 fresh screenshots; found {len(images)}")
+
+          for image in images:
+              shutil.copy2(image, destination / image.name)
+
+          readme = Path("docs/walkthrough/README.md").read_text(encoding="utf-8")
+          referenced = set(re.findall(r"!\[[^\]]*\]\(screenshots/([^)]+\.png)\)", readme))
+          available = {image.name for image in images}
+          if referenced != available:
+              raise SystemExit(
+                  f"Visitor gallery mismatch. Missing: {sorted(referenced-available)}; "
+                  f"unreferenced: {sorted(available-referenced)}"
+              )
+
+          manifest = {
+              "count": len(images),
+              "screenshots": [
+                  {"filename": image.name, "bytes": image.stat().st_size}
+                  for image in sorted(destination.glob("*.png"))
+              ],
+          }
+          Path("docs/walkthrough/manifest.json").write_text(
+              json.dumps(manifest, indent=2), encoding="utf-8"
+          )
+          print(f"Published {len(images)} visitor walkthrough screenshots.")
+          PY
+
       - name: Upload screenshots and PostgreSQL evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -266,7 +314,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/testing/VISUAL-TEST-WALKTHROUGH.md docs/testing/visual-manifest.json docs/testing/visuals/
+          git add docs/testing/VISUAL-TEST-WALKTHROUGH.md docs/testing/visual-manifest.json docs/testing/visuals/ docs/walkthrough/README.md docs/walkthrough/manifest.json docs/walkthrough/screenshots/
           if git diff --cached --quiet; then
             echo "Walkthrough screenshots have not changed."
           else
