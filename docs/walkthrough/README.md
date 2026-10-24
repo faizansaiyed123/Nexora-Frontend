@@ -162,6 +162,18 @@ The same workflow can collect a live product page from the [Sony Center retail s
 
 ![Nexora homepage on mobile](./screenshots/47-mobile-homepage.png)
 
+## Separate workspaces, separate data
+
+Each organisation receives a separate workspace. A new organisation sees its own empty catalogue and operational areas—not another tenant's competitors, sources, matches, alerts, or jobs. The API applies the same tenant boundary to individual record lookups.
+
+![A separate organisation's dashboard](./screenshots/48-isolated-tenant-dashboard.png)
+
+![Separate competitor directory](./screenshots/49-isolated-tenant-competitors.png)
+
+![Separate catalogue](./screenshots/50-isolated-tenant-catalog.png)
+
+![Separate alert centre](./screenshots/51-isolated-tenant-alerts.png)
+
 ---
 
-The example uses a dedicated review workspace and representative retail product-page data. It does not include customer records or production workspace data.
+The example uses dedicated review workspaces and representative retail product-page data. It does not include customer records or production workspace data.
