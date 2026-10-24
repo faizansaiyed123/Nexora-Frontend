@@ -516,17 +516,17 @@ export default function Offerings() {
         </form>
       </Modal>
 
-      <Modal open={!!importResult} onClose={() => setImportResult(null)} title="Bulk import results">
-        {importResult ? (
+      <Modal open={!!importFeedback} onClose={() => setImportResult(null)} title="Bulk import results">
+        {importFeedback ? (
           <div className="stack">
             <div className="metric-grid compact">
-              <div className="metric-card"><span>Rows processed</span><strong>{importResult.total_processed}</strong></div>
-              <div className="metric-card"><span>Imported</span><strong>{importResult.successful_count}</strong></div>
-              <div className="metric-card"><span>Rejected</span><strong>{importResult.failed_count}</strong></div>
+              <div className="metric-card"><span>Rows processed</span><strong>{importFeedback.total_processed}</strong></div>
+              <div className="metric-card"><span>Imported</span><strong>{importFeedback.successful_count}</strong></div>
+              <div className="metric-card"><span>Rejected</span><strong>{importFeedback.failed_count}</strong></div>
             </div>
-            {importResult.errors.length ? (
+            {importFeedback.errors.length ? (
               <div className="list" aria-label="Rejected import rows">
-                {importResult.errors.map(error => (
+                {importFeedback.errors.map(error => (
                   <div className="list-row" key={error.index}>
                     <div>
                       <strong>{`Row ${error.index + 1}: ${error.name || error.sku || "Offering"}`}</strong>
