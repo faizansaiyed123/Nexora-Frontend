@@ -28,6 +28,8 @@ Competitors define the businesses to watch. Sources specify the public pages Nex
 
 ![Competitors before setup](visuals/07-competitors.png)
 
+![Create a competitor](visuals/08-competitor-form.png)
+
 ![Competitor added](visuals/09-competitor-created.png)
 
 ![Duplicate domain handled](visuals/10-duplicate-competitor-rejected.png)
@@ -80,6 +82,8 @@ A match connects an internal offering to a competitor URL. Collection saves the 
 
 ![Price-drop alert](visuals/30-alert-triggered-and-read.png)
 
+![Alert notification delivered by email](visuals/31-alert-email-delivered.png)
+
 ![Collection job history](visuals/32-job-history.png)
 
 ![Collection job details](visuals/33-job-detail.png)
@@ -117,10 +121,6 @@ Settings hold organization details and account security. One-time email links su
 ![Viewer read-only view](visuals/45-viewer-read-only.png)
 
 ## 7. Mobile entry point
-
-![Analyst workspace view](visuals/44-analyst-workspace.png)
-
-![Viewer read-only catalog view](visuals/45-viewer-read-only.png)
 
 ![Nexora homepage at a phone-sized viewport](visuals/46-mobile-homepage.png)
 
