@@ -421,7 +421,19 @@ def start_celery_worker() -> None:
     log_path = Path("/tmp/nexora-worker.log")
     log_path.parent.mkdir(parents=True, exist_ok=True)
     _worker_log_handle = log_path.open("w", encoding="utf-8")
-    backend_root = Path(os.getenv("NEXORA_BACKEND_ROOT", "backend")).resolve()
+    configured_root = os.getenv("NEXORA_BACKEND_ROOT")
+    if configured_root:
+        backend_root = Path(configured_root).resolve()
+    else:
+        # This script runs from the frontend repo root or from its backend/ CI
+        # working directory. Resolve relative to the script location, not cwd.
+        frontend_root = Path(__file__).resolve().parents[1]
+        backend_root = frontend_root / "backend"
+    if not (backend_root / "pyproject.toml").is_file():
+        raise FileNotFoundError(
+            f"Backend project root not found at {backend_root}; "
+            "set NEXORA_BACKEND_ROOT to the checked-out backend directory."
+        )
     _worker_process = subprocess.Popen(
         [
             sys.executable,
