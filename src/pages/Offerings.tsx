@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   Archive,
   Download,
@@ -152,8 +152,10 @@ export default function Offerings() {
   const [saving, setSaving] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const { toast, show } = useToast();
+  const loadGeneration = useRef(0);
 
   const load = async () => {
+    const generation = ++loadGeneration.current;
     setLoading(true);
     try {
       const response = await offerings.list({
@@ -162,12 +164,19 @@ export default function Offerings() {
         page,
         page_size: 50,
       });
+
+      // Filtering, paging, and explicit mutation refreshes can overlap. Only
+      // the newest request may update the catalogue, otherwise a late page-1
+      // response can replace page 2 while the pager still says "Page 2".
+      if (generation !== loadGeneration.current) return;
       setData(response);
       setSelected([]);
     } catch (e) {
-      show(e instanceof Error ? e.message : "Failed to load offerings", "error");
+      if (generation === loadGeneration.current) {
+        show(e instanceof Error ? e.message : "Failed to load offerings", "error");
+      }
     } finally {
-      setLoading(false);
+      if (generation === loadGeneration.current) setLoading(false);
     }
   };
 
