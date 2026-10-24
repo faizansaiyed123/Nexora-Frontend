@@ -530,6 +530,22 @@ def main() -> None:
         assert page.get_by_text("Sony ULT WEAR Wireless Headphones", exact=True).count() == 0
         archived = api_get(page, "/v1/offerings?q=Sony%20ULT%20WEAR&include_archived=true&page=1&page_size=20")
         assert any(x["is_archived"] for x in archived["items"])
+
+        # Exercise the single-row archive action as well as bulk archive.
+        page.get_by_placeholder("Search name, SKU, category…").fill("Sony LinkBuds S")
+        linkbuds_row = page.locator("tbody tr").filter(has_text="Sony LinkBuds S").first
+        linkbuds_row.wait_for()
+        linkbuds_response = api_get(page, "/v1/offerings?q=Sony%20LinkBuds%20S&page=1&page_size=20")
+        linkbuds = next(row for row in linkbuds_response["items"] if row["sku"] == "LINKBUDS-S-BLK")
+        linkbuds_id = linkbuds["id"]
+        with page.expect_response(lambda r: r.url.endswith(f"/v1/offerings/{linkbuds_id}") and r.request.method == "DELETE") as single_archive:
+            linkbuds_row.get_by_title("Archive", exact=True).click()
+        assert single_archive.value.status == 204, single_archive.value.text()
+        page.get_by_text("Sony LinkBuds S", exact=True).wait_for(state="detached")
+        single_archived = api_get(page, "/v1/offerings?q=Sony%20LinkBuds%20S&include_archived=true&page=1&page_size=20")
+        assert any(row["id"] == linkbuds_id and row["is_archived"] for row in single_archived["items"])
+        shot(page, "23b-single-offering-archived.png")
+
         page.get_by_placeholder("Search name, SKU, category…").fill("")
         page.get_by_text(OFFERING, exact=True).wait_for()
         shot(page, "23-catalog-import-export-and-archive.png")
@@ -558,6 +574,12 @@ def main() -> None:
         assert first["status"] == "COMPLETED", first
         assert first["observation"]["price"] == "399.99", first
         assert first["observation"]["http_status_code"] == 200, first
+        # The per-record GET routes must return the same saved entities as the lists.
+        saved_match = api_get(page, f"/v1/offering-matches/{match_id}")
+        assert saved_match["id"] == match_id and saved_match["offering_id"] == offering_id
+        job_id = first["job_id"]
+        saved_job = api_get(page, f"/v1/jobs/{job_id}")
+        assert saved_job["id"] == job_id and saved_job["status"] == "COMPLETED", saved_job
         assert len(api_get(page, f"/v1/offerings/{offering_id}/history")) >= 1
         shot(page, "26-first-price-observation.png")
 
@@ -994,7 +1016,7 @@ def main() -> None:
             "14-offering-creation-form.png","15-catalog-offering-created.png","16-offering-detail-and-history.png",
             "17-catalog-monitoring-active.png","18-dynamic-fields.png","19-dynamic-field-form.png","20-dynamic-field-created.png",
             "21-bulk-import-form.png","22-bulk-imported-catalog.png","23-catalog-import-export-and-archive.png",
-            "24-offering-match-form.png","25-offering-match-created.png","26-first-price-observation.png",
+            "23b-single-offering-archived.png","24-offering-match-form.png","25-offering-match-created.png","26-first-price-observation.png",
             "27-alert-rule-form.png","28-alert-rule-created.png","29-alert-generated-and-read.png",
             "30-collection-job-history.png","31-collection-job-detail.png","32-private-target-blocked.png",
             "33-discovery-product-created.png","34-discovery-upsert-history.png","35-workspace-settings.png",
