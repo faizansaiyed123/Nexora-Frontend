@@ -939,7 +939,12 @@ def main() -> None:
         screenshot_detail_text = offering_dialog.inner_text()
         assert live_source_name in screenshot_detail_text, screenshot_detail_text
         assert live_competitor_name in screenshot_detail_text, screenshot_detail_text
-        assert "₹" in screenshot_detail_text and "22,990" in screenshot_detail_text, screenshot_detail_text
+        expected_live_price_display = f"{float(live_price):,.2f}".split(".")[0]
+        assert "₹" in screenshot_detail_text and expected_live_price_display in screenshot_detail_text, {
+            "observed_price": live_price,
+            "expected_display": expected_live_price_display,
+            "detail": screenshot_detail_text,
+        }
         target_links = offering_dialog.get_by_role("link", name="Open", exact=True)
         linked_targets = [
             target_links.nth(index).get_attribute("href")
