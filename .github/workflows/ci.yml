@@ -181,6 +181,11 @@ jobs:
           cat /tmp/nexora-frontend.log
           exit 1
 
+      - name: Clear previous walkthrough captures
+        run: |
+          mkdir -p docs/testing/visuals
+          rm -f docs/testing/visuals/*.png docs/testing/visuals/postgres-evidence.json
+
       - name: Run real browser-to-API-to-PostgreSQL journey
         working-directory: Nexora-backend
         env:
