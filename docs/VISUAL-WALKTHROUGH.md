@@ -126,8 +126,10 @@ The Analyst role can work with intelligence and discovery without receiving orga
 
 ![Viewer read-only workspace](walkthrough/screenshots/44-viewer-read-only-workspace.png)
 
-## 9. Responsive entry point
+## 9. Responsive experience
 
-The public experience adapts to a narrow mobile viewport.
+The signed-in workspace and public entry point adapt to a narrow mobile viewport.
 
-![Mobile homepage](walkthrough/screenshots/45-mobile-homepage.png)
+![Mobile dashboard](walkthrough/screenshots/45-mobile-dashboard.png)
+
+![Mobile homepage](walkthrough/screenshots/46-mobile-homepage.png)

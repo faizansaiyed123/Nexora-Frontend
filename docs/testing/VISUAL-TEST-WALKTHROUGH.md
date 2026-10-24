@@ -120,9 +120,11 @@ Settings hold organization details and account security. One-time email links su
 
 ![Viewer read-only view](visuals/45-viewer-read-only.png)
 
-## 7. Mobile entry point
+## 7. Mobile workspace and public entry point
 
-![Nexora homepage at a phone-sized viewport](visuals/46-mobile-homepage.png)
+![Nexora dashboard at a phone-sized viewport](visuals/46-mobile-dashboard.png)
+
+![Nexora homepage at a phone-sized viewport](visuals/47-mobile-homepage.png)
 
 ---
 

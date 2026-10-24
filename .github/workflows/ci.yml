@@ -204,8 +204,8 @@ jobs:
 
           folder = Path("docs/testing/visuals")
           screenshots = sorted(folder.glob("*.png"))
-          if len(screenshots) != 47:
-              raise SystemExit(f"Expected 47 walkthrough screenshots; found {len(screenshots)}")
+          if len(screenshots) != 48:
+              raise SystemExit(f"Expected 48 walkthrough screenshots; found {len(screenshots)}")
 
           walkthrough = Path("docs/testing/VISUAL-TEST-WALKTHROUGH.md").read_text(encoding="utf-8")
           referenced = {
