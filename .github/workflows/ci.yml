@@ -154,7 +154,9 @@ jobs:
           exit 1
 
       - name: Exercise actual UI and persisted domain workflows
-        run: uv run --project backend --python 3.12 python tests/e2e_nexora.py
+        env:
+          NEXORA_SCREENSHOTS: ${{ github.workspace }}/docs/testing/screenshots
+        run: uv run --project backend --python 3.12 python tests/e2e_browser.py
 
       - name: Copy service logs
         if: always()
@@ -173,21 +175,24 @@ jobs:
           name: nexora-full-stack-evidence
           if-no-files-found: warn
           path: |
-            docs/walkthrough/screenshots/*.png
+            docs/testing/screenshots/*.png
             test-results/*
 
-      - name: Publish screenshots from a passing main run
+      - name: Publish walkthrough from a passing main run
         if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          NEXORA_TESTED_SHA: ${{ github.sha }}
+          NEXORA_WORKFLOW_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           git fetch origin main
           if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
-            echo "main advanced during this run; screenshots remain in the workflow artifact."
+            echo "main advanced during this run; evidence remains in the workflow artifact."
             exit 0
           fi
-          test -n "$(find docs/walkthrough/screenshots -type f -name '*.png' -print -quit)"
+          NEXORA_BACKEND_SHA="$(git -C backend rev-parse HEAD)" node scripts/publish-visual-walkthrough.mjs
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/walkthrough/screenshots/*.png
-          if git diff --cached --quiet; then echo "Screenshot set unchanged."; exit 0; fi
-          git commit -m "Refresh Nexora walkthrough screenshots [skip ci]"
+          git add docs/testing/VISUAL-TEST-WALKTHROUGH.md docs/testing/visuals/manifest.json docs/testing/screenshots
+          if git diff --cached --quiet; then echo "Walkthrough evidence is unchanged."; exit 0; fi
+          git commit -m "Publish verified Nexora walkthrough evidence [skip ci]"
           git push origin HEAD:main

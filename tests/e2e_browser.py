@@ -511,6 +511,7 @@ def main() -> None:
         # Persistent users, actual issued JWTs, UI restrictions and server permission checks.
         viewer_email = asyncio.run(add_role_user(client_id, RoleEnum.VIEWER))
         analyst_email = asyncio.run(add_role_user(client_id, RoleEnum.ANALYST))
+        super_admin_email = asyncio.run(add_role_user(client_id, RoleEnum.SUPER_ADMIN))
         logout_ui(page)
         login_ui(page, analyst_email, ROLE_PASSWORD)
         page.get_by_role("link", name="Competitors", exact=True).click()
@@ -539,12 +540,33 @@ def main() -> None:
         assert viewer_write.status == 403, viewer_write.text()
         shot(page, "43-viewer-read-only-workspace.png")
 
+        # Platform-super-admin role remains available and is authorized by the server.
+        logout_ui(page)
+        login_ui(page, super_admin_email, ROLE_PASSWORD)
+        page.get_by_role("link", name="Competitors", exact=True).click()
+        page.get_by_role("heading", name="Competitors", exact=True).wait_for()
+        assert page.get_by_role("button", name="Add competitor", exact=True).is_visible()
+        super_domain = "superadmin-" + client_id.hex[:10] + ".example.com"
+        super_create = page.request.post(
+            API + "/v1/competitors",
+            headers={"Authorization": f"Bearer {token(page)}"},
+            json={"name": "Super Admin Verification", "domain": super_domain},
+        )
+        assert super_create.status == 201, super_create.text()
+        super_competitor_id = super_create.json()["id"]
+        super_delete = page.request.delete(
+            API + f"/v1/competitors/{super_competitor_id}",
+            headers={"Authorization": f"Bearer {token(page)}"},
+        )
+        assert super_delete.status == 204, super_delete.text()
+        shot(page, "44-super-admin-workspace.png")
+
         mobile_context = browser.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=1)
         mobile = mobile_context.new_page()
         mobile.goto(FRONTEND + "/welcome", wait_until="networkidle")
         dimensions = mobile.evaluate("() => ({viewport:document.documentElement.clientWidth,content:document.documentElement.scrollWidth})")
         assert dimensions["content"] <= dimensions["viewport"], dimensions
-        shot(mobile, "44-mobile-homepage.png")
+        shot(mobile, "45-mobile-homepage.png")
         mobile_context.close()
 
         if js_errors: raise AssertionError("JavaScript errors: " + " | ".join(js_errors))
@@ -562,7 +584,7 @@ def main() -> None:
             "33-discovery-product-created.png","34-discovery-upsert-history.png","35-workspace-settings.png",
             "36-workspace-profile-updated.png","37-password-changed.png","38-password-reset-requested.png",
             "39-password-reset-form.png","40-password-reset-complete.png","41-dashboard-after-password-reset.png",
-            "42-analyst-workspace.png","43-viewer-read-only-workspace.png","44-mobile-homepage.png"
+            "42-analyst-workspace.png","43-viewer-read-only-workspace.png","44-super-admin-workspace.png","45-mobile-homepage.png"
         ]
         missing = [name for name in expected if not (SCREENSHOTS / name).is_file()]
         assert not missing, f"Missing screenshots: {missing}"

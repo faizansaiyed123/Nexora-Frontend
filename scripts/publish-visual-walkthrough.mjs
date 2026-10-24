@@ -68,7 +68,8 @@ const groups = [
   ["Role-based access and responsive experience", [
     ["42-analyst-workspace.png", "Analyst experience", "Analyst can inspect/run analysis but cannot create competitors."],
     ["43-viewer-read-only-workspace.png", "Viewer read-only experience", "Viewer can read permitted catalog data but cannot use admin UI or write APIs."],
-    ["44-mobile-homepage.png", "Mobile homepage", "390px visitor landing page has no horizontal overflow."]
+    ["44-super-admin-workspace.png", "Super-admin experience", "Platform super-admin role is visible; server-side competitor create/delete checks pass."],
+    ["45-mobile-homepage.png", "Mobile homepage", "390px visitor landing page has no horizontal overflow."]
   ]]
 ];
 
