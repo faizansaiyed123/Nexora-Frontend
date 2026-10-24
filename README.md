@@ -16,6 +16,6 @@ The production build is served as a static SPA and is container-ready through th
 
 ## Product walkthrough
 
-Explore Nexora through the [screenshot-led product walkthrough](docs/walkthrough/NEXORA-PRODUCT-WALKTHROUGH.md). It follows workspace setup, competitor and source configuration, catalogue management, live price collection, alerts, website discovery, account recovery, and role-specific access.
+Explore Nexora through the [screen-by-screen visual product walkthrough](docs/walkthrough/README.md). It follows workspace setup, competitor and source configuration, catalogue management, price collection, alerts, discovery, account recovery, role permissions, tenant isolation, and mobile layouts.
 
-The walkthrough includes a live public Sony Center retail page alongside controlled structured pages used to make repeatable price-change scenarios possible. Live amounts can change by market and date.
+The walkthrough uses an example workspace and repeatable structured product pages to illustrate price movement. The displayed prices are examples, not current retail quotes.
