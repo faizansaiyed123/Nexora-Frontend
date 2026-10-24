@@ -121,7 +121,7 @@ jobs:
         run: uv run --python 3.12 alembic upgrade head
       - name: Start FastAPI
         run: |
-          nohup uv run --project backend uvicorn backend.main:app --host 0.0.0.0 --port 8000 > /tmp/nexora-api.log 2>&1 &
+          nohup uv run --project backend --python 3.12 uvicorn backend.main:app --host 0.0.0.0 --port 8000 > /tmp/nexora-api.log 2>&1 &
           for attempt in $(seq 1 60); do
             if curl --fail --silent http://127.0.0.1:8000/v1/health > /tmp/nexora-health.json; then
               cat /tmp/nexora-health.json
@@ -142,7 +142,7 @@ jobs:
           VITE_API_URL: http://127.0.0.1:8000
           VITE_API_BUILD_MODE: development
       - name: Install Chromium
-        run: uv run --project backend playwright install --with-deps chromium
+        run: uv run --project backend --python 3.12 playwright install --with-deps chromium
       - name: Start frontend preview
         run: |
           nohup npm run preview -- --host 0.0.0.0 --port 4173 > /tmp/nexora-frontend.log 2>&1 &
@@ -154,7 +154,7 @@ jobs:
           exit 1
 
       - name: Exercise actual UI and persisted domain workflows
-        run: uv run --project backend python tests/e2e_nexora.py
+        run: uv run --project backend --python 3.12 python tests/e2e_nexora.py
 
       - name: Copy service logs
         if: always()
