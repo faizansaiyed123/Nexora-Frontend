@@ -830,7 +830,7 @@ def main() -> None:
         live_url = "https://shopatsc.com/collections/all/products/wh1000xm5-pmin"
         page.get_by_role("button", name="Add competitor", exact=True).click()
         page.get_by_label("Name").fill(live_competitor_name)
-        page.get_by_label("Domain").fill("electronics.sony.com")
+        page.get_by_label("Domain").fill("shopatsc.com")
         with page.expect_response(lambda r: r.url.endswith("/v1/competitors") and r.request.method == "POST") as live_competitor_event:
             page.get_by_role("button", name="Save competitor", exact=True).click()
         assert live_competitor_event.value.status == 201, live_competitor_event.value.text()
