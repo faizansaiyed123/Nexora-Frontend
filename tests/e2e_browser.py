@@ -153,18 +153,23 @@ async def assert_live_collection_persisted(
     client_id: uuid.UUID,
     offering_id: uuid.UUID,
     match_id: uuid.UUID,
+    expected_url: str,
 ) -> dict:
-    """Confirm the official retail page was collected and committed to PostgreSQL."""
+    """Confirm the INR retail page was collected into the matching INR catalog record."""
     async with AsyncSessionLocal() as session:
         offering = await session.get(OfferingModel, offering_id)
         match = await session.get(OfferingMatchModel, match_id)
         assert offering is not None and offering.client_id == client_id
+        assert offering.market == "IN", offering.market
+        assert offering.currency == "INR", offering.currency
         assert match is not None and match.offering_id == offering_id
+        assert str(match.target_url) == expected_url, match.target_url
         source = await session.get(SourceModel, match.source_id)
         assert source is not None
         competitor = await session.get(CompetitorModel, source.competitor_id)
         assert competitor is not None and competitor.client_id == client_id
         assert competitor.domain == "shopatsc.com", competitor.domain
+        assert source.base_url == expected_url, source.base_url
         observations = list((await session.scalars(
             select(ObservationModel)
             .where(ObservationModel.offering_match_id == match_id)
@@ -172,8 +177,9 @@ async def assert_live_collection_persisted(
         )).all())
         assert observations, "Live source collection should persist an observation."
         latest = observations[0]
-        assert latest.http_status_code in (200, 403), latest.http_status_code
+        assert latest.http_status_code == 200, latest.http_status_code
         assert latest.observed_price is not None and float(latest.observed_price) > 0
+        assert latest.currency == "INR", latest.currency
         snapshot = await session.scalar(
             select(SnapshotModel).where(SnapshotModel.offering_match_id == match_id)
         )
@@ -187,6 +193,8 @@ async def assert_live_collection_persisted(
             "database": "PostgreSQL",
             "competitor_domain": competitor.domain,
             "source_url": source.base_url,
+            "market": offering.market,
+            "catalog_currency": offering.currency,
             "observed_price": str(latest.observed_price),
             "currency": latest.currency,
             "http_status_code": latest.http_status_code,
@@ -870,9 +878,32 @@ def main() -> None:
         assert live_source["base_url"] == live_url
         shot(page, "45-live-retail-source.png")
 
+        # Keep currency and market semantics intact: the Indian storefront is
+        # matched to a catalog item priced in INR, not mixed into the USD example.
+        live_offering_name = "Sony WH-1000XM5 India Retail Listing"
+        page.get_by_role("link", name="Offerings", exact=True).click()
+        page.get_by_role("button", name="Add offering", exact=True).click()
+        input_field(page, "Name").fill(live_offering_name)
+        choose(page, "Offering type", "PRODUCT")
+        input_field(page, "SKU").fill("WH1000XM5-IN")
+        input_field(page, "Current price").fill("25990")
+        input_field(page, "Currency").fill("INR")
+        input_field(page, "Market").fill("IN")
+        input_field(page, "Category").fill("Electronics > Audio")
+        input_field(page, "Product URL").fill(live_url)
+        page.get_by_label("Description").fill("Sony WH-1000XM5 headphones sold through the Indian Sony Center storefront.")
+        page.get_by_label("Dynamic attributes (JSON)").fill('{"brand":"Sony","color":"Black","market":"IN"}')
+        with page.expect_response(lambda r: r.url.endswith("/v1/offerings") and r.request.method == "POST") as live_offering_event:
+            page.get_by_role("button", name="Create offering", exact=True).click()
+        assert live_offering_event.value.status == 201, live_offering_event.value.text()
+        live_offering_id = live_offering_event.value.json()["id"]
+        live_offering = api_get(page, f"/v1/offerings/{live_offering_id}")
+        assert live_offering["currency"] == "INR" and live_offering["market"] == "IN", live_offering
+        page.get_by_text(live_offering_name, exact=True).wait_for()
+
         page.get_by_role("link", name="Matches", exact=True).click()
         page.get_by_role("button", name="Add match", exact=True).click()
-        choose(page, "Offering", OFFERING)
+        choose(page, "Offering", live_offering_name)
         choose(page, "Source", live_source_name)
         page.get_by_label("Competitor target URL").fill(live_url)
         choose(page, "Status", "APPROVED")
@@ -894,20 +925,21 @@ def main() -> None:
         assert live_collection["status"] == "COMPLETED", live_collection
         live_price = live_collection["observation"]["price"]
         assert live_price is not None and float(live_price) > 0, live_collection
-        assert live_collection["observation"]["currency"] in ("INR", "USD", None), live_collection
+        assert live_collection["observation"]["currency"] == "INR", live_collection
         assert float(live_collection["snapshot"]["current_price"]) > 0, live_collection
         run_async(assert_live_collection_persisted(
-            client_id, uuid.UUID(offering_id), uuid.UUID(live_match_id)
+            client_id, uuid.UUID(live_offering_id), uuid.UUID(live_match_id), live_url
         ))
 
         page.get_by_role("link", name="Offerings", exact=True).click()
-        live_offering_row = page.locator("tbody tr").filter(has_text=OFFERING).first
-        live_offering_row.get_by_role("button", name=OFFERING, exact=True).click()
+        live_offering_row = page.locator("tbody tr").filter(has_text=live_offering_name).first
+        live_offering_row.get_by_role("button", name=live_offering_name, exact=True).click()
         page.get_by_text("Competitor matches", exact=True).wait_for(timeout=15000)
         offering_dialog = page.get_by_role("dialog")
         screenshot_detail_text = offering_dialog.inner_text()
         assert live_source_name in screenshot_detail_text, screenshot_detail_text
         assert live_competitor_name in screenshot_detail_text, screenshot_detail_text
+        assert "₹" in screenshot_detail_text and "22,990" in screenshot_detail_text, screenshot_detail_text
         live_match_detail_row = offering_dialog.locator("div.list-row").filter(has_text=live_source_name).last
         assert live_match_detail_row.get_by_role("link", name="Open", exact=True).get_attribute("href") == live_url
         match_read_back = api_get(page, "/v1/offering-matches")
