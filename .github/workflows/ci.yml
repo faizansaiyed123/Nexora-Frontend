@@ -234,7 +234,20 @@ jobs:
             exit 0
           fi
           git commit -m "Refresh Nexora walkthrough screenshots [skip ci]"
-          git push origin HEAD:main
+
+          # main can move while a browser run is capturing images. Rebase only
+          # the documentation/artifact commit onto the latest main and retry.
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git rebase -X theirs origin/main
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "Screenshot publish raced with another main update (attempt $attempt)."
+            sleep 2
+          done
+          echo "Could not publish screenshots after three retries."
+          exit 1
 
       - name: Show service logs after a failure
         if: failure()
