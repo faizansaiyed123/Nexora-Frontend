@@ -1040,6 +1040,15 @@ def main() -> None:
         )
         assert scheduled_evidence["job_status"] == "COMPLETED", scheduled_evidence
 
+        # A later notification poll must reuse the same worker database loop
+        # after the scheduled collection task has also used it.
+        empty_dispatch_task = celery_app.send_task(
+            "backend.workers.tasks.dispatch_pending_notifications"
+        )
+        empty_dispatch_result = empty_dispatch_task.get(timeout=60, propagate=True)
+        assert int(empty_dispatch_result.get("sent", -1)) == 0, empty_dispatch_result
+        assert "SENT" in run_async(sent_statuses(client_id))
+
         page.get_by_role("link", name="Jobs", exact=True).click()
         page.get_by_role("heading", name="Jobs", exact=True).last.wait_for()
         page.locator("tbody tr").filter(has_text="ON DEMAND REFRESH").first.wait_for()
