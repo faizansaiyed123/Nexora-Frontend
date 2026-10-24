@@ -556,15 +556,35 @@ def main() -> None:
         page.get_by_role("button", name="Add match", exact=True).click()
         choose(page, "Offering", OFFERING)
         choose(page, "Source", source_name)
-        input_field(page, "Competitor target URL").fill(HIGH_URL)
+        input_field(page, "Competitor target URL").fill("http://127.0.0.1:8000/v1/health")
         choose(page, "Status", "APPROVED")
         input_field(page, "Confidence (0–1)").fill("0.98")
+        with page.expect_response(lambda r: r.url.endswith("/v1/offering-matches") and r.request.method == "POST") as blocked_match_create:
+            page.get_by_role("button", name="Create match", exact=True).click()
+        assert blocked_match_create.value.status == 422, blocked_match_create.value.text()
+        page.get_by_text(re.compile("Access to local or cloud internal hosts"), exact=False).wait_for(timeout=10000)
+        input_field(page, "Competitor target URL").fill(HIGH_URL)
         shot(page, "24-offering-match-form.png")
         with page.expect_response(lambda r: r.url.endswith("/v1/offering-matches") and r.request.method == "POST") as create_match:
             page.get_by_role("button", name="Create match", exact=True).click()
         assert create_match.value.status == 201, create_match.value.text()
         match_id = create_match.value.json()["id"]
         page.locator("tbody tr").filter(has_text=OFFERING).first.locator("a").wait_for()
+
+        # URL validation is enforced on edits as well as creation; the rejected
+        # value must not replace the safe, saved competitor page.
+        row = page.locator("tbody tr").filter(has_text=OFFERING).first
+        row.get_by_title("Edit", exact=True).click()
+        input_field(page, "Competitor target URL").fill("http://127.0.0.1:8000/v1/health")
+        with page.expect_response(lambda r: r.url.endswith(f"/v1/offering-matches/{match_id}") and r.request.method == "PATCH") as blocked_match_update:
+            page.get_by_role("button", name="Save changes", exact=True).click()
+        assert blocked_match_update.value.status == 422, blocked_match_update.value.text()
+        page.get_by_text(re.compile("Access to local or cloud internal hosts"), exact=False).wait_for(timeout=10000)
+        input_field(page, "Competitor target URL").fill(HIGH_URL)
+        with page.expect_response(lambda r: r.url.endswith(f"/v1/offering-matches/{match_id}") and r.request.method == "PATCH") as restore_match:
+            page.get_by_role("button", name="Save changes", exact=True).click()
+        assert restore_match.value.status == 200, restore_match.value.text()
+        assert api_get(page, f"/v1/offering-matches/{match_id}")["target_url"] == HIGH_URL
         shot(page, "25-offering-match-created.png")
         row = page.locator("tbody tr").filter(has_text=OFFERING).first
         with page.expect_response(lambda r: "/v1/collections/run" in r.url and r.request.method == "POST") as first_collection:
