@@ -41,7 +41,7 @@ def shot(page: Page, filename: str) -> None:
 def choose(page: Page, label: str, option: str) -> None:
     field = page.locator("label.field").filter(has_text=label).last
     field.locator("button.select-trigger").click()
-    page.get_by_role("option", name=option, exact=True).last.click()
+    page.get_by_role("option", name=re.compile("^" + re.escape(option))).last.click()
 
 def input_field(page: Page, label: str):
     pattern = re.compile("^" + re.escape(label), re.IGNORECASE)
