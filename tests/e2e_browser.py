@@ -656,14 +656,14 @@ def main() -> None:
         pagination_query = "/v1/offerings?q=Pagination%20Demo%20Record&include_archived=true&page=1&page_size=100"
         pagination_items = api_get(page, pagination_query)["items"]
         assert len(pagination_items) == 51, pagination_items
-        cleanup = request_json(
+        cleanup = api_post(
             page,
-            "POST",
             "/v1/offerings/bulk-archive",
             {"offering_ids": [item["id"] for item in pagination_items]},
-            expected=200,
+            {"Authorization": f"Bearer {token(page)}"},
         )
-        assert cleanup["archived_count"] == 51, cleanup
+        assert cleanup.status == 200, cleanup.text()
+        assert cleanup.json()["archived_count"] == 51, cleanup.json()
         archived_pagination = api_get(page, pagination_query)["items"]
         assert len(archived_pagination) == 51
         assert all(item["is_archived"] for item in archived_pagination)
