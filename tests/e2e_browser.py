@@ -627,7 +627,7 @@ def main() -> None:
         pagination_payload = [
             {
                 "name": f"Pagination Demo Record {index:02d}",
-                "offering_type": "PRODUCT",
+                "offering_type": "SERVICE" if index == 50 else "PRODUCT",
                 "sku": f"PAGINATION-DEMO-{index:02d}",
                 "current_price": str(10 + index),
                 "currency": "USD",
@@ -649,6 +649,27 @@ def main() -> None:
         page1_names = page1_rows.all_inner_texts()
         assert len(page1_names) == 50, len(page1_names)
         assert page.get_by_role("button", name="Next", exact=True).is_enabled()
+
+        # The type filter selects the one service record from the mixed catalogue.
+        page.locator(".filter-row .select-trigger").click()
+        page.get_by_role("option", name="SERVICE", exact=True).last.click()
+        page.wait_for_function(
+            "() => document.querySelectorAll('tbody tr').length === 1",
+            timeout=15000,
+        )
+        service_row = page.locator("tbody tr").first
+        assert "Pagination Demo Record 50" in service_row.inner_text()
+        assert "SERVICE" in service_row.inner_text()
+        shot(page, "23d-catalog-type-filter.png")
+
+        page.locator(".filter-row .select-trigger").click()
+        page.get_by_role("option", name="All types", exact=True).last.click()
+        page.get_by_text("Page 1 of 2", exact=True).wait_for()
+        page.wait_for_function(
+            "() => document.querySelectorAll('tbody tr').length === 50",
+            timeout=15000,
+        )
+        page1_names = page.locator("tbody tr").all_inner_texts()
         page.get_by_role("button", name="Next", exact=True).click()
         # Page state updates before the debounced API request starts; wait for its
         # single returned row instead of treating the changing page label as ready.
@@ -1165,7 +1186,7 @@ def main() -> None:
             "14-offering-creation-form.png","15-catalog-offering-created.png","16-offering-detail-and-history.png",
             "17-catalog-monitoring-active.png","18-dynamic-fields.png","19-dynamic-field-form.png","20-dynamic-field-created.png",
             "21-bulk-import-form.png","22-bulk-imported-catalog.png","22b-bulk-import-row-errors.png","23-catalog-import-export-and-archive.png",
-            "23b-single-offering-archived.png","23c-catalog-pagination.png","24-offering-match-form.png","25-offering-match-created.png","26-first-price-observation.png",
+            "23b-single-offering-archived.png","23c-catalog-pagination.png","23d-catalog-type-filter.png","24-offering-match-form.png","25-offering-match-created.png","26-first-price-observation.png",
             "27-alert-rule-form.png","28-alert-rule-created.png","29-alert-generated-and-read.png",
             "30-collection-job-history.png","31-collection-job-detail.png","32-private-target-blocked.png",
             "33-discovery-product-created.png","34-discovery-upsert-history.png","35-workspace-settings.png",
