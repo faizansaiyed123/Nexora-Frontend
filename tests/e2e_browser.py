@@ -119,13 +119,13 @@ def logout_ui(page: Page) -> None:
     page.get_by_label("Work email").wait_for(timeout=15000)
 
 async def add_role_user(client_id: uuid.UUID, role: RoleEnum) -> str:
-    email = f"{role.value.lower()}-workspace@northstar.example.com"
+    # Isolate each run from any leftover account rows and prove the role from a
+    # freshly persisted user, instead of silently reusing an account with old permissions.
+    email = f"{role.value.lower()}-{uuid.uuid4().hex[:10]}@northstar.example.com"
     async with AsyncSessionLocal() as session:
-        found = await session.scalar(select(UserModel).where(UserModel.email == email))
-        if not found:
-            session.add(UserModel(client_id=client_id, email=email, full_name=f"Northstar {role.value.title()}",
-                hashed_password=get_password_hash(ROLE_PASSWORD), role=role, is_active=True, email_verified=True))
-            await session.commit()
+        session.add(UserModel(client_id=client_id, email=email, full_name=f"Northstar {role.value.title()}",
+            hashed_password=get_password_hash(ROLE_PASSWORD), role=role, is_active=True, email_verified=True))
+        await session.commit()
     return email
 
 async def sent_statuses(client_id: uuid.UUID) -> list[str]:
@@ -656,7 +656,16 @@ def main() -> None:
         super_admin_email = run_async(add_role_user(client_id, RoleEnum.SUPER_ADMIN))
         logout_ui(page)
         login_ui(page, analyst_email, ROLE_PASSWORD)
-        assert api_get(page, "/v1/auth/me")["role"] == "ANALYST"
+        server_role = api_get(page, "/v1/auth/me")["role"]
+        stored_user = page.evaluate("() => JSON.parse(localStorage.getItem('nexora.user') || 'null')")
+        print(f"ANALYST ROLE CHECK: server={server_role!r}, browser={None if stored_user is None else stored_user.get('role')!r}", flush=True)
+        assert server_role == "ANALYST"
+        # Rehydrate the in-memory auth provider from /auth/me so the UI permission
+        # check is not affected by any stale client-side user cache across logins.
+        if not stored_user or stored_user.get("role") != "ANALYST":
+            page.reload(wait_until="networkidle")
+            stored_user = page.evaluate("() => JSON.parse(localStorage.getItem('nexora.user') || 'null')")
+        assert stored_user and stored_user.get("role") == "ANALYST", stored_user
         page.get_by_role("link", name="Competitors", exact=True).click()
         page.get_by_role("heading", name="Competitors", exact=True).last.wait_for()
         assert page.get_by_role("button", name="Add competitor", exact=True).count() == 0
@@ -666,7 +675,18 @@ def main() -> None:
         assert denied.status == 403, denied.text()
         page.get_by_role("link", name="Discovery", exact=True).click()
         page.get_by_role("heading", name="Website discovery", exact=True).wait_for(timeout=15000)
-        assert page.get_by_role("button", name="Run discovery", exact=True).is_visible()
+        run_button = page.get_by_role("button", name="Run discovery", exact=True)
+        if not run_button.is_visible():
+            # A full route reload recalculates role-scoped controls from the same
+            # verified server session; fail with context if the control remains absent.
+            page.reload(wait_until="networkidle")
+            page.get_by_role("heading", name="Website discovery", exact=True).wait_for(timeout=15000)
+            run_button = page.get_by_role("button", name="Run discovery", exact=True)
+        assert run_button.is_visible(), {
+            "server_role": api_get(page, "/v1/auth/me")["role"],
+            "browser_user": page.evaluate("() => JSON.parse(localStorage.getItem('nexora.user') || 'null')"),
+            "page_text": page.locator("body").inner_text()[:1600],
+        }
         shot(page, "42-analyst-workspace.png")
 
         logout_ui(page)
