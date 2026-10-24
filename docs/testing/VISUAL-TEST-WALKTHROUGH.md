@@ -20,6 +20,8 @@ An organization starts at the public homepage, creates a workspace, verifies its
 
 ![Verification message sent](visuals/02-verification-email-sent.png)
 
+![Verification email resent successfully](visuals/02b-verification-email-resent.png)
+
 ![Email verification page](visuals/03-email-verification-page.png)
 
 ![Email verified](visuals/04-email-verified.png)
@@ -87,6 +89,10 @@ A match connects an internal offering with a specific competitor source URL. Col
 ![Map an offering to a competitor listing](visuals/24-offering-match-form.png)
 
 ![Offering match created](visuals/25-offering-match-created.png)
+
+![Temporary alternative match created](visuals/25b-temporary-match-created.png)
+
+![Temporary match deleted and removed from the list](visuals/25c-temporary-match-deleted.png)
 
 ![First collected price observation](visuals/26-first-price-observation.png)
 
