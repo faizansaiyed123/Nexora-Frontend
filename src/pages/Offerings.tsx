@@ -52,6 +52,20 @@ type OfferingForm = {
   is_monitored: boolean;
 };
 
+type BulkImportError = {
+  index: number;
+  name?: string | null;
+  sku?: string | null;
+  error: string;
+};
+
+type BulkImportFeedback = {
+  total_processed: number;
+  successful_count: number;
+  failed_count: number;
+  errors: BulkImportError[];
+};
+
 const emptyForm: OfferingForm = {
   name: "",
   offering_type: "PRODUCT",
@@ -120,6 +134,7 @@ export default function Offerings() {
   const [fieldForm, setFieldForm] = useState({ field_name: "", display_name: "", data_type: "STRING", unit: "", category: "GENERAL" });
   const [form, setForm] = useState<OfferingForm>({ ...emptyForm });
   const [importText, setImportText] = useState("[]");
+  const [importFeedback, setImportFeedback] = useState<BulkImportFeedback | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -238,7 +253,22 @@ export default function Offerings() {
         throw new Error("Import must contain between 1 and 1,000 offering objects.");
       }
       const result = await offerings.bulk(items);
-      show(`${String(result.successful_count ?? result.archived_count ?? "Bulk operation")} processed.`);
+      const successfulCount = Number(result.successful_count ?? result.archived_count ?? 0);
+      const failedCount = Number(result.failed_count ?? 0);
+      const errors = Array.isArray(result.errors) ? result.errors as BulkImportError[] : [];
+      const report: BulkImportFeedback = {
+        total_processed: Number(result.total_processed ?? successfulCount + failedCount),
+        successful_count: successfulCount,
+        failed_count: failedCount,
+        errors,
+      };
+      setImportFeedback(report);
+      show(
+        failedCount > 0
+          ? `Imported ${successfulCount} of ${report.total_processed} offerings; ${failedCount} failed. Review the row details below.`
+          : `${successfulCount} offerings imported.`,
+        failedCount > 0 ? "error" : "success",
+      );
       setImportOpen(false);
       await load();
     } catch (e) {
@@ -308,7 +338,7 @@ export default function Offerings() {
           </Button>
           {canManage && (
             <>
-              <Button variant="secondary" onClick={() => setImportOpen(true)}>
+              <Button variant="secondary" onClick={() => { setImportFeedback(null); setImportOpen(true); }}>
                 <Upload size={16} /> Bulk import
               </Button>
               <Button variant="secondary" onClick={() => setFieldsOpen(true)}>
@@ -338,6 +368,38 @@ export default function Offerings() {
           </Button>
         )}
       </div>
+
+      {importFeedback && (
+        <Card className="table-card bulk-import-feedback">
+          <div className="card-title">
+            <div>
+              <span className="eyebrow">IMPORT SUMMARY</span>
+              <h3>Bulk import results</h3>
+            </div>
+            <StatusPill value={importFeedback.failed_count > 0 ? "PARTIAL" : "COMPLETED"} />
+          </div>
+          <p>
+            {importFeedback.total_processed} rows processed · {importFeedback.successful_count} succeeded · {importFeedback.failed_count} failed.
+          </p>
+          {importFeedback.errors.length > 0 ? (
+            <div className="list" aria-label="Bulk import row errors">
+              {importFeedback.errors.map(rowError => (
+                <div className="list-row" key={`${rowError.index}-${rowError.sku || rowError.name || "row"}`}>
+                  <div>
+                    <strong>Row {rowError.index + 1}: {rowError.name || rowError.sku || "Unnamed offering"}</strong>
+                    {rowError.sku ? <span>SKU: {rowError.sku}</span> : null}
+                    <span>{rowError.error}</span>
+                  </div>
+                  <StatusPill value="FAILED" />
+                </div>
+              ))}
+            </div>
+          ) : null}
+          <div className="modal-actions">
+            <Button variant="secondary" onClick={() => setImportFeedback(null)}>Dismiss import results</Button>
+          </div>
+        </Card>
+      )}
 
       {loading ? (
         <Spinner label="Loading catalog…" />
