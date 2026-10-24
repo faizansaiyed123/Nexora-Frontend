@@ -532,6 +532,58 @@ def main() -> None:
         assert bulk.value.json()["successful_count"] == 2, bulk.value.text()
         page.get_by_text("Sony ULT WEAR Wireless Headphones", exact=True).wait_for()
         shot(page, "22-bulk-imported-catalog.png")
+
+        # A partial import must preserve successful rows and show actionable errors.
+        page.get_by_role("button", name="Bulk import", exact=True).click()
+        partial_payload = [
+            {
+                "name": "Bulk Partial Recovery",
+                "offering_type": "PRODUCT",
+                "sku": "BULK-PARTIAL-OK",
+                "current_price": "19.95",
+                "currency": "USD",
+                "market": "US",
+                "url": "https://example.com/products/nexora-bulk-recovery",
+                "category": "Integration > Bulk Import",
+            },
+            {
+                "name": "Blocked Bulk Row",
+                "offering_type": "PRODUCT",
+                "sku": "BULK-PARTIAL-BLOCKED",
+                "current_price": "29.95",
+                "currency": "USD",
+                "market": "US",
+                "url": "http://127.0.0.1:8000/v1/health",
+            },
+        ]
+        page.get_by_label("Offering JSON").fill(json.dumps(partial_payload))
+        with page.expect_response(lambda r: r.url.endswith("/v1/offerings/bulk") and r.request.method == "POST") as partial_bulk:
+            page.get_by_role("button", name="Import offerings", exact=True).click()
+        assert partial_bulk.value.status == 200, partial_bulk.value.text()
+        partial_result = partial_bulk.value.json()
+        assert partial_result["total_processed"] == 2, partial_result
+        assert partial_result["successful_count"] == 1, partial_result
+        assert partial_result["failed_count"] == 1, partial_result
+        assert partial_result["errors"][0]["index"] == 1, partial_result
+        page.get_by_role("heading", name="Bulk import results", exact=True).wait_for()
+        page.get_by_text("Row 2: Blocked Bulk Row", exact=True).wait_for()
+        page.get_by_text(partial_result["errors"][0]["error"], exact=True).wait_for()
+        partial_readback = api_get(page, "/v1/offerings?q=Bulk%20Partial%20Recovery&page=1&page_size=10")
+        assert partial_readback["total_count"] == 1, partial_readback
+        shot(page, "22b-bulk-import-row-errors.png")
+
+        page.get_by_role("button", name="Dismiss import results", exact=True).click()
+        page.get_by_placeholder("Search name, SKU, category…").fill("Bulk Partial Recovery")
+        partial_row = page.locator("tbody tr").filter(has_text="Bulk Partial Recovery").first
+        partial_row.wait_for()
+        partial_offering = api_get(page, "/v1/offerings?q=Bulk%20Partial%20Recovery&page=1&page_size=10")["items"][0]
+        with page.expect_response(lambda r: r.url.endswith(f"/v1/offerings/{partial_offering['id']}") and r.request.method == "DELETE") as partial_archive:
+            partial_row.get_by_title("Archive", exact=True).click()
+        assert partial_archive.value.status == 204, partial_archive.value.text()
+        partial_archived = api_get(page, "/v1/offerings?q=Bulk%20Partial%20Recovery&include_archived=true&page=1&page_size=10")
+        assert any(item["id"] == partial_offering["id"] and item["is_archived"] for item in partial_archived["items"])
+        page.get_by_placeholder("Search name, SKU, category…").fill("")
+
         csv_path, json_path = Path("/tmp/nexora-catalog.csv"), Path("/tmp/nexora-catalog.json")
         with page.expect_download(timeout=15000) as csvdl:
             page.get_by_role("button", name="CSV", exact=True).click()
@@ -1056,7 +1108,7 @@ def main() -> None:
             "10-source-creation-form.png","11-sources-created.png","12-source-configuration.png","13-source-configuration-saved.png","13b-source-js-rendering-enabled.png",
             "14-offering-creation-form.png","15-catalog-offering-created.png","16-offering-detail-and-history.png",
             "17-catalog-monitoring-active.png","18-dynamic-fields.png","19-dynamic-field-form.png","20-dynamic-field-created.png",
-            "21-bulk-import-form.png","22-bulk-imported-catalog.png","23-catalog-import-export-and-archive.png",
+            "21-bulk-import-form.png","22-bulk-imported-catalog.png","22b-bulk-import-row-errors.png","23-catalog-import-export-and-archive.png",
             "23b-single-offering-archived.png","24-offering-match-form.png","25-offering-match-created.png","26-first-price-observation.png",
             "27-alert-rule-form.png","28-alert-rule-created.png","29-alert-generated-and-read.png",
             "30-collection-job-history.png","31-collection-job-detail.png","32-private-target-blocked.png",
