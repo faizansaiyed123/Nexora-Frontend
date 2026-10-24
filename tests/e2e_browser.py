@@ -158,7 +158,7 @@ def main() -> None:
         assert urlparse(verify_url).path.endswith("/verify-email")
         page.goto(verify_url, wait_until="networkidle")
         shot(page, "03-email-verification-page.png")
-        with page.expect_response(lambda r: r.url.endswith("/v1/auth/verify-email") and r.request.method == "GET") as verify:
+        with page.expect_response(lambda r: "/v1/auth/verify-email?" in r.url and r.request.method == "GET") as verify:
             page.get_by_role("button", name=re.compile("Verify email")).click()
         assert verify.value.status == 200, verify.value.text()
         page.get_by_role("link", name="Continue to sign in", exact=True).wait_for()
