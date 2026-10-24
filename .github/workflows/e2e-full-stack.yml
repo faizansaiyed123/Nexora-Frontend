@@ -49,7 +49,6 @@ jobs:
       NEXORA_API_URL: http://127.0.0.1:8000
       NEXORA_MAILBOX: /tmp/nexora-mailbox.jsonl
       NEXORA_SCREENSHOTS: ${{ github.workspace }}/docs/walkthrough/screenshots
-      SSL_CERT_FILE: /tmp/nexora-smtp.crt
     services:
       postgres:
         image: postgres:18.6-alpine
@@ -109,6 +108,7 @@ jobs:
             -addext "subjectAltName=IP:127.0.0.1,DNS:localhost" \
             -addext "basicConstraints=critical,CA:TRUE" \
             -addext "keyUsage=critical,digitalSignature,keyEncipherment,keyCertSign"
+          echo "SSL_CERT_FILE=/tmp/nexora-smtp.crt" >> "$GITHUB_ENV"
           rm -f "$NEXORA_MAILBOX"
           nohup backend/.venv/bin/python tests/smtp_sink.py \
             --host 127.0.0.1 --port 2525 \
