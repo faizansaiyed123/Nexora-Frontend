@@ -76,9 +76,11 @@ A mixed import keeps successful records and shows the exact rejected row and rea
 
 ![Archive an individual catalogue item](./screenshots/23b-single-offering-archived.png)
 
-Larger catalogues are split into pages; the controls let the team navigate through the full set without loading every row into one view.
+Larger catalogues are split into pages; the controls let the team navigate through the full set without loading every row into one view. The catalogue can also be narrowed by offering type.
 
 ![Catalogue pagination](./screenshots/23c-catalog-pagination.png)
+
+![Catalogue filtered by offering type](./screenshots/23d-catalog-type-filter.png)
 
 ## Price intelligence and alerts
 
