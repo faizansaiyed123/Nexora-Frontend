@@ -166,6 +166,18 @@ The public entry adapts to a mobile viewport while retaining the key route into 
 
 ![Nexora on mobile](screenshots/47-mobile-homepage.png)
 
+## 11. Separate workspaces, separate data
+
+Each organisation has its own workspace. A newly created organisation starts with its own catalogue, competitors, sources, and alerts; it does not inherit another organisation's records. Server-side access checks keep that boundary in place even when a request supplies an object ID from another workspace.
+
+![A separate organisation's dashboard](screenshots/48-isolated-tenant-dashboard.png)
+
+![Separate competitor directory](screenshots/49-isolated-tenant-competitors.png)
+
+![Separate catalogue](screenshots/50-isolated-tenant-catalog.png)
+
+![Separate alert centre](screenshots/51-isolated-tenant-alerts.png)
+
 ---
 
 Nexora connects account security, tenant-aware access, catalogue management, competitor sources, collection, discovery, job history, alerts, and notification delivery into one operating workflow.
