@@ -102,6 +102,14 @@ Alert rules describe which events matter to the team, such as a percentage price
 
 ![Price movement and alert acknowledgement](screenshots/29-alert-generated-and-read.png)
 
+A source that keeps failing is handled as an operational event, not just a failed job. After repeated unsuccessful collections, Nexora opens the source circuit, prevents immediate repeat requests, and records a circuit-breaker alert for the team to review.
+
+![Circuit-breaker alert rule](screenshots/29b-circuit-breaker-rule-form.png)
+
+![Source health after the circuit opens](screenshots/29c-source-circuit-open.png)
+
+![Persistent circuit-breaker alert](screenshots/29d-circuit-breaker-alert.png)
+
 ## 6. Follow execution and discover new catalogue items
 
 Collection and discovery jobs retain execution status, counts, timestamps, and useful failure context. Website discovery checks public pages for structured product data and can add new offerings or update matching records. Private and loopback destinations are blocked rather than fetched.
