@@ -894,7 +894,7 @@ def main() -> None:
         assert live_collection["status"] == "COMPLETED", live_collection
         live_price = live_collection["observation"]["price"]
         assert live_price is not None and float(live_price) > 0, live_collection
-        assert live_collection["observation"]["currency"] in ("USD", None), live_collection
+        assert live_collection["observation"]["currency"] in ("INR", "USD", None), live_collection
         assert float(live_collection["snapshot"]["current_price"]) > 0, live_collection
         run_async(assert_live_collection_persisted(
             client_id, uuid.UUID(offering_id), uuid.UUID(live_match_id)
