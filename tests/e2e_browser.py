@@ -130,8 +130,16 @@ def login_ui(page: Page, email: str, password: str) -> None:
 
 def logout_ui(page: Page) -> None:
     page.locator("button.profile-trigger").click()
-    page.get_by_text("Sign out", exact=True).click()
+    with page.expect_response(
+        lambda response: response.url.endswith("/v1/auth/logout")
+        and response.request.method == "POST"
+    ) as logout_event:
+        page.get_by_text("Sign out", exact=True).click()
+    assert logout_event.value.status == 200, logout_event.value.text()
     page.get_by_label("Work email").wait_for(timeout=15000)
+    assert page.evaluate("() => localStorage.getItem('nexora.access')") is None
+    assert page.evaluate("() => localStorage.getItem('nexora.refresh')") is None
+    assert page.evaluate("() => localStorage.getItem('nexora.user')") is None
 
 async def add_role_user(client_id: uuid.UUID, role: RoleEnum) -> str:
     # Isolate each run from any leftover account rows and prove the role from a
@@ -1316,6 +1324,98 @@ def main() -> None:
         shot(mobile, "47-mobile-homepage.png")
         mobile_context.close()
 
+        # A genuinely separate organisation must not see the first tenant's records.
+        tenant_context = browser.new_context(
+            viewport={"width": 1440, "height": 1000},
+            accept_downloads=True,
+            device_scale_factor=1,
+        )
+        tenant_page = tenant_context.new_page()
+        tenant_page.set_default_timeout(12000)
+        tenant_page.on("pageerror", lambda error: js_errors.append(str(error)))
+        tenant_org = "Contoso Market Intelligence"
+        tenant_name = "Taylor Brooks"
+        tenant_email = f"tenant-isolation-{uuid.uuid4().hex[:10]}@northstar.example.com"
+        tenant_page.goto(FRONTEND + "/register", wait_until="networkidle")
+        input_field(tenant_page, "Organization name").fill(tenant_org)
+        input_field(tenant_page, "Your full name").fill(tenant_name)
+        input_field(tenant_page, "Work email").fill(tenant_email)
+        input_field(tenant_page, "Password").fill(PASSWORD)
+        tenant_mail_start = len(mailbox())
+        with tenant_page.expect_response(
+            lambda response: response.url.endswith("/v1/auth/register")
+            and response.request.method == "POST"
+        ) as tenant_registration:
+            tenant_page.get_by_role("button", name=re.compile("Create workspace")).click()
+        assert tenant_registration.value.status == 201, tenant_registration.value.text()
+        assert tenant_registration.value.json()["email_verification_required"] is True
+        _, tenant_verify_body = wait_email(
+            "Verify your Nexora account", tenant_email, tenant_mail_start
+        )
+        tenant_verify_url = email_link(tenant_verify_body, "verify-email")
+        tenant_page.goto(tenant_verify_url, wait_until="networkidle")
+        with tenant_page.expect_response(
+            lambda response: "/v1/auth/verify-email?" in response.url
+            and response.request.method == "GET"
+        ) as tenant_verification:
+            tenant_page.get_by_role("button", name=re.compile("Verify email")).click()
+        assert tenant_verification.value.status == 200, tenant_verification.value.text()
+        tenant_page.get_by_role("link", name="Continue to sign in", exact=True).click()
+        login_ui(tenant_page, tenant_email, PASSWORD)
+        tenant_me = api_get(tenant_page, "/v1/auth/me")
+        assert tenant_me["role"] == "ORG_ADMIN"
+        tenant_client_id = uuid.UUID(tenant_me["client_id"])
+        assert tenant_client_id != client_id
+
+        tenant_competitors = api_get(tenant_page, "/v1/competitors")
+        tenant_offerings = api_get(tenant_page, "/v1/offerings")
+        tenant_sources = api_get(tenant_page, "/v1/sources")
+        tenant_matches = api_get(tenant_page, "/v1/offering-matches")
+        tenant_rules = api_get(tenant_page, "/v1/alerts/rules")
+        tenant_logs = api_get(tenant_page, "/v1/alerts/logs")
+        tenant_jobs = api_get(tenant_page, "/v1/jobs")
+        tenant_discovery = api_get(tenant_page, "/v1/discovery/jobs")
+        assert tenant_competitors == [], tenant_competitors
+        assert tenant_sources == [], tenant_sources
+        assert tenant_matches == [], tenant_matches
+        assert tenant_rules == [], tenant_rules
+        assert tenant_logs == [], tenant_logs
+        assert tenant_jobs == [], tenant_jobs
+        assert tenant_discovery == [], tenant_discovery
+        assert tenant_offerings["total_count"] == 0, tenant_offerings
+
+        # Direct requests with the second tenant's issued token must hide the first tenant's records.
+        for route in (
+            f"/v1/competitors/{competitor_id}",
+            f"/v1/sources/{source_id}",
+            f"/v1/offerings/{offering_id}",
+            f"/v1/offering-matches/{match_id}",
+        ):
+            response = tenant_page.request.get(
+                API + route,
+                headers={"Authorization": f"Bearer {token(tenant_page)}"},
+            )
+            assert response.status == 404, (
+                f"Cross-tenant object leaked at {route}: "
+                f"HTTP {response.status} {response.text()}"
+            )
+
+        shot(tenant_page, "48-isolated-tenant-dashboard.png")
+        tenant_page.get_by_role("link", name="Competitors", exact=True).click()
+        tenant_page.get_by_role("heading", name="Competitors", exact=True).last.wait_for()
+        tenant_page.get_by_text("No competitors configured", exact=True).wait_for()
+        shot(tenant_page, "49-isolated-tenant-competitors.png")
+        tenant_page.get_by_role("link", name="Offerings", exact=True).click()
+        tenant_page.get_by_role("heading", name="Offerings", exact=True).last.wait_for()
+        tenant_page.get_by_text("Your catalog is empty", exact=True).wait_for()
+        shot(tenant_page, "50-isolated-tenant-catalog.png")
+        tenant_page.get_by_role("link", name="Alerts", exact=True).click()
+        tenant_page.get_by_role("heading", name="Alerts", exact=True).wait_for()
+        tenant_page.get_by_text("No rules configured", exact=True).wait_for()
+        tenant_page.get_by_text("No alert events", exact=True).wait_for()
+        shot(tenant_page, "51-isolated-tenant-alerts.png")
+        tenant_context.close()
+
         if js_errors: raise AssertionError("JavaScript errors: " + " | ".join(js_errors))
         expected = [
             "00-public-homepage.png","01-registration-form.png","02-verification-email-sent.png",
@@ -1333,7 +1433,9 @@ def main() -> None:
             "36-workspace-profile-updated.png","37-password-changed.png","38-password-reset-requested.png",
             "39-password-reset-form.png","40-password-reset-complete.png","41-dashboard-after-password-reset.png",
             "42-analyst-workspace.png","43-viewer-read-only-workspace.png","44-super-admin-workspace.png",
-            "45-live-retail-source.png","46-live-retail-price-comparison.png","47-mobile-homepage.png"
+            "45-live-retail-source.png","46-live-retail-price-comparison.png","47-mobile-homepage.png",
+            "48-isolated-tenant-dashboard.png","49-isolated-tenant-competitors.png",
+            "50-isolated-tenant-catalog.png","51-isolated-tenant-alerts.png"
         ]
         missing = [name for name in expected if not (SCREENSHOTS / name).is_file()]
         assert not missing, f"Missing screenshots: {missing}"
