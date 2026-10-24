@@ -1,6 +1,6 @@
 """Real-browser Nexora workflow: React UI -> FastAPI -> PostgreSQL/Redis -> SMTP."""
 from __future__ import annotations
-import asyncio, json, os, re, time, uuid
+import asyncio, json, os, re, threading, time, uuid
 from email import message_from_string
 from pathlib import Path
 from urllib.parse import urlparse
@@ -123,6 +123,26 @@ async def sent_statuses(client_id: uuid.UUID) -> list[str]:
         result = await session.execute(select(NotificationOutboxModel.status).where(
             NotificationOutboxModel.client_id == client_id, NotificationOutboxModel.channel == "email"))
         return list(result.scalars().all())
+
+_async_loop: asyncio.AbstractEventLoop | None = None
+_async_thread: threading.Thread | None = None
+
+def _start_async_loop() -> tuple[asyncio.AbstractEventLoop, threading.Thread]:
+    loop = asyncio.new_event_loop()
+    def run_loop() -> None:
+        asyncio.set_event_loop(loop)
+        loop.run_forever()
+    thread = threading.Thread(target=run_loop, name="nexora-e2e-async-loop", daemon=True)
+    thread.start()
+    return loop, thread
+
+def run_async(coro, timeout: float = 90):
+    """Run async DB/worker work on one stable loop, isolated from Playwright's sync runtime."""
+    global _async_loop, _async_thread
+    if _async_loop is None:
+        _async_loop, _async_thread = _start_async_loop()
+    future = asyncio.run_coroutine_threadsafe(coro, _async_loop)
+    return future.result(timeout=timeout)
 
 def main() -> None:
     SCREENSHOTS.mkdir(parents=True, exist_ok=True)
@@ -415,12 +435,12 @@ def main() -> None:
         shot(page, "29-alert-generated-and-read.png")
 
         alert_mail_start = len(mailbox())
-        from backend.workers.tasks import dispatch_pending_notifications
-        result = dispatch_pending_notifications.run()
-        assert int(result.get("sent", 0)) >= 1, result
+        from backend.workers.tasks import _dispatch_pending_notifications
+        sent_count = run_async(_dispatch_pending_notifications())
+        assert int(sent_count) >= 1, {"sent": sent_count}
         _, alert_body = wait_email("Nexora Competitive Alert: Competitor price dropped", EMAIL, alert_mail_start)
         assert "Nexora detected a competitive intelligence event" in alert_body
-        assert "SENT" in asyncio.run(sent_statuses(client_id))
+        assert "SENT" in run_async(sent_statuses(client_id))
 
         page.get_by_role("link", name="Jobs", exact=True).click()
         page.get_by_role("heading", name="Jobs", exact=True).last.wait_for()
@@ -513,9 +533,9 @@ def main() -> None:
         shot(page, "41-dashboard-after-password-reset.png")
 
         # Persistent users, actual issued JWTs, UI restrictions and server permission checks.
-        viewer_email = asyncio.run(add_role_user(client_id, RoleEnum.VIEWER))
-        analyst_email = asyncio.run(add_role_user(client_id, RoleEnum.ANALYST))
-        super_admin_email = asyncio.run(add_role_user(client_id, RoleEnum.SUPER_ADMIN))
+        viewer_email = run_async(add_role_user(client_id, RoleEnum.VIEWER))
+        analyst_email = run_async(add_role_user(client_id, RoleEnum.ANALYST))
+        super_admin_email = run_async(add_role_user(client_id, RoleEnum.SUPER_ADMIN))
         logout_ui(page)
         login_ui(page, analyst_email, ROLE_PASSWORD)
         page.get_by_role("link", name="Competitors", exact=True).click()
