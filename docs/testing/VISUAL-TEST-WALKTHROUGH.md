@@ -1,7 +1,5 @@
-# Nexora visual end-to-end walkthrough
+# Nexora Product Walkthrough
 
-This document is generated only after the browser journey passes. The workflow drives the real frontend against FastAPI and disposable PostgreSQL/Redis services, sends account-verification, password-reset and competitive-alert email through a loopback STARTTLS inbox, and publishes browser screenshots with SHA-256 hashes.
+For the visitor-facing tour of Nexora, follow the [screenshot-led product walkthrough](../walkthrough/NEXORA-PRODUCT-WALKTHROUGH.md).
 
-Workflow: https://github.com/faizansaiyed123/Nexora-Frontend/actions/workflows/e2e-walkthrough.yml
-
-The collection/discovery engine fetches versioned Schema.org HTML fixtures over HTTPS so extraction and price movement can be verified reproducibly without mocking application API responses. CI evidence is for its tested revisions and disposable services, not the deployed production environment.
+It covers workspace setup, competitor and source configuration, catalogue management, live price collection, alerts, website discovery, account recovery, and role-specific access.
