@@ -70,6 +70,8 @@ Offerings bring product identity, SKU, pricing, market, category, and flexible a
 
 ![Import, export and archive](./screenshots/23-catalog-import-export-and-archive.png)
 
+![Archive an individual catalogue item](./screenshots/23b-single-offering-archived.png)
+
 ## Price intelligence and alerts
 
 Map a catalog offering to a competitor URL, collect a first price observation, and compare the next observation. Alert rules turn a meaningful movement into a persistent signal that the team can review and mark as read.
