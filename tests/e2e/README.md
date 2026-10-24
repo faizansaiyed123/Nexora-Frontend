@@ -7,3 +7,5 @@ The full-stack GitHub Actions workflow checks out both repositories, provisions 
 The runner captures screenshots under `docs/testing/visuals/` and writes `postgres-evidence.json` only after independent database queries confirm the key records and state transitions. The walkthrough uses a controlled public HTML source for deterministic price movement; it is not a statement of live retail prices or production deployment certification.
 
 To run the browser journey locally, follow the setup and environment values in `.github/workflows/ci.yml` and execute `uv run --python 3.12 python tests/e2e/run_ui_journey.py` from the backend repository after starting the API, built frontend, PostgreSQL, Redis, and isolated STARTTLS inbox.
+
+Each run also records browser screenshots at each workflow checkpoint and validates the final collection snapshot and notification state directly in PostgreSQL.
