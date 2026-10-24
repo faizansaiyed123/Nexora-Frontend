@@ -190,6 +190,54 @@ jobs:
           NEXORA_SCREENSHOT_DIR: ../docs/testing/visuals
         run: uv run --python 3.12 python tests/e2e/run_ui_journey.py
 
+      - name: Build screenshot manifest
+        if: success()
+        run: |
+          python - <<'PY'
+          import json
+          import re
+          from pathlib import Path
+
+          folder = Path("docs/testing/visuals")
+          screenshots = sorted(folder.glob("*.png"))
+          if len(screenshots) != 47:
+              raise SystemExit(f"Expected 47 walkthrough screenshots; found {len(screenshots)}")
+
+          walkthrough = Path("docs/testing/VISUAL-TEST-WALKTHROUGH.md").read_text(encoding="utf-8")
+          referenced = set(re.findall(r"visuals/([^)/\\s]+\\.png)", walkthrough))
+          available = {item.name for item in screenshots}
+          if referenced != available:
+              raise SystemExit(
+                  f"Walkthrough image mismatch. Missing: {sorted(referenced-available)}; "
+                  f"unreferenced: {sorted(available-referenced)}"
+              )
+
+          evidence_file = folder / "postgres-evidence.json"
+          if not evidence_file.is_file():
+              raise SystemExit("PostgreSQL read-back evidence was not written by the browser journey")
+          evidence = json.loads(evidence_file.read_text(encoding="utf-8"))
+
+          manifest = {
+              "product": "Nexora",
+              "screenshot_count": len(screenshots),
+              "screenshots": [
+                  {"filename": item.name, "bytes": item.stat().st_size}
+                  for item in screenshots
+              ],
+              "database_evidence": {
+                  "file": "visuals/postgres-evidence.json",
+                  "verified_observations": evidence.get("observations", 0),
+                  "verified_collection_jobs": evidence.get("jobs", 0),
+                  "latest_snapshot_price": evidence.get("snapshot_price"),
+                  "notification_statuses": evidence.get("notification_statuses", []),
+              },
+          }
+          Path("docs/testing/visual-manifest.json").write_text(
+              json.dumps(manifest, indent=2) + "\\n", encoding="utf-8"
+          )
+          print(f"Manifest created for {len(screenshots)} walkthrough screenshots.")
+          PY
+
       - name: Upload screenshots and PostgreSQL evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -209,7 +257,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/testing/VISUAL-TEST-WALKTHROUGH.md docs/testing/visuals/
+          git add docs/testing/VISUAL-TEST-WALKTHROUGH.md docs/testing/visual-manifest.json docs/testing/visuals/
           if git diff --cached --quiet; then
             echo "Walkthrough screenshots have not changed."
           else
