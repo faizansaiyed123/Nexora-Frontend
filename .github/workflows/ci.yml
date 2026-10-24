@@ -193,6 +193,7 @@ jobs:
         run: |
           python - <<'PY'
           import json
+          import re
           from pathlib import Path
           root = Path("docs/walkthrough/screenshots")
           images = [
@@ -201,6 +202,20 @@ jobs:
           ]
           if len(images) < 30 or any(item["bytes"] < 1000 for item in images):
               raise SystemExit(f"Incomplete walkthrough screenshot set: {len(images)} images")
+          filenames = {item["filename"] for item in images}
+          for doc in (
+              Path("docs/walkthrough/README.md"),
+              Path("docs/walkthrough/NEXORA-PRODUCT-WALKTHROUGH.md"),
+          ):
+              text = doc.read_text(encoding="utf-8")
+              referenced = set(re.findall(r"(?:\\./)?screenshots/([^()\\s]+\\.png)", text))
+              missing = sorted(referenced - filenames)
+              unlinked = sorted(filenames - referenced)
+              if missing or unlinked:
+                  raise SystemExit(
+                      f"{doc}: missing screenshot files={missing}; unlinked screenshots={unlinked}"
+                  )
+              print(f"{doc}: {len(referenced)} screenshot links match the captured assets.")
           Path("docs/walkthrough/manifest.json").write_text(
               json.dumps({"count": len(images), "screenshots": images}, indent=2) + "\n",
               encoding="utf-8",

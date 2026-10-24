@@ -1506,7 +1506,7 @@ def main() -> None:
         tenant_page.get_by_text("Your catalog is empty", exact=True).wait_for()
         shot(tenant_page, "50-isolated-tenant-catalog.png")
         tenant_page.get_by_role("link", name="Alerts", exact=True).click()
-        tenant_page.get_by_role("heading", name="Alerts", exact=True).wait_for()
+        tenant_page.get_by_role("heading", name="Alerts", exact=True).last.wait_for()
         tenant_page.get_by_text("No rules configured", exact=True).wait_for()
         tenant_page.get_by_text("No alert events", exact=True).wait_for()
         shot(tenant_page, "51-isolated-tenant-alerts.png")
