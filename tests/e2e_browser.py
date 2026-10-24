@@ -1,6 +1,6 @@
 """Real-browser Nexora workflow: React UI -> FastAPI -> PostgreSQL/Redis -> SMTP."""
 from __future__ import annotations
-import asyncio, json, os, re, threading, time, uuid
+import atexit, asyncio, json, os, re, subprocess, sys, threading, time, uuid
 from email import message_from_string
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
@@ -369,6 +369,63 @@ async def assert_scheduled_collection_state(
         f"last observed status: {last_status}"
     )
 
+
+_worker_process: subprocess.Popen | None = None
+_worker_log_handle = None
+
+
+def stop_celery_worker() -> None:
+    """Stop the in-process CI worker when this browser run exits."""
+    global _worker_process, _worker_log_handle
+    if _worker_process is not None and _worker_process.poll() is None:
+        _worker_process.terminate()
+        try:
+            _worker_process.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            print("Celery worker did not stop cleanly; terminating the CI process.", flush=True)
+    if _worker_log_handle is not None:
+        _worker_log_handle.close()
+        _worker_log_handle = None
+
+
+def start_celery_worker() -> None:
+    """Run an actual Redis-backed Celery worker without adding infrastructure to CI."""
+    global _worker_process, _worker_log_handle
+    log_path = Path("/tmp/nexora-worker.log")
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    _worker_log_handle = log_path.open("w", encoding="utf-8")
+    backend_root = Path(os.getenv("NEXORA_BACKEND_ROOT", "backend")).resolve()
+    _worker_process = subprocess.Popen(
+        [
+            sys.executable,
+            "-m",
+            "celery",
+            "-A",
+            "backend.workers.celery_app:celery_app",
+            "worker",
+            "--loglevel=INFO",
+            "--pool=solo",
+            "--concurrency=1",
+            "--hostname=nexora-e2e@%h",
+        ],
+        cwd=str(backend_root),
+        env=os.environ.copy(),
+        stdout=_worker_log_handle,
+        stderr=subprocess.STDOUT,
+    )
+    atexit.register(stop_celery_worker)
+    deadline = time.monotonic() + 45
+    while time.monotonic() < deadline:
+        if _worker_process.poll() is not None:
+            break
+        if log_path.exists() and "ready." in log_path.read_text(encoding="utf-8", errors="replace"):
+            print("CELERY WORKER READY: Redis task queue is consuming tasks.", flush=True)
+            return
+        time.sleep(0.5)
+    log = log_path.read_text(encoding="utf-8", errors="replace") if log_path.exists() else ""
+    raise RuntimeError("Celery worker failed to start for the real task-queue journey.\\n" + log)
+
+
 _async_loop: asyncio.AbstractEventLoop | None = None
 _async_thread: threading.Thread | None = None
 
@@ -390,6 +447,7 @@ def run_async(coro, timeout: float = 90):
     return future.result(timeout=timeout)
 
 def main() -> None:
+    start_celery_worker()
     SCREENSHOTS.mkdir(parents=True, exist_ok=True)
     MAILBOX.unlink(missing_ok=True)
     with sync_playwright() as p:
