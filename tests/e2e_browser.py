@@ -1169,6 +1169,126 @@ def main() -> None:
         assert live_competitor_delete.value.status == 204, live_competitor_delete.value.text()
         assert all(row["id"] != live_competitor_id for row in api_get(page, "/v1/competitors"))
 
+        # A source that repeatedly returns HTTP 404 should open its circuit and
+        # emit the configured operational alert. Only the external page fetch is
+        # failure-shaped; the UI, API, job state, source health and alert are real.
+        circuit_source_name = "Unavailable Retail Fixture"
+        circuit_url = (
+            "https://cdn.jsdelivr.net/gh/faizansaiyed123/Nexora-backend@main/"
+            f"tests/fixtures/missing-retail-page-{uuid.uuid4().hex}.html"
+        )
+        page.get_by_role("link", name="Sources", exact=True).click()
+        page.get_by_role("button", name="Add source", exact=True).click()
+        choose(page, "Competitor", COMPETITOR)
+        input_field(page, "Source name").fill(circuit_source_name)
+        input_field(page, "Base URL").fill(circuit_url)
+        choose(page, "Source type", "OFFICIAL_STORE")
+        choose(page, "Collection method", "HTTP_FAST")
+        with page.expect_response(lambda r: r.url.endswith("/v1/sources") and r.request.method == "POST") as circuit_source_create:
+            page.get_by_role("button", name="Create source", exact=True).click()
+        assert circuit_source_create.value.status == 201, circuit_source_create.value.text()
+        circuit_source_id = circuit_source_create.value.json()["id"]
+        circuit_source_row = page.locator("tbody tr").filter(has_text=circuit_source_name).first
+        circuit_source_row.get_by_title("Configuration", exact=True).click()
+        input_field(page, "Rate / minute").fill("600")
+        input_field(page, "Delay seconds").fill("0")
+        input_field(page, "Timeout seconds").fill("5")
+        input_field(page, "Max retries").fill("0")
+        page.get_by_label("Custom headers (JSON)").fill("{}")
+        page.get_by_label("Extraction selectors (JSON)").fill("{}")
+        with page.expect_response(lambda r: r.url.endswith(f"/v1/sources/{circuit_source_id}/configuration") and r.request.method == "PATCH") as circuit_config:
+            page.get_by_role("button", name="Save configuration", exact=True).click()
+        assert circuit_config.value.status == 200, circuit_config.value.text()
+
+        page.get_by_role("link", name="Alerts", exact=True).click()
+        page.get_by_role("button", name="New rule", exact=True).click()
+        circuit_rule_name = "Retail source circuit breaker"
+        input_field(page, "Rule name").fill(circuit_rule_name)
+        choose(page, "Alert type", "CIRCUIT_BREAKER_TRIPPED")
+        choose(page, "Offering scope", OFFERING)
+        input_field(page, "Threshold").fill("")
+        input_field(page, "Cooldown (minutes)").fill("60")
+        page.get_by_label("Deliver through email channel").uncheck()
+        shot(page, "29b-circuit-breaker-rule-form.png")
+        with page.expect_response(lambda r: r.url.endswith("/v1/alerts/rules") and r.request.method == "POST") as circuit_rule_create:
+            page.get_by_role("button", name="Create rule", exact=True).click()
+        assert circuit_rule_create.value.status == 201, circuit_rule_create.value.text()
+        circuit_rule_id = circuit_rule_create.value.json()["id"]
+
+        page.get_by_role("link", name="Matches", exact=True).click()
+        page.get_by_role("button", name="Add match", exact=True).click()
+        choose(page, "Offering", OFFERING)
+        choose(page, "Source", circuit_source_name)
+        input_field(page, "Competitor target URL").fill(circuit_url)
+        choose(page, "Status", "APPROVED")
+        input_field(page, "Confidence (0–1)").fill("0.99")
+        with page.expect_response(lambda r: r.url.endswith("/v1/offering-matches") and r.request.method == "POST") as circuit_match_create:
+            page.get_by_role("button", name="Create match", exact=True).click()
+        assert circuit_match_create.value.status == 201, circuit_match_create.value.text()
+        circuit_match_id = circuit_match_create.value.json()["id"]
+
+        circuit_match_row = page.locator("tbody tr").filter(has_text=OFFERING).filter(has_text=circuit_source_name).first
+        for attempt in range(1, 6):
+            with page.expect_response(
+                lambda r: "/v1/collections/run" in r.url and r.request.method == "POST",
+                timeout=60000,
+            ) as circuit_attempt:
+                circuit_match_row.get_by_title("Run collection", exact=True).click()
+            assert circuit_attempt.value.status == 502, (
+                f"Expected external 404 to persist as failed collection {attempt}: "
+                f"{circuit_attempt.value.status} {circuit_attempt.value.text()}"
+            )
+            page.wait_for_timeout(150)
+
+        circuit_source_readback = api_get(page, f"/v1/sources/{circuit_source_id}")
+        assert circuit_source_readback["failure_count"] == 5, circuit_source_readback
+        assert circuit_source_readback["circuit_state"] == "OPEN", circuit_source_readback
+        assert circuit_source_readback["health_status"] == "FAILING", circuit_source_readback
+
+        page.get_by_role("link", name="Sources", exact=True).click()
+        circuit_source_row = page.locator("tbody tr").filter(has_text=circuit_source_name).first
+        circuit_source_row.get_by_text("FAILING", exact=True).wait_for()
+        circuit_source_row.get_by_text("OPEN", exact=True).wait_for()
+        shot(page, "29c-source-circuit-open.png")
+
+        page.get_by_role("link", name="Alerts", exact=True).click()
+        page.get_by_text("Competitor source circuit breaker tripped", exact=True).wait_for(timeout=15000)
+        circuit_logs = api_get(page, "/v1/alerts/logs")
+        circuit_alert = next(
+            (
+                row for row in circuit_logs
+                if row["alert_rule_id"] == circuit_rule_id
+                and row["title"] == "Competitor source circuit breaker tripped"
+            ),
+            None,
+        )
+        assert circuit_alert is not None, circuit_logs
+        assert circuit_alert["payload_snapshot"]["event"] == "CIRCUIT_BREAKER_TRIPPED"
+        shot(page, "29d-circuit-breaker-alert.png")
+
+        page.get_by_role("link", name="Matches", exact=True).click()
+        circuit_match_row = page.locator("tbody tr").filter(has_text=OFFERING).filter(has_text=circuit_source_name).first
+        with page.expect_response(lambda r: "/v1/collections/run" in r.url and r.request.method == "POST") as circuit_blocked:
+            circuit_match_row.get_by_title("Run collection", exact=True).click()
+        assert circuit_blocked.value.status == 503, circuit_blocked.value.text()
+
+        circuit_match_row = page.locator("tbody tr").filter(has_text=OFFERING).filter(has_text=circuit_source_name).first
+        with page.expect_response(lambda r: r.url.endswith(f"/v1/offering-matches/{circuit_match_id}") and r.request.method == "DELETE") as circuit_match_delete:
+            circuit_match_row.locator("button.danger-icon").click()
+        assert circuit_match_delete.value.status == 204, circuit_match_delete.value.text()
+
+        page.get_by_role("link", name="Alerts", exact=True).click()
+        circuit_rule_row = page.locator("div.list-row").filter(has_text=circuit_rule_name).first
+        with page.expect_response(lambda r: r.url.endswith(f"/v1/alerts/rules/{circuit_rule_id}") and r.request.method == "DELETE") as circuit_rule_delete:
+            circuit_rule_row.get_by_title("Delete rule", exact=True).click()
+        assert circuit_rule_delete.value.status == 204, circuit_rule_delete.value.text()
+
+        page.get_by_role("link", name="Sources", exact=True).click()
+        circuit_source_row = page.locator("tbody tr").filter(has_text=circuit_source_name).first
+        with page.expect_response(lambda r: r.url.endswith(f"/v1/sources/{circuit_source_id}") and r.request.method == "DELETE") as circuit_source_delete:
+            circuit_source_row.locator("button.danger-icon").click()
+        assert circuit_source_delete.value.status == 204, circuit_source_delete.value.text()
+
         mobile_context = browser.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=1)
         mobile = mobile_context.new_page()
         mobile.goto(FRONTEND + "/welcome", wait_until="networkidle")
@@ -1188,6 +1308,7 @@ def main() -> None:
             "21-bulk-import-form.png","22-bulk-imported-catalog.png","22b-bulk-import-row-errors.png","23-catalog-import-export-and-archive.png",
             "23b-single-offering-archived.png","23c-catalog-pagination.png","23d-catalog-type-filter.png","24-offering-match-form.png","25-offering-match-created.png","26-first-price-observation.png",
             "27-alert-rule-form.png","28-alert-rule-created.png","29-alert-generated-and-read.png",
+            "29b-circuit-breaker-rule-form.png","29c-source-circuit-open.png","29d-circuit-breaker-alert.png",
             "30-collection-job-history.png","31-collection-job-detail.png","32-private-target-blocked.png",
             "33-discovery-product-created.png","34-discovery-upsert-history.png","35-workspace-settings.png",
             "36-workspace-profile-updated.png","37-password-changed.png","38-password-reset-requested.png",
