@@ -1647,8 +1647,8 @@ def main() -> None:
         missing = [name for name in expected if not (SCREENSHOTS / name).is_file()]
         assert not missing, f"Missing screenshots: {missing}"
         print(f"PASSED: real UI/API/PostgreSQL browser workflow; {len(expected)} screenshots.", flush=True)
-        browser.close()
         context.close()
+        browser.close()
 
 if __name__ == "__main__":
     main()
