@@ -429,6 +429,27 @@ def main() -> None:
         with page.expect_response(lambda r: r.url.endswith(f"/v1/sources/{source_id}") and r.request.method == "PATCH") as edit_source:
             page.get_by_role("button", name="Save changes", exact=True).click()
         assert edit_source.value.status == 200, edit_source.value.text()
+        source_after_name_edit = api_get(page, f"/v1/sources/{source_id}")
+        assert source_after_name_edit["name"] == source_name
+        assert source_after_name_edit["configuration"]["requires_javascript"] is False
+
+        page.get_by_title("Edit source", exact=True).click()
+        choose(page, "Collection method", "PLAYWRIGHT_BROWSER")
+        with page.expect_response(lambda r: r.url.endswith(f"/v1/sources/{source_id}") and r.request.method == "PATCH") as browser_method:
+            page.get_by_role("button", name="Save changes", exact=True).click()
+        assert browser_method.value.status == 200, browser_method.value.text()
+        browser_source = api_get(page, f"/v1/sources/{source_id}")
+        assert browser_source["collection_method"] == "PLAYWRIGHT_BROWSER", browser_source
+        assert browser_source["configuration"]["requires_javascript"] is True, browser_source
+
+        page.get_by_title("Edit source", exact=True).click()
+        choose(page, "Collection method", "HTTP_FAST")
+        with page.expect_response(lambda r: r.url.endswith(f"/v1/sources/{source_id}") and r.request.method == "PATCH") as http_method:
+            page.get_by_role("button", name="Save changes", exact=True).click()
+        assert http_method.value.status == 200, http_method.value.text()
+        http_source = api_get(page, f"/v1/sources/{source_id}")
+        assert http_source["collection_method"] == "HTTP_FAST", http_source
+        assert http_source["configuration"]["requires_javascript"] is False, http_source
         page.get_by_text(source_name, exact=True).wait_for()
         shot(page, "13-source-configuration-saved.png")
 
