@@ -149,6 +149,58 @@ async def sent_statuses(client_id: uuid.UUID) -> list[str]:
             NotificationOutboxModel.client_id == client_id, NotificationOutboxModel.channel == "email"))
         return list(result.scalars().all())
 
+async def assert_live_collection_persisted(
+    client_id: uuid.UUID,
+    offering_id: uuid.UUID,
+    match_id: uuid.UUID,
+) -> dict:
+    """Confirm the official retail page was collected and committed to PostgreSQL."""
+    async with AsyncSessionLocal() as session:
+        offering = await session.get(OfferingModel, offering_id)
+        match = await session.get(OfferingMatchModel, match_id)
+        assert offering is not None and offering.client_id == client_id
+        assert match is not None and match.offering_id == offering_id
+        source = await session.get(SourceModel, match.source_id)
+        assert source is not None
+        competitor = await session.get(CompetitorModel, source.competitor_id)
+        assert competitor is not None and competitor.client_id == client_id
+        assert competitor.domain == "electronics.sony.com", competitor.domain
+        observations = list((await session.scalars(
+            select(ObservationModel)
+            .where(ObservationModel.offering_match_id == match_id)
+            .order_by(ObservationModel.observed_at.desc())
+        )).all())
+        assert observations, "Live source collection should persist an observation."
+        latest = observations[0]
+        assert latest.http_status_code in (200, 403), latest.http_status_code
+        assert latest.observed_price is not None and float(latest.observed_price) > 0
+        snapshot = await session.scalar(
+            select(SnapshotModel).where(SnapshotModel.offering_match_id == match_id)
+        )
+        assert snapshot is not None and snapshot.current_price is not None
+        assert round(float(snapshot.current_price), 4) == round(float(latest.observed_price), 4)
+        jobs = list((await session.scalars(
+            select(JobModel).where(JobModel.source_id == source.id)
+        )).all())
+        assert any(row.status.value == "COMPLETED" and row.successful_items >= 1 for row in jobs)
+        evidence = {
+            "database": "PostgreSQL",
+            "competitor_domain": competitor.domain,
+            "source_url": source.base_url,
+            "observed_price": str(latest.observed_price),
+            "currency": latest.currency,
+            "http_status_code": latest.http_status_code,
+            "snapshot_current_price": str(snapshot.current_price),
+            "persisted_observations": len(observations),
+            "completed_jobs": sum(row.status.value == "COMPLETED" for row in jobs),
+        }
+    Path("/tmp/nexora-live-source-db-evidence.json").write_text(
+        json.dumps(evidence, indent=2) + "\n", encoding="utf-8"
+    )
+    print("LIVE SOURCE POSTGRESQL READ-BACK: " + json.dumps(evidence, sort_keys=True), flush=True)
+    return evidence
+
+
 async def assert_persisted_market_state(
     client_id: uuid.UUID,
     offering_id: uuid.UUID,
@@ -770,12 +822,112 @@ def main() -> None:
         assert super_delete.value.status == 204, super_delete.value.text()
         assert all(row["id"] != super_competitor_id for row in api_get(page, "/v1/competitors"))
 
+        # In addition to deterministic fixture pages for the alert scenario, collect an
+        # actual public product page from Sony's official US storefront. Its price may
+        # change by region/date, so the assertion checks valid extracted data, not a fixed amount.
+        live_competitor_name = "Sony Electronics Store"
+        live_source_name = "Sony WH-1000XM5 Official Store"
+        live_url = "https://electronics.sony.com/audio/headphones/headband/p/wh1000xm5-b"
+        page.get_by_role("button", name="Add competitor", exact=True).click()
+        page.get_by_label("Name").fill(live_competitor_name)
+        page.get_by_label("Domain").fill("electronics.sony.com")
+        with page.expect_response(lambda r: r.url.endswith("/v1/competitors") and r.request.method == "POST") as live_competitor_event:
+            page.get_by_role("button", name="Save competitor", exact=True).click()
+        assert live_competitor_event.value.status == 201, live_competitor_event.value.text()
+        live_competitor_id = live_competitor_event.value.json()["id"]
+        page.get_by_text(live_competitor_name, exact=True).wait_for()
+
+        page.get_by_role("link", name="Sources", exact=True).click()
+        page.get_by_role("button", name="Add source", exact=True).click()
+        choose(page, "Competitor", live_competitor_name)
+        page.get_by_label("Source name").fill(live_source_name)
+        page.get_by_label("Base URL").fill(live_url)
+        choose(page, "Source type", "OFFICIAL_STORE")
+        choose(page, "Collection method", "PLAYWRIGHT_BROWSER")
+        with page.expect_response(lambda r: r.url.endswith("/v1/sources") and r.request.method == "POST") as live_source_event:
+            page.get_by_role("button", name="Create source", exact=True).click()
+        assert live_source_event.value.status == 201, live_source_event.value.text()
+        live_source_id = live_source_event.value.json()["id"]
+        page.get_by_text(live_source_name, exact=True).wait_for()
+        page.get_by_title("Configuration", exact=True).click()
+        input_field(page, "Rate / minute").fill("60")
+        input_field(page, "Delay seconds").fill("0")
+        input_field(page, "Timeout seconds").fill("45")
+        input_field(page, "Max retries").fill("0")
+        page.get_by_label("Custom headers (JSON)").fill('{"Accept-Language":"en-US,en;q=0.9"}')
+        page.get_by_label("Extraction selectors (JSON)").fill("{}")
+        with page.expect_response(lambda r: r.url.endswith(f"/v1/sources/{live_source_id}/configuration") and r.request.method == "PATCH") as live_config_event:
+            page.get_by_role("button", name="Save configuration", exact=True).click()
+        assert live_config_event.value.status == 200, live_config_event.value.text()
+        live_source = api_get(page, f"/v1/sources/{live_source_id}")
+        assert live_source["configuration"]["requires_javascript"] is True
+        assert live_source["base_url"] == live_url
+        shot(page, "45-live-official-source.png")
+
+        page.get_by_role("link", name="Matches", exact=True).click()
+        page.get_by_role("button", name="Add match", exact=True).click()
+        choose(page, "Offering", OFFERING)
+        choose(page, "Source", live_source_name)
+        page.get_by_label("Competitor target URL").fill(live_url)
+        choose(page, "Status", "APPROVED")
+        page.get_by_label("Confidence (0–1)").fill("0.99")
+        with page.expect_response(lambda r: r.url.endswith("/v1/offering-matches") and r.request.method == "POST") as live_match_event:
+            page.get_by_role("button", name="Create match", exact=True).click()
+        assert live_match_event.value.status == 201, live_match_event.value.text()
+        live_match_id = live_match_event.value.json()["id"]
+
+        live_row = page.locator("tbody tr").filter(has_text=live_source_name).first
+        with page.expect_response(
+            lambda r: "/v1/collections/run" in r.url and r.request.method == "POST",
+            timeout=100000,
+        ) as live_collection_event:
+            live_row.get_by_title("Run collection", exact=True).click()
+        live_collection_response = live_collection_event.value
+        assert live_collection_response.status in (200, 201), live_collection_response.text()
+        live_collection = live_collection_response.json()
+        assert live_collection["status"] == "COMPLETED", live_collection
+        live_price = live_collection["observation"]["price"]
+        assert live_price is not None and float(live_price) > 0, live_collection
+        assert live_collection["observation"]["currency"] in ("USD", None), live_collection
+        assert float(live_collection["snapshot"]["current_price"]) > 0, live_collection
+        run_async(assert_live_collection_persisted(
+            client_id, uuid.UUID(offering_id), uuid.UUID(live_match_id)
+        ))
+
+        page.get_by_role("link", name="Offerings", exact=True).click()
+        live_offering_row = page.locator("tbody tr").filter(has_text=OFFERING).first
+        live_offering_row.get_by_role("button", name=OFFERING, exact=True).click()
+        page.get_by_text("Competitor matches", exact=True).wait_for(timeout=15000)
+        screenshot_detail_text = page.get_by_role("dialog").inner_text()
+        assert live_source_name in screenshot_detail_text, screenshot_detail_text
+        assert live_url in screenshot_detail_text, screenshot_detail_text
+        shot(page, "46-live-price-comparison.png")
+        page.keyboard.press("Escape")
+
+        # Remove only the extra live-source records after evidence is captured.
+        page.get_by_role("link", name="Matches", exact=True).click()
+        live_row = page.locator("tbody tr").filter(has_text=live_source_name).first
+        with page.expect_response(lambda r: r.url.endswith(f"/v1/offering-matches/{live_match_id}") and r.request.method == "DELETE") as live_match_delete:
+            live_row.locator("button.danger-icon").click()
+        assert live_match_delete.value.status == 204, live_match_delete.value.text()
+        page.get_by_role("link", name="Sources", exact=True).click()
+        source_row = page.locator("tbody tr").filter(has_text=live_source_name).first
+        with page.expect_response(lambda r: r.url.endswith(f"/v1/sources/{live_source_id}") and r.request.method == "DELETE") as live_source_delete:
+            source_row.locator("button.danger-icon").click()
+        assert live_source_delete.value.status == 204, live_source_delete.value.text()
+        page.get_by_role("link", name="Competitors", exact=True).click()
+        competitor_row = page.locator("tbody tr").filter(has_text=live_competitor_name).first
+        with page.expect_response(lambda r: r.url.endswith(f"/v1/competitors/{live_competitor_id}") and r.request.method == "DELETE") as live_competitor_delete:
+            competitor_row.locator("button.danger-icon").click()
+        assert live_competitor_delete.value.status == 204, live_competitor_delete.value.text()
+        assert all(row["id"] != live_competitor_id for row in api_get(page, "/v1/competitors"))
+
         mobile_context = browser.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=1)
         mobile = mobile_context.new_page()
         mobile.goto(FRONTEND + "/welcome", wait_until="networkidle")
         dimensions = mobile.evaluate("() => ({viewport:document.documentElement.clientWidth,content:document.documentElement.scrollWidth})")
         assert dimensions["content"] <= dimensions["viewport"], dimensions
-        shot(mobile, "45-mobile-homepage.png")
+        shot(mobile, "47-mobile-homepage.png")
         mobile_context.close()
 
         if js_errors: raise AssertionError("JavaScript errors: " + " | ".join(js_errors))
@@ -793,7 +945,8 @@ def main() -> None:
             "33-discovery-product-created.png","34-discovery-upsert-history.png","35-workspace-settings.png",
             "36-workspace-profile-updated.png","37-password-changed.png","38-password-reset-requested.png",
             "39-password-reset-form.png","40-password-reset-complete.png","41-dashboard-after-password-reset.png",
-            "42-analyst-workspace.png","43-viewer-read-only-workspace.png","44-super-admin-workspace.png","45-mobile-homepage.png"
+            "42-analyst-workspace.png","43-viewer-read-only-workspace.png","44-super-admin-workspace.png",
+            "45-live-official-source.png","46-live-price-comparison.png","47-mobile-homepage.png"
         ]
         missing = [name for name in expected if not (SCREENSHOTS / name).is_file()]
         assert not missing, f"Missing screenshots: {missing}"

@@ -130,9 +130,17 @@ Analysts can inspect intelligence and run discovery while administrative changes
 
 ![Platform Super Admin workspace](./screenshots/44-super-admin-workspace.png)
 
+## Live public price reference
+
+The same workflow can collect a live product page from the [Sony Electronics store](https://electronics.sony.com/audio/headphones/headband/p/wh1000xm5-b). Unlike the controlled retail pages used to make alert scenarios reproducible, this observation reads the public storefront at run time, so the price can vary by date and region.
+
+![Live Sony official-store source](./screenshots/45-live-official-source.png)
+
+![Live retail price in Nexora's offering comparison](./screenshots/46-live-price-comparison.png)
+
 ## Responsive public experience
 
-![Nexora homepage on mobile](./screenshots/45-mobile-homepage.png)
+![Nexora homepage on mobile](./screenshots/47-mobile-homepage.png)
 
 ---
 

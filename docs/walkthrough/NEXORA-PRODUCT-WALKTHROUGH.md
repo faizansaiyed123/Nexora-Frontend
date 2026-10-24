@@ -130,11 +130,19 @@ The same workspace can support analysts who inspect market data and initiate dis
 
 ![Super Admin workspace](screenshots/44-super-admin-workspace.png)
 
-## 9. Designed for smaller screens
+## 9. Live public price reference
+
+The connected example also reads the [Sony Electronics official storefront](https://electronics.sony.com/audio/headphones/headband/p/wh1000xm5-b) through the browser-rendering collection path. This observation is captured at run time rather than assigned a fixed price, because retail prices can change by date and market.
+
+![Live Sony official-store source](screenshots/45-live-official-source.png)
+
+![Live retail price in the offering comparison](screenshots/46-live-price-comparison.png)
+
+## 10. Designed for smaller screens
 
 The public entry adapts to a mobile viewport while retaining the key route into the workspace.
 
-![Nexora on mobile](screenshots/45-mobile-homepage.png)
+![Nexora on mobile](screenshots/47-mobile-homepage.png)
 
 ---
 
