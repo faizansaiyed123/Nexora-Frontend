@@ -1,9 +1,7 @@
 # Nexora — Product Walkthrough
 
-The current screenshot-led product walkthrough is maintained here:
+Nexora is a multi-tenant market-intelligence workspace for managing a product catalog, connecting competitor sources, collecting prices, discovering offerings from public websites, and turning market changes into alerts.
 
-[**Open the Nexora Product Walkthrough**](walkthrough/README.md)
+Follow the [complete visual walkthrough](walkthrough/README.md) to explore workspace setup, competitor configuration, catalog management, collection and price history, alerts, website discovery, account security, and role-based access. It includes the visitor-facing screen sequence and current screenshots.
 
-It follows one connected workspace journey across account creation and recovery, competitors, collection-source configuration, catalog management, price observations, alerting, website discovery, job history, and role-specific access.
-
-The walkthrough uses a dedicated review workspace and representative product-page data. A separate live public retail page shows the collector reading a price from the current storefront; live prices and currency are market-specific and may change over time.
+Catalog examples and controlled price observations illustrate product behavior; they are not represented as current retailer offers. The walkthrough reflects application flows covered in the connected review environment, not a certification of a separately deployed production environment.
