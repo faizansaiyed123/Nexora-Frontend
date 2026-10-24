@@ -14,7 +14,7 @@ Start at the public page, create a workspace, verify the email address, and sign
 
 ![Verification message](visuals/02-verification-email-sent.png)
 
-![Email verification page](visuals/03-email-verification-page.png)
+![Email verification page](visuals/03-email-verification.png)
 
 ![Email verified](visuals/04-email-verified.png)
 
@@ -26,99 +26,103 @@ Start at the public page, create a workspace, verify the email address, and sign
 
 Competitors define the businesses to watch. Sources specify the public pages Nexora reads and the request, timing, retry, header, and extraction controls.
 
-![Competitors before setup](visuals/07-competitors-empty.png)
+![Competitors before setup](visuals/07-competitors.png)
 
-![Competitor added](visuals/08-competitor-created.png)
+![Competitor added](visuals/09-competitor-created.png)
 
-![Duplicate domain handled](visuals/09-duplicate-domain-rejected.png)
+![Duplicate domain handled](visuals/10-duplicate-competitor-rejected.png)
 
-![Add a source](visuals/10-source-creation-form.png)
+![Add a source](visuals/11-source-form.png)
 
-![Source connected](visuals/11-sources-created.png)
+![Source connected](visuals/12-source-created.png)
 
-![Source configuration](visuals/12-source-configuration.png)
+![Source configuration](visuals/13-source-configuration-form.png)
 
-![Saved source configuration](visuals/13-source-configuration-saved.png)
+![Saved source configuration](visuals/14-source-configuration-saved.png)
 
 ## 3. Build and maintain the catalog
 
 Each offering can include its SKU, price, market, category, description, and flexible attributes. The catalog supports detail views, editing, monitoring controls, shared dynamic fields, bulk import, export, and archive.
 
-![Add a catalog offering](visuals/14-offering-creation-form.png)
+![Add a catalog offering](visuals/15-offering-form.png)
 
-![Offering in the catalog](visuals/15-catalog-offering-created.png)
+![Offering in the catalog](visuals/16-offering-created.png)
 
-![Offering detail and history](visuals/16-offering-detail-and-history.png)
+![Offering detail and history](visuals/17-offering-details.png)
 
-![Catalog monitoring active](visuals/17-catalog-monitoring-active.png)
+![Catalog monitoring active](visuals/18-offering-monitoring.png)
 
-![Dynamic field definitions](visuals/18-dynamic-fields.png)
+![Dynamic field definitions](visuals/19-dynamic-fields.png)
 
-![Create a reusable field](visuals/19-dynamic-field-form.png)
+![Create a reusable field](visuals/20-dynamic-field-form.png)
 
-![Dynamic field saved](visuals/20-dynamic-field-created.png)
+![Dynamic field saved](visuals/21-dynamic-field-created.png)
 
-![Bulk import](visuals/21-bulk-import-form.png)
+![Bulk import](visuals/22-bulk-import-form.png)
 
-![Imported catalog entries](visuals/22-bulk-imported-catalog.png)
+![Imported catalog entries](visuals/23-bulk-imported-catalog.png)
 
-![Export and selective archive](visuals/23-catalog-import-export-and-archive.png)
+![Export and selective archive](visuals/24-catalog-import-export-archive.png)
 
 ## 4. Turn a match into a market signal
 
 A match connects an internal offering to a competitor URL. Collection saves the price observation and snapshot. Alert rules turn meaningful movements into event history and notifications.
 
-![Map an offering to a competitor page](visuals/24-offering-match-form.png)
+![Map an offering to a competitor page](visuals/25-match-form.png)
 
-![Offering match created](visuals/25-offering-match-created.png)
+![Offering match created](visuals/26-match-created.png)
 
-![First price observation](visuals/26-first-price-observation.png)
+![First price observation](visuals/27-first-price-observation.png)
 
-![Configure a price-drop alert](visuals/27-alert-rule-form.png)
+![Configure a price-drop alert](visuals/28-alert-rule-form.png)
 
-![Alert rule saved](visuals/28-alert-rule-created.png)
+![Alert rule saved](visuals/29-alert-rule-created.png)
 
-![Price-drop alert](visuals/29-alert-generated-and-read.png)
+![Price-drop alert](visuals/30-alert-triggered-and-read.png)
 
-![Collection job history](visuals/30-collection-job-history.png)
+![Collection job history](visuals/32-job-history.png)
 
-![Collection job details](visuals/31-collection-job-detail.png)
+![Collection job details](visuals/33-job-detail.png)
 
 ## 5. Discover public offerings
 
 Website discovery reads structured product evidence and merges eligible records into the catalog. Private network targets are rejected, and repeat scans update an existing matching offering.
 
-![Private target rejected](visuals/32-private-target-blocked.png)
+![Private target rejected](visuals/34-private-discovery-target-blocked.png)
 
-![Product discovered](visuals/33-discovery-product-created.png)
+![Product discovered](visuals/35-discovery-created.png)
 
-![Discovery history](visuals/34-discovery-upsert-history.png)
+![Discovery history](visuals/36-discovery-upsert.png)
 
 ## 6. Workspace and account controls
 
 Settings hold organization details and account security. One-time email links support account verification and password recovery. Roles shape the available actions: analysts can work with intelligence features, while viewers have read-only catalog access.
 
-![Workspace settings](visuals/35-workspace-settings.png)
+![Workspace settings](visuals/37-workspace-settings.png)
 
-![Profile updated](visuals/36-workspace-profile-updated.png)
+![Profile updated](visuals/38-workspace-profile-saved.png)
 
-![Password updated](visuals/37-password-changed.png)
+![Password updated](visuals/39-password-changed.png)
 
-![Password reset request](visuals/38-password-reset-requested.png)
+![Password reset request](visuals/40-reset-requested.png)
 
-![Password reset form](visuals/39-password-reset-form.png)
+![Password reset form](visuals/41-reset-form.png)
 
-![Password reset completed](visuals/40-password-reset-complete.png)
+![Password reset completed](visuals/42-reset-completed.png)
 
-![Dashboard after password recovery](visuals/41-dashboard-after-password-reset.png)
+![Dashboard after password recovery](visuals/43-dashboard-after-reset.png)
 
-![Analyst view](visuals/42-analyst-workspace.png)
+![Analyst view](visuals/44-analyst-workspace.png)
 
-![Viewer read-only view](visuals/43-viewer-read-only-workspace.png)
+![Viewer read-only view](visuals/45-viewer-read-only.png)
 
 ## 7. Mobile entry point
 
-![Nexora homepage at a phone-sized viewport](visuals/44-mobile-homepage.png)
+![Analyst workspace view](visuals/44-analyst-workspace.png)
+
+![Viewer read-only catalog view](visuals/45-viewer-read-only.png)
+
+![Nexora homepage at a phone-sized viewport](visuals/46-mobile-homepage.png)
 
 ---
 
