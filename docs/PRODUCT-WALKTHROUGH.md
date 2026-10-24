@@ -2,7 +2,7 @@
 
 The current screenshot-led product walkthrough is maintained here:
 
-[**Open the Nexora Product Walkthrough**](walkthrough/NEXORA-PRODUCT-WALKTHROUGH.md)
+[**Open the Nexora Product Walkthrough**](walkthrough/README.md)
 
 It follows one connected workspace journey across account creation and recovery, competitors, collection-source configuration, catalog management, price observations, alerting, website discovery, job history, and role-specific access.
 
