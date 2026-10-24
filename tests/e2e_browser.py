@@ -314,6 +314,12 @@ def main() -> None:
         page.on("pageerror", lambda error: js_errors.append(str(error)))
         page.on("dialog", lambda dialog: dialog.accept())
 
+        # Unauthenticated users cannot reach tenant data even when they deep-link.
+        page.goto(FRONTEND + "/offerings", wait_until="networkidle")
+        assert urlparse(page.url).path == "/login", page.url
+        input_field(page, "Work email").wait_for()
+        assert page.evaluate("() => localStorage.getItem('nexora.access')") is None
+
         # Public entry, registration, email verification and authentication.
         page.goto(FRONTEND + "/welcome", wait_until="networkidle")
         assert page.get_by_role("heading", name=re.compile("Understand the market")).is_visible()
@@ -355,8 +361,21 @@ def main() -> None:
         page.get_by_role("link", name="Continue to sign in", exact=True).click()
         page.get_by_label("Work email").wait_for()
         shot(page, "05-login.png")
+
+        # A rejected login must remain visible in the real sign-in form.
+        input_field(page, "Work email").fill(EMAIL)
+        input_field(page, "Password").fill("Definitely-Wrong!2026")
+        with page.expect_response(lambda r: r.url.endswith("/v1/auth/login") and r.request.method == "POST") as invalid_login:
+            page.get_by_role("button", name=re.compile("Sign in")).click()
+        assert invalid_login.value.status == 401, invalid_login.value.text()
+        page.get_by_text("Invalid email or password.", exact=True).wait_for()
+
         login_ui(page, EMAIL, PASSWORD)
         shot(page, "06-dashboard-empty-workspace.png")
+        # Authenticated users should not be left on public-only account screens.
+        page.goto(FRONTEND + "/login", wait_until="networkidle")
+        assert urlparse(page.url).path == "/", page.url
+        page.get_by_role("heading", name="Dashboard", exact=True).last.wait_for()
         me = api_get(page, "/v1/auth/me")
         client_id = uuid.UUID(me["client_id"])
         assert me["role"] == "ORG_ADMIN"
