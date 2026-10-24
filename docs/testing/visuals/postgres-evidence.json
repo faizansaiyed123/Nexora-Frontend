@@ -1,0 +1,14 @@
+{
+  "tenant_id": "54e21291-93b9-48d0-8782-841d4a7202d9",
+  "competitor_id": "ccd76331-1e79-4372-b261-e962793852ef",
+  "source_id": "5b5a208c-9670-40a7-9a5a-7d80fb8db66a",
+  "offering_id": "a32456fa-4fa5-4ec6-bccf-8c0e318ac6d4",
+  "match_id": "a9f4a426-3409-4547-ba24-483a3635570f",
+  "snapshot_price": "349.9900",
+  "observations": 2,
+  "jobs": 2,
+  "discovered_sku": "WF1000XM5-BLK",
+  "notification_statuses": [
+    "SENT"
+  ]
+}

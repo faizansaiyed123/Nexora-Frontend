@@ -1,5 +1,203 @@
 {
   "product": "Nexora",
-  "count": 0,
-  "screenshots": []
+  "screenshot_count": 47,
+  "screenshots": [
+    {
+      "filename": "00-public-homepage.png",
+      "bytes": 564860
+    },
+    {
+      "filename": "01-registration-form.png",
+      "bytes": 441494
+    },
+    {
+      "filename": "02-verification-email-sent.png",
+      "bytes": 413270
+    },
+    {
+      "filename": "03-email-verification.png",
+      "bytes": 407997
+    },
+    {
+      "filename": "04-email-verified.png",
+      "bytes": 406162
+    },
+    {
+      "filename": "05-login.png",
+      "bytes": 424624
+    },
+    {
+      "filename": "06-dashboard-empty-workspace.png",
+      "bytes": 133695
+    },
+    {
+      "filename": "07-competitors.png",
+      "bytes": 143682
+    },
+    {
+      "filename": "08-competitor-form.png",
+      "bytes": 154780
+    },
+    {
+      "filename": "09-competitor-created.png",
+      "bytes": 141760
+    },
+    {
+      "filename": "10-duplicate-competitor-rejected.png",
+      "bytes": 168920
+    },
+    {
+      "filename": "11-source-form.png",
+      "bytes": 161323
+    },
+    {
+      "filename": "12-source-created.png",
+      "bytes": 143188
+    },
+    {
+      "filename": "13-source-configuration-form.png",
+      "bytes": 171722
+    },
+    {
+      "filename": "14-source-configuration-saved.png",
+      "bytes": 143294
+    },
+    {
+      "filename": "15-offering-form.png",
+      "bytes": 174926
+    },
+    {
+      "filename": "16-offering-created.png",
+      "bytes": 160038
+    },
+    {
+      "filename": "17-offering-details.png",
+      "bytes": 192899
+    },
+    {
+      "filename": "18-offering-monitoring.png",
+      "bytes": 160452
+    },
+    {
+      "filename": "19-dynamic-fields.png",
+      "bytes": 179054
+    },
+    {
+      "filename": "20-dynamic-field-form.png",
+      "bytes": 175426
+    },
+    {
+      "filename": "21-dynamic-field-created.png",
+      "bytes": 182105
+    },
+    {
+      "filename": "22-bulk-import-form.png",
+      "bytes": 191539
+    },
+    {
+      "filename": "23-bulk-imported-catalog.png",
+      "bytes": 194387
+    },
+    {
+      "filename": "24-catalog-import-export-archive.png",
+      "bytes": 184347
+    },
+    {
+      "filename": "25-match-form.png",
+      "bytes": 167814
+    },
+    {
+      "filename": "26-match-created.png",
+      "bytes": 150338
+    },
+    {
+      "filename": "27-first-price-observation.png",
+      "bytes": 149495
+    },
+    {
+      "filename": "28-alert-rule-form.png",
+      "bytes": 171743
+    },
+    {
+      "filename": "29-alert-rule-created.png",
+      "bytes": 147891
+    },
+    {
+      "filename": "30-alert-triggered-and-read.png",
+      "bytes": 144588
+    },
+    {
+      "filename": "31-alert-email-delivered.png",
+      "bytes": 144588
+    },
+    {
+      "filename": "32-job-history.png",
+      "bytes": 137582
+    },
+    {
+      "filename": "33-job-detail.png",
+      "bytes": 185251
+    },
+    {
+      "filename": "34-private-discovery-target-blocked.png",
+      "bytes": 179852
+    },
+    {
+      "filename": "35-discovery-created.png",
+      "bytes": 191932
+    },
+    {
+      "filename": "36-discovery-upsert.png",
+      "bytes": 204025
+    },
+    {
+      "filename": "37-workspace-settings.png",
+      "bytes": 209097
+    },
+    {
+      "filename": "38-workspace-profile-saved.png",
+      "bytes": 216188
+    },
+    {
+      "filename": "39-password-changed.png",
+      "bytes": 223146
+    },
+    {
+      "filename": "40-reset-requested.png",
+      "bytes": 411771
+    },
+    {
+      "filename": "41-reset-form.png",
+      "bytes": 402322
+    },
+    {
+      "filename": "42-reset-completed.png",
+      "bytes": 405796
+    },
+    {
+      "filename": "43-dashboard-after-reset.png",
+      "bytes": 133695
+    },
+    {
+      "filename": "44-analyst-workspace.png",
+      "bytes": 218316
+    },
+    {
+      "filename": "45-viewer-read-only.png",
+      "bytes": 138366
+    },
+    {
+      "filename": "46-mobile-homepage.png",
+      "bytes": 323470
+    }
+  ],
+  "database_evidence": {
+    "file": "visuals/postgres-evidence.json",
+    "verified_observations": 2,
+    "verified_collection_jobs": 2,
+    "latest_snapshot_price": "349.9900",
+    "notification_statuses": [
+      "SENT"
+    ]
+  }
 }
