@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio, json, os, re, threading, time, uuid
 from email import message_from_string
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 from playwright.sync_api import Browser, Page, sync_playwright
 from sqlalchemy import select
 from backend.core.security import get_password_hash
@@ -272,7 +272,14 @@ def main() -> None:
         assert reg.value.json()["email_verification_required"] is True
         page.get_by_role("heading", name="Verification required").wait_for()
         shot(page, "02-verification-email-sent.png")
-        _, verify_body = wait_email("Verify your Nexora account", EMAIL, mail_start)
+        _, initial_verify_body = wait_email("Verify your Nexora account", EMAIL, mail_start)
+        initial_verify_url = email_link(initial_verify_body, "verify-email")
+        assert urlparse(initial_verify_url).path.endswith("/verify-email")
+        resend_mail_start = len(mailbox())
+        with page.expect_response(lambda r: r.url.endswith("/v1/auth/resend-verification") and r.request.method == "POST") as resend:
+            page.get_by_role("button", name="Resend email", exact=True).click()
+        assert resend.value.status == 200, resend.value.text()
+        _, verify_body = wait_email("Verify your Nexora account", EMAIL, resend_mail_start)
         verify_url = email_link(verify_body, "verify-email")
         assert urlparse(verify_url).path.endswith("/verify-email")
         page.goto(verify_url, wait_until="networkidle")
@@ -280,6 +287,9 @@ def main() -> None:
         with page.expect_response(lambda r: "/v1/auth/verify-email?" in r.url and r.request.method == "GET") as verify:
             page.get_by_role("button", name=re.compile("Verify email")).click()
         assert verify.value.status == 200, verify.value.text()
+        consumed_token = parse_qs(urlparse(verify_url).query)["token"][0]
+        replayed_verification = page.request.get(API + "/v1/auth/verify-email", params={"token": consumed_token})
+        assert replayed_verification.status == 422, replayed_verification.text()
         page.get_by_role("link", name="Continue to sign in", exact=True).wait_for()
         shot(page, "04-email-verified.png")
         page.get_by_role("link", name="Continue to sign in", exact=True).click()
@@ -344,7 +354,7 @@ def main() -> None:
         input_field(page, "Timeout seconds").fill("25")
         input_field(page, "Max retries").fill("1")
         page.get_by_label("Custom headers (JSON)").fill('{"Accept-Language":"en-US,en;q=0.9"}')
-        page.get_by_label("Extraction selectors (JSON)").fill("{}")
+        page.get_by_label("Extraction selectors (JSON)").fill('{"title_selector":"h1","price_selector":".price"}')
         shot(page, "12-source-configuration.png")
         with page.expect_response(lambda r: r.url.endswith(f"/v1/sources/{source_id}/configuration") and r.request.method == "PATCH") as config:
             page.get_by_role("button", name="Save configuration", exact=True).click()
@@ -352,6 +362,7 @@ def main() -> None:
         config_saved = api_get(page, f"/v1/sources/{source_id}")
         assert config_saved["configuration"]["rate_limit_rpm"] == 60
         assert config_saved["configuration"]["max_retries"] == 1
+        assert config_saved["configuration"]["extraction_selectors"]["price_selector"] == ".price"
         page.get_by_title("Edit source", exact=True).click()
         source_name = SOURCE + " (Structured)"
         input_field(page, "Source name").fill(source_name)
@@ -507,6 +518,17 @@ def main() -> None:
         page.get_by_text("Sony retail price drop", exact=True).wait_for()
         shot(page, "28-alert-rule-created.png")
 
+        # Exercise the alternative browser-rendering collector path on the second observation.
+        page.get_by_role("link", name="Sources", exact=True).click()
+        source_row = page.locator("tbody tr").filter(has_text=source_name).first
+        source_row.get_by_title("Configuration", exact=True).click()
+        page.get_by_label("Require JavaScript rendering").check()
+        shot(page, "13b-source-js-rendering-enabled.png")
+        with page.expect_response(lambda r: r.url.endswith(f"/v1/sources/{source_id}/configuration") and r.request.method == "PATCH") as js_config:
+            page.get_by_role("button", name="Save configuration", exact=True).click()
+        assert js_config.value.status == 200, js_config.value.text()
+        assert api_get(page, f"/v1/sources/{source_id}")["configuration"]["requires_javascript"] is True
+
         page.get_by_role("link", name="Matches", exact=True).click()
         row = page.locator("tbody tr").filter(has_text=OFFERING).first
         row.get_by_title("Edit", exact=True).click()
@@ -621,6 +643,7 @@ def main() -> None:
         shot(page, "38-password-reset-requested.png")
         _, reset_body = wait_email("Reset your Nexora password", EMAIL, reset_mail_start)
         reset_url = email_link(reset_body, "reset-password")
+        reset_token = parse_qs(urlparse(reset_url).query)["token"][0]
         page.goto(reset_url, wait_until="networkidle")
         input_field(page, "New password").wait_for()
         shot(page, "39-password-reset-form.png")
@@ -628,6 +651,12 @@ def main() -> None:
         with page.expect_response(lambda r: r.url.endswith("/v1/auth/reset-password") and r.request.method == "POST") as reset:
             page.get_by_role("button", name="Update password", exact=True).click()
         assert reset.value.status == 200, reset.value.text()
+        replayed_reset = page.request.post(
+            API + "/v1/auth/reset-password",
+            data=json.dumps({"token": reset_token, "new_password": "Nexora-Replay!2026"}),
+            headers={"Content-Type": "application/json"},
+        )
+        assert replayed_reset.status == 422, replayed_reset.text()
         page.get_by_role("heading", name="Password updated", exact=True).last.wait_for()
         shot(page, "40-password-reset-complete.png")
         page.get_by_role("link", name="Continue to sign in", exact=True).click()
@@ -754,7 +783,7 @@ def main() -> None:
             "00-public-homepage.png","01-registration-form.png","02-verification-email-sent.png",
             "03-email-verification-page.png","04-email-verified.png","05-login.png","06-dashboard-empty-workspace.png",
             "07-competitors-empty.png","08-competitor-created.png","09-duplicate-domain-rejected.png",
-            "10-source-creation-form.png","11-sources-created.png","12-source-configuration.png","13-source-configuration-saved.png",
+            "10-source-creation-form.png","11-sources-created.png","12-source-configuration.png","13-source-configuration-saved.png","13b-source-js-rendering-enabled.png",
             "14-offering-creation-form.png","15-catalog-offering-created.png","16-offering-detail-and-history.png",
             "17-catalog-monitoring-active.png","18-dynamic-fields.png","19-dynamic-field-form.png","20-dynamic-field-created.png",
             "21-bulk-import-form.png","22-bulk-imported-catalog.png","23-catalog-import-export-and-archive.png",

@@ -42,6 +42,10 @@ Track the businesses whose prices matter. Nexora protects against duplicate doma
 
 ![Source settings saved](./screenshots/13-source-configuration-saved.png)
 
+![JavaScript-rendered source option](./screenshots/13b-source-js-rendering-enabled.png)
+
+Nexora can use a fast HTTP fetch for ordinary public pages or a browser-rendered page when a source requires JavaScript.
+
 ## Catalog management
 
 Offerings bring product identity, SKU, pricing, market, category, and flexible attributes into a consistent catalog. Staff can inspect detail and price history, pause or resume monitoring, add dynamic fields, bulk-import records, export CSV/JSON, and archive items without confusing catalog edits with inventory or observation history.

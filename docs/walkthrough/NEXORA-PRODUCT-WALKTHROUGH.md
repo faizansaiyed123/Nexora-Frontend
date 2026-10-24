@@ -40,6 +40,10 @@ Competitors represent the businesses being monitored. Sources describe the publi
 
 ![Configured source](screenshots/13-source-configuration-saved.png)
 
+![JavaScript rendering enabled for a source](screenshots/13b-source-js-rendering-enabled.png)
+
+Nexora can use a fast HTTP fetch for ordinary public pages or a browser-rendered page when a source requires JavaScript.
+
 ## 3. Build the canonical catalogue
 
 The catalogue stores the team's own products, services, plans, and other offerings. Core commercial data sits alongside dynamic attributes such as brand, category-specific specifications, and other comparable properties. Teams can review an offering's detail and history, change its monitored state, manage dynamic field definitions, bulk import catalog entries, export CSV or JSON, and archive items that are no longer active.
