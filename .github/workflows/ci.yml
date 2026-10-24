@@ -195,7 +195,7 @@ jobs:
           SSL_CERT_FILE: /tmp/nexora-ca-bundle.pem
           GEMINI_DISCOVERY_ENABLED: "false"
           NEXORA_SCREENSHOT_DIR: ../docs/testing/visuals
-        run: uv run --python 3.12 python tests/e2e/run_ui_journey.py
+        run: uv run --python 3.12 python tests/browser_walkthrough.py
 
       - name: Build screenshot manifest
         if: success()
@@ -206,8 +206,8 @@ jobs:
 
           folder = Path("docs/testing/visuals")
           screenshots = sorted(folder.glob("*.png"))
-          if len(screenshots) != 48:
-              raise SystemExit(f"Expected 48 walkthrough screenshots; found {len(screenshots)}")
+          if len(screenshots) != 60:
+              raise SystemExit(f"Expected 60 walkthrough screenshots; found {len(screenshots)}")
 
           walkthrough = Path("docs/testing/VISUAL-TEST-WALKTHROUGH.md").read_text(encoding="utf-8")
           referenced = {
@@ -266,8 +266,8 @@ jobs:
               old_image.unlink()
 
           images = sorted(source.glob("*.png"))
-          if len(images) != 48:
-              raise SystemExit(f"Expected 48 fresh screenshots; found {len(images)}")
+          if len(images) != 60:
+              raise SystemExit(f"Expected 60 fresh screenshots; found {len(images)}")
 
           for image in images:
               shutil.copy2(image, destination / image.name)
