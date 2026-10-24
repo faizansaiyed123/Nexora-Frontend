@@ -106,7 +106,7 @@ def extract_token(body, route):
 
 def login(page, email, password):
     page.get_by_label("Work email").fill(email)
-    page.get_by_label("Password").fill(password)
+    page.locator("label.field").filter(has_text=re.compile(r"^Password")).locator("input[type=password]").fill(password)
     call(page,"/v1/auth/login","POST",lambda:page.get_by_role("button",name=re.compile("Sign in")).click())
     page.get_by_role("heading",name="Dashboard",exact=True).wait_for(timeout=15000)
 
@@ -148,7 +148,7 @@ def main():
         page.get_by_label("Organization name").fill("Northstar Market Intelligence")
         page.get_by_label("Your full name").fill("Alex Morgan")
         page.get_by_label("Work email").fill(EMAIL)
-        page.get_by_label("Password").fill(PASSWORD)
+        page.locator("label.field").filter(has_text=re.compile(r"^Password")).locator("input[type=password]").fill(PASSWORD)
         shot(page,SHOTS[1])
         start=len(mailbox())
         reg=call(page,"/v1/auth/register","POST",lambda:page.get_by_role("button",name=re.compile("Create workspace")).click(),(201,))
