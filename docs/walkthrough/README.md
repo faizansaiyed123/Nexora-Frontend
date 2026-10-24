@@ -76,6 +76,10 @@ A mixed import keeps successful records and shows the exact rejected row and rea
 
 ![Archive an individual catalogue item](./screenshots/23b-single-offering-archived.png)
 
+Larger catalogues are split into pages; the controls let the team navigate through the full set without loading every row into one view.
+
+![Catalogue pagination](./screenshots/23c-catalog-pagination.png)
+
 ## Price intelligence and alerts
 
 Map a catalog offering to a competitor URL, collect a first price observation, and compare the next observation. Alert rules turn a meaningful movement into a persistent signal that the team can review and mark as read.
