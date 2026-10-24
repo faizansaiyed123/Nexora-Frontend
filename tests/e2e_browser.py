@@ -517,7 +517,7 @@ def main() -> None:
         logout_ui(page)
         page.get_by_role("link", name="Forgot password?", exact=True).click()
         page.get_by_role("heading", name="Reset access without losing your workspace.", exact=True).wait_for()
-        reset_email_input = page.get_by_label("Work email", exact=True).last
+        reset_email_input = input_field(page, "Work email")
         reset_email_input.fill(EMAIL)
         assert reset_email_input.input_value() == EMAIL, "Password-reset email was not populated in the form."
         reset_mail_start = len(mailbox())
