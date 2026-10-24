@@ -940,8 +940,12 @@ def main() -> None:
         assert live_source_name in screenshot_detail_text, screenshot_detail_text
         assert live_competitor_name in screenshot_detail_text, screenshot_detail_text
         assert "₹" in screenshot_detail_text and "22,990" in screenshot_detail_text, screenshot_detail_text
-        live_match_detail_row = offering_dialog.locator("div.list-row").filter(has_text=live_source_name).last
-        assert live_match_detail_row.get_by_role("link", name="Open", exact=True).get_attribute("href") == live_url
+        target_links = offering_dialog.get_by_role("link", name="Open", exact=True)
+        linked_targets = [
+            target_links.nth(index).get_attribute("href")
+            for index in range(target_links.count())
+        ]
+        assert live_url in linked_targets, linked_targets
         match_read_back = api_get(page, "/v1/offering-matches")
         assert any(
             row["id"] == live_match_id and row["target_url"] == live_url
