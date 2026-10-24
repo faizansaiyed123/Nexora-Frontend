@@ -239,10 +239,6 @@ async def assert_persisted_market_state(
         )).all())
         offering = await session.get(OfferingModel, offering_id)
         match = await session.get(OfferingMatchModel, match_id)
-        discovered = await session.scalar(select(OfferingModel).where(
-            OfferingModel.client_id == client_id,
-            OfferingModel.sku == "WF1000XM5-BLK",
-        ))
         jobs = list((await session.scalars(
             select(JobModel)
             .join(SourceModel, SourceModel.id == JobModel.source_id)
@@ -266,7 +262,6 @@ async def assert_persisted_market_state(
         assert match is not None and match.offering_id == offering_id
         assert offering is not None and offering.client_id == client_id
         assert any(row.title == "Competitor price dropped" and row.is_read for row in alert_rows)
-        assert discovered is not None and discovered.name == DISCOVERED
         assert any(row.status.value == "COMPLETED" and row.job_type.value == "ON_DEMAND_REFRESH" for row in jobs)
         assert any(status == "SENT" for status in notification_statuses)
         evidence = {
@@ -283,13 +278,45 @@ async def assert_persisted_market_state(
                 for row in jobs
             ),
             "email_outbox_sent": sum(status == "SENT" for status in notification_statuses),
-            "discovered_offering": discovered.name,
             "tenant_id": str(client_id),
         }
     Path("/tmp/nexora-db-evidence.json").write_text(
         json.dumps(evidence, indent=2) + "\n", encoding="utf-8"
     )
     print("DIRECT POSTGRESQL READ-BACK: " + json.dumps(evidence, sort_keys=True), flush=True)
+    return evidence
+
+
+async def assert_discovered_offering(
+    client_id: uuid.UUID,
+    sku: str,
+    expected_name: str,
+) -> dict:
+    """Verify a real discovery run inserted its catalog row into PostgreSQL."""
+    async with AsyncSessionLocal() as session:
+        offering = await session.scalar(
+            select(OfferingModel).where(
+                OfferingModel.client_id == client_id,
+                OfferingModel.sku == sku,
+            )
+        )
+        assert offering is not None, {"client_id": str(client_id), "sku": sku}
+        assert offering.name == expected_name, offering.name
+        assert offering.created_via.value == "WEBSITE_DISCOVERY", offering.created_via
+        evidence = {
+            "database": "PostgreSQL",
+            "client_id": str(client_id),
+            "offering_id": str(offering.id),
+            "name": offering.name,
+            "sku": offering.sku,
+            "price": str(offering.current_price),
+            "currency": offering.currency,
+            "created_via": offering.created_via.value,
+        }
+    Path("/tmp/nexora-discovery-db-evidence.json").write_text(
+        json.dumps(evidence, indent=2) + "\\n", encoding="utf-8"
+    )
+    print("DISCOVERY POSTGRESQL READ-BACK: " + json.dumps(evidence, sort_keys=True), flush=True)
     return evidence
 
 
@@ -1033,6 +1060,10 @@ def main() -> None:
         shot(page, "33-discovery-product-created.png")
         discovery_readback = api_get(page, f"/v1/discovery/jobs/{discovered['job_id']}")
         assert discovery_readback["items"][0]["sku"] == "WF1000XM5-BLK"
+        database_discovery = run_async(
+            assert_discovered_offering(client_id, "WF1000XM5-BLK", DISCOVERED)
+        )
+        assert database_discovery["name"] == DISCOVERED
         with page.expect_response(lambda r: r.url.endswith("/v1/discovery/run") and r.request.method == "POST") as discovery_again:
             page.get_by_role("button", name="Run discovery", exact=True).click()
         assert discovery_again.value.status == 200, discovery_again.value.text()

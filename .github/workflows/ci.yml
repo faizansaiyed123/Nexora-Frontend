@@ -253,6 +253,7 @@ jobs:
             /tmp/nexora-worker.log
             /tmp/nexora-health.json
             /tmp/nexora-scheduled-job-db-evidence.json
+            /tmp/nexora-discovery-db-evidence.json
             /tmp/nexora-db-evidence.json
           retention-days: 21
 
