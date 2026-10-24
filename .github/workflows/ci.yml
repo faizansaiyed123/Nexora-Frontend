@@ -220,6 +220,7 @@ jobs:
             /tmp/nexora-smtp.log
             /tmp/nexora-frontend.log
             /tmp/nexora-health.json
+            /tmp/nexora-db-evidence.json
           retention-days: 21
 
       - name: Publish successful screenshots to the walkthrough

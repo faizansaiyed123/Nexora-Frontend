@@ -8,9 +8,13 @@ from playwright.sync_api import Browser, Page, sync_playwright
 from sqlalchemy import select
 from backend.core.security import get_password_hash
 from backend.db.session import AsyncSessionLocal
+from backend.models.alert import AlertLogModel
 from backend.models.client import UserModel
+from backend.models.competitor import CompetitorModel, OfferingMatchModel, SourceModel
 from backend.models.enums import RoleEnum
 from backend.models.notification import NotificationOutboxModel
+from backend.models.observation import JobModel, ObservationModel, SnapshotModel
+from backend.models.offering import OfferingModel
 
 FRONTEND = os.getenv("NEXORA_FRONTEND_URL", "http://127.0.0.1:4173").rstrip("/")
 API = os.getenv("NEXORA_API_URL", "http://127.0.0.1:8000").rstrip("/")
@@ -129,6 +133,80 @@ async def sent_statuses(client_id: uuid.UUID) -> list[str]:
         result = await session.execute(select(NotificationOutboxModel.status).where(
             NotificationOutboxModel.client_id == client_id, NotificationOutboxModel.channel == "email"))
         return list(result.scalars().all())
+
+async def assert_persisted_market_state(
+    client_id: uuid.UUID,
+    offering_id: uuid.UUID,
+    match_id: uuid.UUID,
+    rule_id: uuid.UUID,
+) -> dict:
+    """Verify core intelligence outputs through direct PostgreSQL reads."""
+    async with AsyncSessionLocal() as session:
+        observations = list((await session.scalars(
+            select(ObservationModel)
+            .where(ObservationModel.offering_match_id == match_id)
+            .order_by(ObservationModel.observed_at.asc())
+        )).all())
+        snapshot = await session.scalar(
+            select(SnapshotModel).where(SnapshotModel.offering_match_id == match_id)
+        )
+        alert_rows = list((await session.scalars(
+            select(AlertLogModel).where(AlertLogModel.alert_rule_id == rule_id)
+        )).all())
+        offering = await session.get(OfferingModel, offering_id)
+        match = await session.get(OfferingMatchModel, match_id)
+        discovered = await session.scalar(select(OfferingModel).where(
+            OfferingModel.client_id == client_id,
+            OfferingModel.sku == "WF1000XM5-BLK",
+        ))
+        jobs = list((await session.scalars(
+            select(JobModel)
+            .join(SourceModel, SourceModel.id == JobModel.source_id)
+            .join(CompetitorModel, CompetitorModel.id == SourceModel.competitor_id)
+            .where(CompetitorModel.client_id == client_id)
+        )).all())
+        notification_statuses = list((await session.scalars(
+            select(NotificationOutboxModel.status).where(
+                NotificationOutboxModel.client_id == client_id,
+                NotificationOutboxModel.channel == "email",
+            )
+        )).all())
+
+        prices = [round(float(row.observed_price), 2) for row in observations if row.observed_price is not None]
+        assert prices[:2] == [399.99, 349.99], prices
+        assert [row.http_status_code for row in observations[:2]] == [200, 200]
+        assert snapshot is not None
+        assert round(float(snapshot.current_price), 2) == 349.99
+        assert round(float(snapshot.previous_price), 2) == 399.99
+        assert round(float(snapshot.percentage_difference), 2) == -12.5
+        assert match is not None and match.offering_id == offering_id
+        assert offering is not None and offering.client_id == client_id
+        assert any(row.title == "Competitor price dropped" and row.is_read for row in alert_rows)
+        assert discovered is not None and discovered.name == DISCOVERED
+        assert any(row.status.value == "COMPLETED" and row.job_type.value == "ON_DEMAND_REFRESH" for row in jobs)
+        assert any(status == "SENT" for status in notification_statuses)
+        evidence = {
+            "database": "PostgreSQL",
+            "observations": len(observations),
+            "first_two_observed_prices": prices[:2],
+            "http_status_codes": [row.http_status_code for row in observations[:2]],
+            "snapshot_current_price": str(snapshot.current_price),
+            "snapshot_previous_price": str(snapshot.previous_price),
+            "snapshot_change_percent": round(float(snapshot.percentage_difference), 2),
+            "persisted_read_alerts": len(alert_rows),
+            "completed_collection_jobs": sum(
+                row.status.value == "COMPLETED" and row.job_type.value == "ON_DEMAND_REFRESH"
+                for row in jobs
+            ),
+            "email_outbox_sent": sum(status == "SENT" for status in notification_statuses),
+            "discovered_offering": discovered.name,
+            "tenant_id": str(client_id),
+        }
+    Path("/tmp/nexora-db-evidence.json").write_text(
+        json.dumps(evidence, indent=2) + "\\n", encoding="utf-8"
+    )
+    print("DIRECT POSTGRESQL READ-BACK: " + json.dumps(evidence, sort_keys=True), flush=True)
+    return evidence
 
 _async_loop: asyncio.AbstractEventLoop | None = None
 _async_thread: threading.Thread | None = None
@@ -541,6 +619,36 @@ def main() -> None:
         login_ui(page, EMAIL, RESET_PASSWORD)
         shot(page, "41-dashboard-after-password-reset.png")
 
+        # Verify observations, snapshot, alert, discovered item, jobs and outbox directly in PostgreSQL.
+        run_async(assert_persisted_market_state(
+            client_id, uuid.UUID(offering_id), uuid.UUID(match_id), uuid.UUID(rule_id)
+        ))
+
+        # Exercise the rest of alert-rule management through the real UI.
+        page.get_by_role("link", name="Alerts", exact=True).click()
+        rule_row = page.locator("div.list-row").filter(has_text="Sony retail price drop").first
+        rule_row.get_by_title("Edit rule", exact=True).click()
+        page.get_by_label("Threshold").fill("15")
+        with page.expect_response(lambda r: r.url.endswith(f"/v1/alerts/rules/{rule_id}") and r.request.method == "PATCH") as rule_edit:
+            page.get_by_role("button", name="Save changes", exact=True).click()
+        assert rule_edit.value.status == 200, rule_edit.value.text()
+        rules = api_get(page, "/v1/alerts/rules")
+        assert next(row for row in rules if row["id"] == rule_id)["threshold_value"] == 15
+
+        rule_row = page.locator("div.list-row").filter(has_text="Sony retail price drop").first
+        with page.expect_response(lambda r: r.url.endswith(f"/v1/alerts/rules/{rule_id}") and r.request.method == "PATCH") as rule_pause:
+            rule_row.get_by_title("Pause rule", exact=True).click()
+        assert rule_pause.value.status == 200 and rule_pause.value.json()["is_active"] is False
+        rule_row = page.locator("div.list-row").filter(has_text="Sony retail price drop").first
+        with page.expect_response(lambda r: r.url.endswith(f"/v1/alerts/rules/{rule_id}") and r.request.method == "PATCH") as rule_activate:
+            rule_row.get_by_title("Activate rule", exact=True).click()
+        assert rule_activate.value.status == 200 and rule_activate.value.json()["is_active"] is True
+        rule_row = page.locator("div.list-row").filter(has_text="Sony retail price drop").first
+        with page.expect_response(lambda r: r.url.endswith(f"/v1/alerts/rules/{rule_id}") and r.request.method == "DELETE") as rule_delete:
+            rule_row.get_by_title("Delete rule", exact=True).click()
+        assert rule_delete.value.status == 204, rule_delete.value.text()
+        assert all(row["id"] != rule_id for row in api_get(page, "/v1/alerts/rules"))
+
         # Persistent users, actual issued JWTs, UI restrictions and server permission checks.
         viewer_email = run_async(add_role_user(client_id, RoleEnum.VIEWER))
         analyst_email = run_async(add_role_user(client_id, RoleEnum.ANALYST))
@@ -580,19 +688,20 @@ def main() -> None:
         page.get_by_role("heading", name="Competitors", exact=True).last.wait_for()
         assert page.get_by_role("button", name="Add competitor", exact=True).is_visible()
         super_domain = "superadmin-" + client_id.hex[:10] + ".example.com"
-        super_create = api_post(
-            page, "/v1/competitors",
-            {"name": "Super Admin Verification", "domain": super_domain},
-            {"Authorization": f"Bearer {token(page)}"},
-        )
-        assert super_create.status == 201, super_create.text()
-        super_competitor_id = super_create.json()["id"]
-        super_delete = page.request.delete(
-            API + f"/v1/competitors/{super_competitor_id}",
-            headers={"Authorization": f"Bearer {token(page)}"},
-        )
-        assert super_delete.status == 204, super_delete.text()
+        page.get_by_role("button", name="Add competitor", exact=True).click()
+        page.get_by_label("Name").fill("Super Admin Verification")
+        page.get_by_label("Domain").fill(super_domain)
+        with page.expect_response(lambda r: r.url.endswith("/v1/competitors") and r.request.method == "POST") as super_create:
+            page.get_by_role("button", name="Save competitor", exact=True).click()
+        assert super_create.value.status == 201, super_create.value.text()
+        super_competitor_id = super_create.value.json()["id"]
+        page.get_by_text("Super Admin Verification", exact=True).wait_for()
         shot(page, "44-super-admin-workspace.png")
+        super_row = page.locator("tbody tr").filter(has_text="Super Admin Verification").first
+        with page.expect_response(lambda r: r.url.endswith(f"/v1/competitors/{super_competitor_id}") and r.request.method == "DELETE") as super_delete:
+            super_row.locator("button.danger-icon").click()
+        assert super_delete.value.status == 204, super_delete.value.text()
+        assert all(row["id"] != super_competitor_id for row in api_get(page, "/v1/competitors"))
 
         mobile_context = browser.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=1)
         mobile = mobile_context.new_page()
