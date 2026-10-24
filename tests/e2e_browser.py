@@ -101,7 +101,7 @@ def login_ui(page: Page, email: str, password: str) -> None:
     with page.expect_response(lambda r: r.url.endswith("/v1/auth/login") and r.request.method == "POST") as event:
         page.get_by_role("button", name=re.compile("Sign in")).click()
     assert event.value.status == 200, event.value.text()
-    page.get_by_role("heading", name="Dashboard", exact=True).wait_for(timeout=15000)
+    page.get_by_role("heading", name="Dashboard", exact=True).last.wait_for(timeout=15000)
 
 def logout_ui(page: Page) -> None:
     page.locator("button.profile-trigger").click()
@@ -174,7 +174,7 @@ def main() -> None:
 
         # Competitor creation/edit and server-side duplicate guard.
         page.get_by_role("link", name="Competitors", exact=True).click()
-        page.get_by_role("heading", name="Competitors", exact=True).wait_for()
+        page.get_by_role("heading", name="Competitors", exact=True).last.wait_for()
         shot(page, "07-competitors-empty.png")
         page.get_by_role("button", name="Add competitor", exact=True).click()
         page.get_by_label("Name").fill(COMPETITOR)
@@ -205,7 +205,7 @@ def main() -> None:
 
         # Source create, advanced configuration and edit read-back.
         page.get_by_role("link", name="Sources", exact=True).click()
-        page.get_by_role("heading", name="Sources", exact=True).wait_for()
+        page.get_by_role("heading", name="Sources", exact=True).last.wait_for()
         page.get_by_role("button", name="Add source", exact=True).click()
         choose(page, "Competitor", competitor_name)
         page.get_by_label("Source name").fill(SOURCE)
@@ -244,7 +244,7 @@ def main() -> None:
 
         # Catalog create/detail/edit/monitoring, attributes, schema and bulk operations.
         page.get_by_role("link", name="Offerings", exact=True).click()
-        page.get_by_role("heading", name="Offerings", exact=True).wait_for()
+        page.get_by_role("heading", name="Offerings", exact=True).last.wait_for()
         page.get_by_role("button", name="Add offering", exact=True).click()
         page.get_by_label("Name").fill(OFFERING)
         choose(page, "Offering type", "PRODUCT")
@@ -346,7 +346,7 @@ def main() -> None:
 
         # Create match and collect the first real price observation.
         page.get_by_role("link", name="Matches", exact=True).click()
-        page.get_by_role("heading", name="Offering matches", exact=True).wait_for()
+        page.get_by_role("heading", name="Offering matches", exact=True).last.wait_for()
         page.get_by_role("button", name="Add match", exact=True).click()
         choose(page, "Offering", OFFERING)
         choose(page, "Source", source_name)
@@ -373,7 +373,7 @@ def main() -> None:
 
         # Alert rule + lower second observation => alert log + email outbox delivery.
         page.get_by_role("link", name="Alerts", exact=True).click()
-        page.get_by_role("heading", name="Alerts", exact=True).wait_for()
+        page.get_by_role("heading", name="Alerts", exact=True).last.wait_for()
         page.get_by_role("button", name="New rule", exact=True).click()
         page.get_by_label("Rule name").fill("Sony retail price drop")
         choose(page, "Alert type", "PERCENTAGE_DROP")
@@ -423,7 +423,7 @@ def main() -> None:
         assert "SENT" in asyncio.run(sent_statuses(client_id))
 
         page.get_by_role("link", name="Jobs", exact=True).click()
-        page.get_by_role("heading", name="Jobs", exact=True).wait_for()
+        page.get_by_role("heading", name="Jobs", exact=True).last.wait_for()
         page.get_by_text("ON DEMAND REFRESH", exact=False).wait_for()
         shot(page, "30-collection-job-history.png")
         page.get_by_role("button", name="Details", exact=True).first.click()
@@ -433,7 +433,7 @@ def main() -> None:
 
         # SSRF rejection then real HTTPS schema extraction and catalog upsert.
         page.get_by_role("link", name="Discovery", exact=True).click()
-        page.get_by_role("heading", name="Website discovery", exact=True).wait_for()
+        page.get_by_role("heading", name="Website discovery", exact=True).last.wait_for()
         page.get_by_label("Website URL").fill("http://127.0.0.1:8000/v1/health")
         page.get_by_label("Max pages").fill("1")
         with page.expect_response(lambda r: r.url.endswith("/v1/discovery/run") and r.request.method == "POST") as blocked:
@@ -465,7 +465,7 @@ def main() -> None:
         # Profile changes, password change, reset-token email and re-login.
         page.locator("button.profile-trigger").click()
         page.get_by_text("Account settings", exact=True).click()
-        page.get_by_role("heading", name="Settings", exact=True).wait_for()
+        page.get_by_role("heading", name="Settings", exact=True).last.wait_for()
         page.get_by_label("Organization name").wait_for()
         shot(page, "35-workspace-settings.png")
         page.get_by_label("Company name").fill("Northstar Analytics")
@@ -495,7 +495,7 @@ def main() -> None:
         with page.expect_response(lambda r: r.url.endswith("/v1/auth/forgot-password") and r.request.method == "POST") as forgot:
             page.get_by_role("button", name="Send reset link", exact=True).click()
         assert forgot.value.status == 200, forgot.value.text()
-        page.get_by_role("heading", name="Check your inbox", exact=True).wait_for()
+        page.get_by_role("heading", name="Check your inbox", exact=True).last.wait_for()
         shot(page, "38-password-reset-requested.png")
         _, reset_body = wait_email("Reset your Nexora password", EMAIL, reset_mail_start)
         reset_url = email_link(reset_body, "reset-password")
@@ -506,7 +506,7 @@ def main() -> None:
         with page.expect_response(lambda r: r.url.endswith("/v1/auth/reset-password") and r.request.method == "POST") as reset:
             page.get_by_role("button", name="Update password", exact=True).click()
         assert reset.value.status == 200, reset.value.text()
-        page.get_by_role("heading", name="Password updated", exact=True).wait_for()
+        page.get_by_role("heading", name="Password updated", exact=True).last.wait_for()
         shot(page, "40-password-reset-complete.png")
         page.get_by_role("link", name="Continue to sign in", exact=True).click()
         login_ui(page, EMAIL, RESET_PASSWORD)
@@ -519,7 +519,7 @@ def main() -> None:
         logout_ui(page)
         login_ui(page, analyst_email, ROLE_PASSWORD)
         page.get_by_role("link", name="Competitors", exact=True).click()
-        page.get_by_role("heading", name="Competitors", exact=True).wait_for()
+        page.get_by_role("heading", name="Competitors", exact=True).last.wait_for()
         assert page.get_by_role("button", name="Add competitor", exact=True).count() == 0
         denied = page.request.post(API + "/v1/competitors",
             headers={"Authorization": f"Bearer {token(page)}"},
@@ -532,7 +532,7 @@ def main() -> None:
         logout_ui(page)
         login_ui(page, viewer_email, ROLE_PASSWORD)
         page.get_by_role("link", name="Offerings", exact=True).click()
-        page.get_by_role("heading", name="Offerings", exact=True).wait_for()
+        page.get_by_role("heading", name="Offerings", exact=True).last.wait_for()
         assert page.get_by_role("button", name="Add offering", exact=True).count() == 0
         assert page.get_by_role("button", name="Bulk import", exact=True).count() == 0
         assert page.get_by_role("button", name="Dynamic fields", exact=True).count() == 0
@@ -548,7 +548,7 @@ def main() -> None:
         logout_ui(page)
         login_ui(page, super_admin_email, ROLE_PASSWORD)
         page.get_by_role("link", name="Competitors", exact=True).click()
-        page.get_by_role("heading", name="Competitors", exact=True).wait_for()
+        page.get_by_role("heading", name="Competitors", exact=True).last.wait_for()
         assert page.get_by_role("button", name="Add competitor", exact=True).is_visible()
         super_domain = "superadmin-" + client_id.hex[:10] + ".example.com"
         super_create = page.request.post(
