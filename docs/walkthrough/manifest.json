@@ -1,9 +1,9 @@
 {
-  "count": 51,
+  "count": 52,
   "screenshots": [
     {
       "filename": "00-public-homepage.png",
-      "bytes": 564586
+      "bytes": 564860
     },
     {
       "filename": "01-registration-form.png",
@@ -19,7 +19,7 @@
     },
     {
       "filename": "04-email-verified.png",
-      "bytes": 406166
+      "bytes": 405392
     },
     {
       "filename": "05-login.png",
@@ -35,95 +35,99 @@
     },
     {
       "filename": "08-competitor-created.png",
-      "bytes": 141161
+      "bytes": 141129
     },
     {
       "filename": "09-duplicate-domain-rejected.png",
-      "bytes": 167695
+      "bytes": 167687
     },
     {
       "filename": "10-source-creation-form.png",
-      "bytes": 161289
+      "bytes": 161283
     },
     {
       "filename": "11-sources-created.png",
-      "bytes": 142770
+      "bytes": 142766
     },
     {
       "filename": "12-source-configuration.png",
-      "bytes": 174251
+      "bytes": 174248
     },
     {
       "filename": "13-source-configuration-saved.png",
-      "bytes": 143702
+      "bytes": 143699
     },
     {
       "filename": "13b-source-js-rendering-enabled.png",
-      "bytes": 175020
+      "bytes": 175022
     },
     {
       "filename": "14-offering-creation-form.png",
-      "bytes": 174930
+      "bytes": 174926
     },
     {
       "filename": "15-catalog-offering-created.png",
-      "bytes": 160325
+      "bytes": 160233
     },
     {
       "filename": "16-offering-detail-and-history.png",
-      "bytes": 192989
+      "bytes": 192868
     },
     {
       "filename": "17-catalog-monitoring-active.png",
-      "bytes": 160603
+      "bytes": 160604
     },
     {
       "filename": "18-dynamic-fields.png",
-      "bytes": 179111
+      "bytes": 179099
     },
     {
       "filename": "19-dynamic-field-form.png",
-      "bytes": 175424
+      "bytes": 175417
     },
     {
       "filename": "20-dynamic-field-created.png",
-      "bytes": 182107
+      "bytes": 182028
     },
     {
       "filename": "21-bulk-import-form.png",
-      "bytes": 191521
+      "bytes": 191441
     },
     {
       "filename": "22-bulk-imported-catalog.png",
-      "bytes": 194419
+      "bytes": 194176
     },
     {
       "filename": "22b-bulk-import-row-errors.png",
-      "bytes": 211686
+      "bytes": 211438
     },
     {
       "filename": "23-catalog-import-export-and-archive.png",
-      "bytes": 160967
+      "bytes": 160887
     },
     {
       "filename": "23b-single-offering-archived.png",
-      "bytes": 156590
+      "bytes": 156586
+    },
+    {
+      "filename": "23c-catalog-pagination.png",
+      "bytes": 170442
     },
     {
       "filename": "24-offering-match-form.png",
-      "bytes": 177981
+      "bytes": 177977
     },
     {
       "filename": "25-offering-match-created.png",
-      "bytes": 151381
+      "bytes": 151380
     },
     {
       "filename": "26-first-price-observation.png",
-      "bytes": 150640
+      "bytes": 150638
     },
     {
       "filename": "27-alert-rule-form.png",
-      "bytes": 171740
+      "bytes": 171741
     },
     {
       "filename": "28-alert-rule-created.png",
@@ -131,15 +135,15 @@
     },
     {
       "filename": "29-alert-generated-and-read.png",
-      "bytes": 144795
+      "bytes": 144751
     },
     {
       "filename": "30-collection-job-history.png",
-      "bytes": 137344
+      "bytes": 136687
     },
     {
       "filename": "31-collection-job-detail.png",
-      "bytes": 185755
+      "bytes": 185695
     },
     {
       "filename": "32-private-target-blocked.png",
@@ -163,7 +167,7 @@
     },
     {
       "filename": "37-password-changed.png",
-      "bytes": 223146
+      "bytes": 223145
     },
     {
       "filename": "38-password-reset-requested.png",
@@ -191,7 +195,7 @@
     },
     {
       "filename": "44-super-admin-workspace.png",
-      "bytes": 150844
+      "bytes": 150814
     },
     {
       "filename": "45-live-retail-source.png",
@@ -199,7 +203,7 @@
     },
     {
       "filename": "46-live-retail-price-comparison.png",
-      "bytes": 227221
+      "bytes": 227027
     },
     {
       "filename": "47-mobile-homepage.png",
