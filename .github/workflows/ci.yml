@@ -101,7 +101,8 @@ jobs:
             -addext "subjectAltName=DNS:localhost,IP:127.0.0.1" \
             -addext "basicConstraints=critical,CA:TRUE" \
             -addext "keyUsage=critical,digitalSignature,keyCertSign,keyEncipherment"
-          echo "SSL_CERT_FILE=/tmp/nexora-smtp/cert.pem" >> "$GITHUB_ENV"
+          cat /etc/ssl/certs/ca-certificates.crt /tmp/nexora-smtp/cert.pem > /tmp/nexora-smtp/ca-bundle.pem
+          echo "SSL_CERT_FILE=/tmp/nexora-smtp/ca-bundle.pem" >> "$GITHUB_ENV"
           nohup python tests/smtp_sink.py --host 127.0.0.1 --port 2525 \
             --cert /tmp/nexora-smtp/cert.pem --key /tmp/nexora-smtp/key.pem \
             --outbox /tmp/nexora-mailbox.jsonl > /tmp/nexora-smtp/sink.log 2>&1 &
