@@ -537,7 +537,8 @@ def main():
 
         # Assert the persisted records by opening PostgreSQL directly, not just UI messages.
         evidence = run_async(check_database(client_id, uuid.UUID(offering_id), uuid.UUID(match_id), uuid.UUID(rule_id)))
-        Path("docs/walkthrough/database-evidence.json").write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
+        Path("artifacts/e2e").mkdir(parents=True, exist_ok=True)
+        Path("artifacts/e2e/database-evidence.json").write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
         print("Direct PostgreSQL read-back:", json.dumps(evidence, sort_keys=True), flush=True)
 
         roles = run_async(create_roles(client_id, uuid.uuid4().hex[:8]))
