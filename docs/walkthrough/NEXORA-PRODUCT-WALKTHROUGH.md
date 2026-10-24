@@ -66,6 +66,10 @@ The catalogue stores the team's own products, services, plans, and other offerin
 
 ![Imported catalogue items](screenshots/22-bulk-imported-catalog.png)
 
+When an import contains a mix of valid and invalid records, Nexora keeps successful rows and shows the rejected row numbers with their reasons so the operator can correct the input.
+
+![Bulk import row-level results](screenshots/22b-bulk-import-row-errors.png)
+
 ![Bulk catalogue operations](screenshots/23-catalog-import-export-and-archive.png)
 
 ![Archive an individual catalogue item](screenshots/23b-single-offering-archived.png)
