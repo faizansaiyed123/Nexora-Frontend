@@ -18,7 +18,7 @@ import type { ReactNode } from "react";
 function Protected({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return <Spinner label="Restoring your secure workspace…" />;
-  return user ? <Shell>{children}</Shell> : <Navigate to="/welcome" replace />;
+  return user ? <Shell>{children}</Shell> : <Navigate to="/login" replace />;
 }
 
 function PublicOnly({ children }: { children: ReactNode }) {
