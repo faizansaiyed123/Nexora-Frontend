@@ -78,6 +78,10 @@ With larger catalogues, the offering list is paginated. The page controls let th
 
 ![Catalogue pagination](screenshots/23c-catalog-pagination.png)
 
+Teams can also filter by offering type, for example separating service entries from products while keeping the rest of the catalog searchable.
+
+![Catalogue filtered by offering type](screenshots/23d-catalog-type-filter.png)
+
 ## 4. Connect offers to market observations
 
 An offering match connects one catalogue entry to a competitor's specific product or pricing page. From that connection, Nexora retrieves the page, extracts available price and availability data, and records an observation and current snapshot. Repeated collections establish a history, including the direction and percentage of price movement.
