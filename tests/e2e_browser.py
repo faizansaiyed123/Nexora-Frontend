@@ -656,6 +656,7 @@ def main() -> None:
         super_admin_email = run_async(add_role_user(client_id, RoleEnum.SUPER_ADMIN))
         logout_ui(page)
         login_ui(page, analyst_email, ROLE_PASSWORD)
+        assert api_get(page, "/v1/auth/me")["role"] == "ANALYST"
         page.get_by_role("link", name="Competitors", exact=True).click()
         page.get_by_role("heading", name="Competitors", exact=True).last.wait_for()
         assert page.get_by_role("button", name="Add competitor", exact=True).count() == 0
@@ -664,6 +665,7 @@ def main() -> None:
             {"Authorization": f"Bearer {token(page)}"})
         assert denied.status == 403, denied.text()
         page.get_by_role("link", name="Discovery", exact=True).click()
+        page.get_by_role("heading", name="Website discovery", exact=True).wait_for(timeout=15000)
         assert page.get_by_role("button", name="Run discovery", exact=True).is_visible()
         shot(page, "42-analyst-workspace.png")
 
