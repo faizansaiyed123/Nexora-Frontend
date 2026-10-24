@@ -208,7 +208,7 @@ jobs:
               Path("docs/walkthrough/NEXORA-PRODUCT-WALKTHROUGH.md"),
           ):
               text = doc.read_text(encoding="utf-8")
-              referenced = set(re.findall(r"(?:\\./)?screenshots/([^()\\s]+\\.png)", text))
+              referenced = set(re.findall(r"screenshots/([A-Za-z0-9.-]+)", text))
               missing = sorted(referenced - filenames)
               unlinked = sorted(filenames - referenced)
               if missing or unlinked:
