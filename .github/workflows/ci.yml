@@ -42,7 +42,7 @@ jobs:
       NEXORA_FRONTEND_URL: http://127.0.0.1:4173
       NEXORA_API_URL: http://127.0.0.1:8000
       NEXORA_MAILBOX: /tmp/nexora-mailbox.jsonl
-      NEXORA_SCREENSHOTS_DIR: ../docs/walkthrough/screenshots
+      NEXORA_SCREENSHOTS: docs/walkthrough/screenshots
     services:
       postgres:
         image: postgres:18.6-alpine
@@ -125,9 +125,8 @@ jobs:
         run: uv run --python 3.12 pytest -q
 
       - name: Start isolated STARTTLS inbox
-        working-directory: backend
         run: |
-          nohup uv run --python 3.12 python tests/smtp_sink.py \
+          nohup uv run --project backend --python 3.12 python tests/smtp_sink.py \
             --host 127.0.0.1 --port 2525 \
             --cert /tmp/nexora-smtp.crt \
             --key /tmp/nexora-smtp.key \
@@ -187,8 +186,7 @@ jobs:
           exit 1
 
       - name: Run real browser-to-API-to-database journey
-        working-directory: backend
-        run: uv run --python 3.12 python tests/e2e_browser.py
+        run: uv run --project backend --python 3.12 python tests/e2e_browser.py
 
       - name: Build screenshot index
         if: success()
