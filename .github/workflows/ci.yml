@@ -20,7 +20,7 @@ on:
 
 concurrency:
   group: nexora-full-stack-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -341,7 +341,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/testing/VISUAL-TEST-WALKTHROUGH.md docs/testing/visual-manifest.json docs/testing/visuals/ docs/walkthrough/README.md docs/walkthrough/manifest.json docs/walkthrough/screenshots/
+          # Source markdown is not rewritten by screenshot publishing; stage generated evidence only.
+          git add docs/testing/visual-manifest.json docs/testing/visuals/ docs/walkthrough/manifest.json docs/walkthrough/screenshots/
           if git diff --cached --quiet; then
             echo "Walkthrough screenshots have not changed."
           else
