@@ -2,7 +2,7 @@
 
 Nexora brings catalogue management, competitor coverage, price collection, website discovery, and market alerts into one workspace. This guide follows a sample Northstar team from workspace setup through a connected market-intelligence journey, including account security, administration, and organization boundaries.
 
-The retail names and prices are controlled examples that make the price-comparison journey easy to follow; they are not presented as current market offers. Collection and discovery use a reserved sample hostname mapped only inside the isolated walkthrough environment, not a live competitor website. The journey still uses Nexora's actual UI, API, PostgreSQL persistence, account-email flows, and role/tenant checks. This guide describes the product experience and does not certify a separately deployed production environment.
+The catalogue entries and prices are illustrative, included to make market comparisons easy to follow; they are not current retail quotations. This guide follows the experience from the perspective of a workspace owner, market analyst, and read-only reviewer. The screens show how Nexora's capabilities fit together; a separate workspace may show different data and controls depending on its setup.
 
 ## 1. Start a workspace
 
