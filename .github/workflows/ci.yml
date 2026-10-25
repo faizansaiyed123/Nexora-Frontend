@@ -19,7 +19,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: nexora-full-stack-${{ github.ref }}
+  group: nexora-full-stack-${{ github.ref }}-${{ github.sha }}
   cancel-in-progress: true
 
 permissions:
