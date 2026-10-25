@@ -1,175 +1,153 @@
-# Nexora — Visual Product Walkthrough
+# Nexora — Product Walkthrough
 
-Nexora brings catalogue management, competitor coverage, price collection, website discovery, and market alerts into one workspace. This guide follows a sample Northstar team from workspace setup through a connected market-intelligence journey, including account security, administration, and organization boundaries.
+Nexora is a private competitive-intelligence workspace that connects a company's own catalog to competitor offerings, public pricing sources, collection history, discovery, and actionable alerts.
 
-The catalogue names and prices shown here illustrate the product workflow; they should not be read as current retail offers. This walkthrough describes the product's current flows and is not a certification of a separately deployed production environment.
+This guide follows a market analyst's workspace from first sign-in to a price movement that becomes a saved alert. Each screen belongs to the same service journey: the interface sends requests to the Nexora API, and the resulting records are stored in the workspace database.
 
-## 1. Start a workspace
+## 1. Create a private workspace
 
-An organization creates a private workspace, verifies its email, and signs in. Account recovery follows the same one-time-link pattern so access remains tied to the account owner.
+Start at the public homepage, create an organization, verify the email address, and sign in. Account verification and password recovery use one-time links delivered to the mailbox configured for the workspace.
 
 ![Nexora public homepage](visuals/00-public-homepage.png)
 
 ![Create a workspace](visuals/01-registration-form.png)
 
-![Verification message sent](visuals/02-verification-email-sent.png)
-
-![Request another verification message](visuals/02b-verification-email-resent.png)
+![Workspace verification email sent](visuals/02-verification-email-sent.png)
 
 ![Open the verification link](visuals/03-email-verification-page.png)
 
 ![Email address verified](visuals/04-email-verified.png)
 
-![Sign in to the workspace](visuals/05-login.png)
+![Sign in to Nexora](visuals/05-login.png)
 
-![Your workspace overview](visuals/06-dashboard-starting-workspace.png)
+The dashboard is the entry point to the workspace. It brings tracked offerings, competitors, collection sources, and current jobs into one operating picture.
 
-## 2. Connect the market
+![New workspace dashboard](visuals/06-dashboard-empty-workspace.png)
 
-Competitors describe the businesses being benchmarked. A collection source identifies the public page to read, with request limits, retries, headers, extraction selectors, and optional JavaScript rendering.
+## 2. Define the competitive landscape
 
-![Competitor directory](visuals/07-competitors.png)
+A competitor is a business or market entity Nexora should monitor. The domain is unique inside the workspace, helping the team avoid duplicate entries.
 
-![A competitor added to the workspace](visuals/08-competitor-created.png)
+![Competitor directory](visuals/07-competitors-empty.png)
 
-![Duplicate competitor domains are rejected](visuals/09-duplicate-domain-protection.png)
+![Competitor added to the workspace](visuals/08-competitor-created.png)
 
-![Add a collection source](visuals/10-source-form.png)
+![Duplicate competitor domain is rejected](visuals/09-duplicate-domain-rejected.png)
 
-![Connected source](visuals/11-source-created.png)
+Sources describe where pricing or availability information is collected and how Nexora should access the page. The configuration holds request pacing, timeouts, retry policy, headers, and extraction selectors.
 
-![Source request and extraction settings](visuals/12-source-settings.png)
+![Create a collection source](visuals/10-source-creation-form.png)
 
-![Saved source configuration](visuals/13-source-settings-saved.png)
+![Competitor source directory](visuals/11-sources-created.png)
 
-![JavaScript rendering option](visuals/13b-source-js-rendering-enabled.png)
+![Collection settings](visuals/12-source-configuration.png)
 
-## 3. Build and maintain the catalogue
+![Saved source configuration](visuals/13-source-configuration-saved.png)
 
-Offerings carry the attributes used for comparison: name, type, SKU, price, currency, market, category, and flexible fields. Catalogue management includes record detail, monitoring, bulk import/export, filters, pagination, and archive workflows.
+## 3. Build and maintain the catalog
 
-![Create an offering](visuals/14-offering-form.png)
+The catalog is the internal reference for the products, plans, or services the organization cares about. Core fields such as SKU, price, currency, market, and category sit alongside flexible attributes such as brand, color, battery life, or vertical-specific specifications.
 
-![Offering added to the catalogue](visuals/15-catalog-offering-created.png)
+![Add a catalog offering](visuals/14-offering-creation-form.png)
 
-![Offering details and history](visuals/16-offering-details.png)
+![Catalog offering saved](visuals/15-catalog-offering-created.png)
 
-![Turn monitoring on or off](visuals/17-monitoring-controls.png)
+Opening an offering reveals its details and history. Monitoring can be paused or resumed without removing the catalog record.
+
+![Offering detail and price history](visuals/16-offering-detail-and-history.png)
+
+![Monitoring enabled](visuals/17-catalog-monitoring-active.png)
+
+Dynamic fields give a workspace control over attributes that are specific to its business domain.
 
 ![Dynamic field definitions](visuals/18-dynamic-fields.png)
 
-![Define a catalogue field](visuals/19-dynamic-field-form.png)
+![Define a new catalog field](visuals/19-dynamic-field-form.png)
 
-![Saved dynamic field](visuals/20-dynamic-field-created.png)
+![Dynamic field added](visuals/20-dynamic-field-created.png)
 
-![Import multiple catalogue records](visuals/21-bulk-import-form.png)
+For larger catalogs, bulk import creates multiple offerings in one operation. CSV and JSON exports support downstream analysis; archived items can be retained for history without appearing in the active catalog.
 
-![Imported catalogue items](visuals/22-bulk-import-results.png)
+![Bulk import catalog data](visuals/21-bulk-import-form.png)
 
-![Row-level import feedback](visuals/22b-bulk-import-row-errors.png)
+![Catalog after bulk import](visuals/22-bulk-imported-catalog.png)
 
-![Export data and bulk-archive selected offerings](visuals/23-catalog-import-export-archive.png)
+![Search, export, and archive catalog items](visuals/23-catalog-import-export-and-archive.png)
 
-![Archive an individual offering](visuals/23b-single-offering-archived.png)
+## 4. Connect an offering to a competitor and collect a price
 
-![Navigate through catalogue pages](visuals/23c-catalog-pagination.png)
+An offering match ties an internal catalog record to a particular competitor URL. It records the match state and confidence, so the team can review which competitive comparisons are ready for monitoring.
 
-![Filter offerings by type](visuals/23d-catalog-type-filter.png)
-
-## 4. Map offerings to competitor listings
-
-An offering match connects an internal catalogue item to a particular competitor URL. Each collection creates an observation and updates the current snapshot, giving the team a history of the market price it has seen.
-
-For sources marked **JavaScript-rendered**, Nexora uses a browser-rendered page rather than relying only on the original HTTP response. In this walkthrough's controlled fixture, the initial HTML advertises $349.99 but the browser-rendered page updates the displayed price to $399.99; the first observation should therefore reflect $399.99. A later collection of the same match after its target changes to a $349.99 fixture exercises the price-change and alert lifecycle. These prices are reproducible test fixtures, not live retail quotations.
-
-![Map an offering to a competitor URL](visuals/24-offering-match-form.png)
+![Map an internal offering to a source URL](visuals/24-offering-match-form.png)
 
 ![Saved offering match](visuals/25-offering-match-created.png)
 
-![Add an alternate match](visuals/25b-temporary-match-created.png)
+Running a collection fetches the public page using Nexora's collection pipeline. Extracted price, currency, availability, and page attributes become an observation; the latest snapshot preserves the previous price for comparison.
 
-![Remove an alternate match](visuals/25c-temporary-match-deleted.png)
+![First price observation recorded](visuals/26-first-price-observation.png)
 
-![First collected price observation](visuals/26-first-price-observation.png)
+## 5. Turn price movement into an alert
 
-![Dashboard with market data](visuals/27-dashboard-with-market-data.png)
+Rules can watch for percentage drops, price changes, undercutting, stock changes, or source-health events. Rules can be scoped to one offering or applied across the workspace, with configurable thresholds and cooldowns.
 
-## 5. Turn market movement into an alert
+![Configure a price-drop alert](visuals/27-alert-rule-form.png)
 
-Alert rules can watch for price changes, percentage drops, undercut thresholds, stock changes, and source-health events. A later lower-price observation creates a persistent alert that the team can review and mark as read. Repeated source failures are surfaced through circuit-breaker status.
+![Price-drop alert rule saved](visuals/28-alert-rule-created.png)
 
-![Configure a price-drop rule](visuals/28-alert-rule-form.png)
+When the next collection observes a drop from $399.99 to $349.99, Nexora stores the change in its snapshot history and creates an alert because the movement crosses the configured 10% threshold. Alert events remain in the workspace, can be marked read, and can be delivered through the notification outbox.
 
-![Saved price alert](visuals/29-alert-rule-created.png)
+![Price-drop alert and read state](visuals/29-alert-generated-and-read.png)
 
-![Configure a source-health alert](visuals/29b-circuit-breaker-rule-form.png)
+## 6. Follow collection and discovery activity
 
-![A source is temporarily paused after repeated failures](visuals/29c-source-circuit-open.png)
+Jobs provide the operational history behind collection and discovery. Each entry shows its status and processing outcome, and its detail view keeps the run identifier, source, and metadata together.
 
-![Source-health alert in the event log](visuals/29d-circuit-breaker-alert.png)
+![Collection job history](visuals/30-collection-job-history.png)
 
-![Price-drop alert reviewed and marked as read](visuals/30-alert-generated-and-read.png)
+![Collection job details](visuals/31-collection-job-detail.png)
 
-## 6. Follow execution and discover offerings
+Website discovery walks a public site, looks for structured product evidence, and merges valid candidates into the catalog. Requests to private or loopback destinations are rejected by the server-side URL security boundary.
 
-The Jobs workspace records both on-demand refreshes and scheduled collection runs. For monitored offerings, Nexora can place a scheduled crawl on its Redis-backed Celery queue; a worker fetches the configured listing and persists the resulting job, observation, and current snapshot. Website discovery follows structured product information from public pages, adds a new catalogue item when appropriate, and updates the matching record when the same offering is found again. Private-network destinations are not accepted as discovery targets.
+![A private target is blocked](visuals/32-private-target-blocked.png)
 
-![A scheduled collection completed by a background worker](visuals/30b-scheduled-collection-completed.png)
+![Product discovered from structured page data](visuals/33-discovery-product-created.png)
 
-![Collection job history](visuals/31-collection-job-history.png)
+A later scan updates the existing catalog item when its identity matches; it does not create another copy of the same discovered SKU.
 
-![Details of a collection run](visuals/32-collection-job-details.png)
+![Discovery history and catalog upsert](visuals/34-discovery-upsert-history.png)
 
-![Private network target rejected](visuals/33-private-target-blocked.png)
+## 7. Workspace administration and account security
 
-![A discovered product added to the catalogue](visuals/34-discovery-product-created.png)
+Organization administrators can maintain the workspace profile, including company identity, market, currency, industry, and timezone.
 
-![Repeat discovery updates the matching item](visuals/35-discovery-update-history.png)
+![Workspace settings](visuals/35-workspace-settings.png)
 
-## 7. Manage workspace and account settings
+![Updated organization profile](visuals/36-workspace-profile-updated.png)
 
-Workspace owners can maintain organization details and change a password from an authenticated session. Password recovery sends a time-limited link and returns the person to the same workspace after sign-in.
+Signed-in users can change a password, and account recovery uses a separate expiring reset link. A reset invalidates the previous refresh sessions before the user signs in again.
 
-![Workspace and account settings](visuals/36-workspace-settings.png)
+![Password changed](visuals/37-password-changed.png)
 
-![Updated workspace profile](visuals/37-workspace-profile-saved.png)
+![Request password recovery](visuals/38-password-reset-requested.png)
 
-![Password changed from settings](visuals/38-password-changed.png)
+![Choose a new password](visuals/39-password-reset-form.png)
 
-![Request a password reset](visuals/39-password-reset-requested.png)
+![Password reset completed](visuals/40-password-reset-complete.png)
 
-![Choose a new password](visuals/40-password-reset-form.png)
+![Dashboard after account recovery](visuals/41-dashboard-after-password-reset.png)
 
-![Password reset completed](visuals/41-password-reset-complete.png)
+Access is role-aware. Analysts can work with read and analysis features while administrator-only controls are withheld; viewers can browse permitted information without catalog or competitor write controls.
 
-![Return to the workspace](visuals/42-dashboard-after-reset.png)
+![Analyst workspace permissions](visuals/42-analyst-workspace.png)
 
-## 8. Role permissions, tenant isolation, and mobile
+![Viewer read-only workspace](visuals/43-viewer-read-only-workspace.png)
 
-The workspace changes available controls according to the signed-in role. Analysts can work with intelligence, viewers retain read-only access, and authorized super administrators can perform management actions. A second organization receives its own empty data boundary, while the public homepage and authenticated workspace adapt to a phone-sized screen.
+## 8. Responsive entry point
 
-![Analyst workspace](visuals/43-analyst-workspace.png)
+The public entry page adapts to a narrow viewport so a visitor can understand the product and reach account creation without a horizontally overflowing layout.
 
-![Viewer read-only workspace](visuals/44-viewer-read-only-workspace.png)
+![Nexora homepage on a mobile viewport](visuals/44-mobile-homepage.png)
 
-![Super Admin workspace](visuals/45-super-admin-workspace.png)
+---
 
-![Super Admin adds a collection source](visuals/45b-super-admin-source-created.png)
-
-![Super Admin removes the temporary source](visuals/45c-super-admin-source-deleted.png)
-
-![Super Admin removes a competitor](visuals/45d-super-admin-competitor-deleted.png)
-
-![Super Admin removes an alert rule](visuals/45e-super-admin-alert-rule-deleted.png)
-
-![A separate organization's dashboard](visuals/46-isolated-tenant-dashboard.png)
-
-![The separate competitor directory starts empty](visuals/47-isolated-tenant-competitors.png)
-
-![The separate catalogue starts empty](visuals/48-isolated-tenant-catalog.png)
-
-![The separate alert workspace starts empty](visuals/49-isolated-tenant-alerts.png)
-
-![Authenticated workspace on mobile](visuals/50-mobile-dashboard.png)
-
-![Public homepage on mobile](visuals/51-mobile-homepage.png)
+The walkthrough uses a dedicated review workspace and public structured-data pages. It is a guide to how Nexora's core customer journey fits together, not a certification of a separately deployed production environment.
