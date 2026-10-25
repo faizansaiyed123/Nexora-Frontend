@@ -339,18 +339,52 @@ jobs:
       - name: Publish walkthrough screenshots on main
         if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # Source markdown is not rewritten by screenshot publishing; stage generated evidence only.
-          git add docs/testing/visual-manifest.json docs/testing/visuals/ docs/walkthrough/manifest.json docs/walkthrough/screenshots/
-          if git diff --cached --quiet; then
-            echo "Walkthrough screenshots have not changed."
-          else
-            git commit -m "Publish Nexora visual walkthrough evidence"
+
+          # Keep this run's binary screenshots outside the checkout while rebasing
+          # onto the latest main. Replaying a binary screenshot diff over another
+          # run's screenshot commit causes conflicts, even when runs are serialized.
+          publish_dir="$(mktemp -d)"
+          mkdir -p "$publish_dir/testing/visuals" "$publish_dir/walkthrough/screenshots"
+          cp docs/testing/visual-manifest.json "$publish_dir/testing/"
+          cp docs/testing/visuals/*.png docs/testing/visuals/postgres-evidence.json "$publish_dir/testing/visuals/"
+          cp docs/walkthrough/manifest.json "$publish_dir/walkthrough/"
+          cp docs/walkthrough/screenshots/*.png "$publish_dir/walkthrough/screenshots/"
+
+          # The complete journey and manifest validation run before this step.
+          test "$(find "$publish_dir/testing/visuals" -maxdepth 1 -name '*.png' | wc -l)" -eq 67
+          test "$(find "$publish_dir/walkthrough/screenshots" -maxdepth 1 -name '*.png' | wc -l)" -eq 67
+
+          # Apply these captures as a fresh snapshot on top of current main rather
+          # than rebasing a commit containing binary PNG diffs from an older base.
+          for attempt in 1 2 3; do
             git fetch origin main
-            git rebase origin/main
-            git push origin HEAD:main
-          fi
+            git checkout --detach --force origin/main
+            mkdir -p docs/testing/visuals docs/walkthrough/screenshots
+            cp "$publish_dir/testing/visual-manifest.json" docs/testing/visual-manifest.json
+            rm -f docs/testing/visuals/*.png docs/testing/visuals/postgres-evidence.json
+            cp "$publish_dir/testing/visuals/"* docs/testing/visuals/
+            cp "$publish_dir/walkthrough/manifest.json" docs/walkthrough/manifest.json
+            rm -f docs/walkthrough/screenshots/*.png
+            cp "$publish_dir/walkthrough/screenshots/"*.png docs/walkthrough/screenshots/
+            git add docs/testing/visual-manifest.json docs/testing/visuals/ docs/walkthrough/manifest.json docs/walkthrough/screenshots/
+
+            if git diff --cached --quiet; then
+              echo "Walkthrough screenshots have not changed."
+              exit 0
+            fi
+
+            git commit -m "Publish Nexora visual walkthrough evidence [skip ci]"
+            if git push origin HEAD:main; then
+              echo "Published the validated walkthrough snapshot."
+              exit 0
+            fi
+            echo "Publish raced with another main update (attempt $attempt); refreshing main and retrying." >&2
+          done
+          echo "Unable to publish walkthrough captures after three attempts." >&2
+          exit 1
 
       - name: Show service logs after a failure
         if: failure()
