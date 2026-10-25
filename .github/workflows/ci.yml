@@ -144,10 +144,26 @@ jobs:
           cat /tmp/nexora-smtp.log
           exit 1
 
+      - name: Start isolated loopback product fixtures
+        working-directory: Nexora-backend
+        run: |
+          .venv/bin/python tests/fixture_server.py --host 127.0.0.1 --port 8877 > /tmp/nexora-fixtures.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8877/fixtures/retail-price-js.html > /tmp/nexora-render-fixture.html; then
+              grep -q 'data-rendered-by="client-javascript"' /tmp/nexora-render-fixture.html
+              echo "Local product fixture server ready"
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/nexora-fixtures.log
+          exit 1
+
       - name: Start the live FastAPI service
         working-directory: Nexora-backend
         env:
           EMAIL_VERIFICATION_BYPASS: "false"
+          ALLOW_LOCAL_TEST_FIXTURES: "true"
           SMTP_HOST: 127.0.0.1
           SMTP_PORT: "2525"
           SMTP_USERNAME: nexora-ci
@@ -192,6 +208,7 @@ jobs:
         working-directory: Nexora-backend
         env:
           EMAIL_VERIFICATION_BYPASS: "false"
+          ALLOW_LOCAL_TEST_FIXTURES: "true"
           SMTP_HOST: 127.0.0.1
           SMTP_PORT: "2525"
           SMTP_USERNAME: nexora-ci
@@ -314,6 +331,7 @@ jobs:
             /tmp/nexora-api.log
             /tmp/nexora-frontend.log
             /tmp/nexora-smtp.log
+            /tmp/nexora-fixtures.log
           if-no-files-found: warn
           retention-days: 30
 
@@ -341,3 +359,5 @@ jobs:
           cat /tmp/nexora-frontend.log 2>/dev/null || true
           echo "===== SMTP inbox ====="
           cat /tmp/nexora-smtp.log 2>/dev/null || true
+          echo "===== local product fixtures ====="
+          cat /tmp/nexora-fixtures.log 2>/dev/null || true
