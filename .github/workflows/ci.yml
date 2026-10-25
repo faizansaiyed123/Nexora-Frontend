@@ -75,6 +75,10 @@ jobs:
           ref: main
           path: Nexora-backend
 
+      - name: Record paired backend revision
+        working-directory: Nexora-backend
+        run: git rev-parse HEAD
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
