@@ -10,6 +10,19 @@ The workflow captures 67 visitor-oriented screenshots in `docs/testing/visuals/`
 
 The source-management journey starts with `HTTP_FAST`, changes the existing source to `PLAYWRIGHT_BROWSER` in the visible edit form, and verifies the saved collection method plus `requires_javascript` setting through fresh API reads. Before the product flow, a renderer probe checks the returned document for the JavaScript-updated price marker; the browser test does not accept a successful HTTP fetch of only the static HTML as proof of JavaScript rendering. It then collects a controlled page whose initial HTML advertises `$349.99` while page JavaScript changes the rendered product price to `$399.99`; the observation must contain the rendered value, not the initial value. A later collection returns `$349.99`, allowing the real collection pipeline to update the snapshot and trigger the price-drop alert. The discovery and collection pages are fetched by Nexora's actual backend code, not fake API responses. Their example prices are controlled fixtures, not current market offers. The browser run also checks that confidence `0` survives a match edit and database read-back. The walkthrough is product documentation, not a certification of the production deployment.
 
+## Coverage map
+
+The full-stack journey is intended to exercise product behavior across the same persisted records, not just successful page loads:
+
+- **Account and workspace:** registration, email verification and resend, one-time-token replay protection, sign-in, password change and password reset.
+- **Market setup:** competitor create/edit/delete, duplicate-domain rejection, source configuration, browser-rendered collection settings and saved configuration.
+- **Catalog:** offering create/edit/detail/history, custom fields, monitoring, search/type filters, pagination, mixed-result bulk import, CSV/JSON export, and individual/bulk archive.
+- **Intelligence lifecycle:** offering-to-source matching, zero-confidence boundary handling, real HTTP/JavaScript extraction, observation/snapshot updates, job detail, percentage-drop alerts, source circuit-breaker alerts, email outbox delivery, and read-state persistence.
+- **Discovery and protection:** structured product extraction, idempotent rediscovery, private-network URL rejection, role-based write restrictions, cross-tenant reads/writes, and mobile overflow checks.
+- **Independent API checks:** PostgreSQL integration tests cover tenant-scoped lists and detail reads, role authorization, token rotation/replay, rate limiting, alert-threshold rules, circuit state transitions, extraction/currency behavior, and worker event-loop safety.
+
+The visitor gallery and its manifest are published only after all browser assertions, PostgreSQL read-back checks, email capture, and screenshot-reference checks succeed. A green CI run demonstrates the isolated review environment; it must not be presented as production certification.
+
 ## Local execution
 
 Run from the backend repository after setting the environment and starting PostgreSQL, Redis, the FastAPI service, the built frontend, and the isolated STARTTLS inbox as shown in the frontend repository's `.github/workflows/ci.yml`:
