@@ -114,7 +114,9 @@ A source that repeatedly fails is opened by the circuit breaker to stop further 
 
 ## 7. Follow execution and discover additional offerings
 
-Jobs exposes collection history and run details. Website discovery extracts structured public product information, merges a matching offering when a product is found again, and rejects private-network targets rather than crawling them.
+Jobs exposes collection history and run details for both on-demand refreshes and scheduled crawls. For monitored matches, Nexora can enqueue a crawl to Celery; a worker processes the task and saves the resulting observation and snapshot. Website discovery extracts structured public product information, merges a matching offering when a product is found again, and rejects private-network targets rather than crawling them.
+
+![A scheduled collection completed by a background worker](walkthrough/screenshots/30b-scheduled-collection-completed.png)
 
 ![Collection job history](walkthrough/screenshots/31-collection-job-history.png)
 

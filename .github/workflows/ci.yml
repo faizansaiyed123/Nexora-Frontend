@@ -187,6 +187,25 @@ jobs:
           cat /tmp/nexora-api.log
           exit 1
 
+      - name: Start the real Celery worker for scheduled collections
+        working-directory: Nexora-backend
+        env:
+          ALLOW_LOCAL_TEST_FIXTURES: "true"
+          SSL_CERT_FILE: /tmp/nexora-ca-bundle.pem
+          GEMINI_DISCOVERY_ENABLED: "false"
+        run: |
+          uv run --python 3.12 celery -A backend.workers.celery_app:celery_app worker --loglevel=INFO --pool=solo --concurrency=1 > /tmp/nexora-celery.log 2>&1 &
+          for i in $(seq 1 45); do
+            if grep -qE "ready\\." /tmp/nexora-celery.log; then
+              tail -n 30 /tmp/nexora-celery.log
+              echo "Celery worker ready to accept Redis tasks"
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/nexora-celery.log
+          exit 1
+
       - name: Start the built frontend
         run: |
           npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/nexora-frontend.log 2>&1 &
@@ -232,8 +251,8 @@ jobs:
 
           folder = Path("docs/testing/visuals")
           screenshots = sorted(folder.glob("*.png"))
-          if len(screenshots) != 67:
-              raise SystemExit(f"Expected 67 walkthrough screenshots; found {len(screenshots)}")
+          if len(screenshots) != 68:
+              raise SystemExit(f"Expected 68 walkthrough screenshots; found {len(screenshots)}")
 
           walkthrough = Path("docs/testing/VISUAL-TEST-WALKTHROUGH.md").read_text(encoding="utf-8")
           referenced = {
@@ -252,6 +271,8 @@ jobs:
           if not evidence_file.is_file():
               raise SystemExit("PostgreSQL read-back evidence was not written by the browser journey")
           evidence = json.loads(evidence_file.read_text(encoding="utf-8"))
+          if int(evidence.get("scheduled_collection_jobs_completed", 0)) < 1:
+              raise SystemExit("A completed scheduled Celery collection is missing from PostgreSQL evidence.")
 
           manifest = {
               "product": "Nexora",
@@ -264,6 +285,7 @@ jobs:
                   "file": "visuals/postgres-evidence.json",
                   "verified_observations": evidence.get("observations", 0),
                   "verified_collection_jobs": evidence.get("jobs", 0),
+                  "verified_scheduled_collection_jobs": evidence.get("scheduled_collection_jobs_completed", 0),
                   "latest_snapshot_price": evidence.get("snapshot_price"),
                   "notification_statuses": evidence.get("notification_statuses", []),
               },
@@ -292,8 +314,8 @@ jobs:
               old_image.unlink()
 
           images = sorted(source.glob("*.png"))
-          if len(images) != 67:
-              raise SystemExit(f"Expected 67 fresh screenshots; found {len(images)}")
+          if len(images) != 68:
+              raise SystemExit(f"Expected 68 fresh screenshots; found {len(images)}")
 
           for image in images:
               shutil.copy2(image, destination / image.name)
@@ -354,8 +376,8 @@ jobs:
           cp docs/walkthrough/screenshots/*.png "$publish_dir/walkthrough/screenshots/"
 
           # The complete journey and manifest validation run before this step.
-          test "$(find "$publish_dir/testing/visuals" -maxdepth 1 -name '*.png' | wc -l)" -eq 67
-          test "$(find "$publish_dir/walkthrough/screenshots" -maxdepth 1 -name '*.png' | wc -l)" -eq 67
+          test "$(find "$publish_dir/testing/visuals" -maxdepth 1 -name '*.png' | wc -l)" -eq 68
+          test "$(find "$publish_dir/walkthrough/screenshots" -maxdepth 1 -name '*.png' | wc -l)" -eq 68
 
           # Apply these captures as a fresh snapshot on top of current main rather
           # than rebasing a commit containing binary PNG diffs from an older base.
@@ -397,3 +419,5 @@ jobs:
           cat /tmp/nexora-smtp.log 2>/dev/null || true
           echo "===== local product fixtures ====="
           cat /tmp/nexora-fixtures.log 2>/dev/null || true
+          echo "===== Celery worker ====="
+          cat /tmp/nexora-celery.log 2>/dev/null || true

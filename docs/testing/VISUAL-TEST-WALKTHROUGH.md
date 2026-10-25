@@ -112,7 +112,9 @@ Alert rules can watch for price changes, percentage drops, undercut thresholds, 
 
 ## 6. Follow execution and discover offerings
 
-The job history connects collection activity to its outcome. Website discovery follows structured product information from public pages, adds a new catalogue item when appropriate, and updates the matching record when the same offering is found again. Private-network destinations are not accepted as discovery targets.
+The Jobs workspace records both on-demand refreshes and scheduled collection runs. For monitored offerings, Nexora can place a scheduled crawl on its Redis-backed Celery queue; a worker fetches the configured listing and persists the resulting job, observation, and current snapshot. Website discovery follows structured product information from public pages, adds a new catalogue item when appropriate, and updates the matching record when the same offering is found again. Private-network destinations are not accepted as discovery targets.
+
+![A scheduled collection completed by a background worker](visuals/30b-scheduled-collection-completed.png)
 
 ![Collection job history](visuals/31-collection-job-history.png)
 
