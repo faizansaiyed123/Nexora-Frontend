@@ -80,6 +80,8 @@ Offerings carry the attributes used for comparison: name, type, SKU, price, curr
 
 An offering match connects an internal catalogue item to a particular competitor URL. Each collection creates an observation and updates the current snapshot, giving the team a history of the market price it has seen.
 
+For sources marked **JavaScript-rendered**, Nexora uses a browser-rendered page rather than relying only on the original HTTP response. In this walkthrough's controlled fixture, the initial HTML advertises $349.99 but the browser-rendered page updates the displayed price to $399.99; the first observation should therefore reflect $399.99. A later collection of the same match after its target changes to a $349.99 fixture exercises the price-change and alert lifecycle. These prices are reproducible test fixtures, not live retail quotations.
+
 ![Map an offering to a competitor URL](visuals/24-offering-match-form.png)
 
 ![Saved offering match](visuals/25-offering-match-created.png)
