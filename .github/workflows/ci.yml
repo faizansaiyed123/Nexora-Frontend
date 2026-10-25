@@ -327,6 +327,8 @@ jobs:
             echo "Walkthrough screenshots have not changed."
           else
             git commit -m "Publish Nexora visual walkthrough evidence"
+            git fetch origin main
+            git rebase origin/main
             git push origin HEAD:main
           fi
 
