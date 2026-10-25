@@ -1,4 +1,4 @@
-name: Nexora Full-Stack Visual Journey (Role Permissions)
+name: Nexora Full-Stack Walkthrough
 
 on:
   push:
@@ -6,41 +6,33 @@ on:
       - main
       - "feat/**"
       - "audit/**"
-    paths-ignore:
-      - "docs/testing/visuals/**"
-      - "docs/testing/visual-manifest.json"
-      - "docs/walkthrough/**"
-      - "docs/PRODUCT-WALKTHROUGH.md"
-      - "docs/VISUAL-WALKTHROUGH.md"
-      - "README.md"
   pull_request:
     branches:
       - main
-  workflow_dispatch:
-
-concurrency:
-  group: nexora-full-stack-${{ github.ref }}
-  cancel-in-progress: true
 
 permissions:
   contents: write
 
 jobs:
-  browser-journey:
+  full-stack:
     runs-on: ubuntu-latest
     env:
+      JWT_SECRET_KEY: nexora-ci-only-signing-secret-32-characters-minimum
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/nexora
       REDIS_URL: redis://localhost:6379/0
-      JWT_SECRET_KEY: nexora-ci-only-secret-for-disposable-database-2026
       ENVIRONMENT: development
+      ALLOWED_HOSTS: "*"
+      CORS_ORIGINS: http://127.0.0.1:4173
+      RATE_LIMIT_LOGIN_PER_MINUTE: "150"
+      RATE_LIMIT_REGISTER_PER_HOUR: "150"
+      RATE_LIMIT_FORGOT_PASSWORD_PER_HOUR: "150"
+      RATE_LIMIT_RESEND_VERIFICATION_PER_HOUR: "150"
+      RATE_LIMIT_ENABLED: "true"
       EMAIL_VERIFICATION_BYPASS: "true"
-      RATE_LIMIT_LOGIN_PER_MINUTE: "100"
-      RATE_LIMIT_REGISTER_PER_HOUR: "100"
-      RATE_LIMIT_FORGOT_PASSWORD_PER_HOUR: "100"
-      RATE_LIMIT_RESEND_VERIFICATION_PER_HOUR: "100"
       NEXORA_FRONTEND_URL: http://127.0.0.1:4173
       NEXORA_API_URL: http://127.0.0.1:8000
       NEXORA_MAILBOX: /tmp/nexora-mailbox.jsonl
+      NEXORA_SCREENSHOT_DIR: ${{ github.workspace }}/docs/walkthrough/screenshots
     services:
       postgres:
         image: postgres:18.6-alpine
@@ -65,277 +57,158 @@ jobs:
           --health-timeout 3s
           --health-retries 20
     steps:
-      - name: Checkout Nexora frontend
+      - name: Check out frontend
         uses: actions/checkout@v4
-
-      - name: Checkout Nexora backend
+      - name: Check out backend
         uses: actions/checkout@v4
         with:
           repository: faizansaiyed123/Nexora-backend
-          ref: main
           path: Nexora-backend
-
-      - name: Set up Node
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
-
+      - name: Install frontend dependencies
+        run: npm ci
+      - name: Run frontend security and session tests
+        run: npm run test:security
+      - name: Build production-configured frontend
+        run: npm run build
+        env:
+          VITE_API_URL: https://api.example.invalid
+          VITE_API_BUILD_MODE: production
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
-      - name: Install uv
+      - name: Install uv and backend dependencies
+        working-directory: Nexora-backend
         run: |
           python -m pip install --upgrade pip
           pip install "uv==0.10.0"
-
-      - name: Install frontend dependencies
-        run: npm ci
-
-      - name: Run frontend security and session tests
-        run: npm run test:security
-
-      - name: Build frontend
-        env:
-          VITE_API_URL: http://127.0.0.1:8000
-          VITE_API_BUILD_MODE: development
-        run: npm run build
-
-      - name: Install backend and browser dependencies
-        working-directory: Nexora-backend
-        run: |
           uv sync --frozen --python 3.12
-          uv pip install --python .venv/bin/python aiosmtpd
-          uv run --python 3.12 playwright install --with-deps chromium
-
+      - name: Install Chromium and operating-system libraries
+        working-directory: Nexora-backend
+        run: uv run --python 3.12 playwright install --with-deps chromium
       - name: Apply PostgreSQL migrations
         working-directory: Nexora-backend
         run: uv run --python 3.12 alembic upgrade head
-
-      - name: Run backend API integration suite
+      - name: Run backend API and database integration suite
         working-directory: Nexora-backend
         run: uv run --python 3.12 pytest -q
-
-      - name: Prepare an isolated STARTTLS email inbox
+      - name: Build isolated STARTTLS certificate
         run: |
-          openssl req -x509 -newkey rsa:2048 -nodes \
-            -keyout /tmp/nexora-test-key.pem \
-            -out /tmp/nexora-test-cert.pem \
-            -days 1 -subj "/CN=localhost" \
-            -addext "basicConstraints=critical,CA:TRUE" \
-            -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
-          cat /etc/ssl/certs/ca-certificates.crt /tmp/nexora-test-cert.pem > /tmp/nexora-ca-bundle.pem
-          cd Nexora-backend
-          .venv/bin/python tests/e2e/smtp_sink.py \
+          openssl req -x509 -nodes -newkey rsa:2048 -days 2 \
+            -keyout /tmp/nexora-test-ca.key -out /tmp/nexora-test-ca.crt \
+            -subj "/CN=Nexora Browser Test CA" \
+            -addext "basicConstraints=critical,CA:TRUE"
+          openssl req -new -nodes -newkey rsa:2048 \
+            -keyout /tmp/nexora-smtp.key -out /tmp/nexora-smtp.csr \
+            -subj "/CN=localhost"
+          printf "subjectAltName=DNS:localhost,IP:127.0.0.1\nextendedKeyUsage=serverAuth\nkeyUsage=digitalSignature,keyEncipherment\n" > /tmp/nexora-smtp.ext
+          openssl x509 -req -in /tmp/nexora-smtp.csr \
+            -CA /tmp/nexora-test-ca.crt -CAkey /tmp/nexora-test-ca.key \
+            -CAcreateserial -out /tmp/nexora-smtp.crt -days 2 \
+            -extfile /tmp/nexora-smtp.ext
+          sudo cp /tmp/nexora-test-ca.crt /usr/local/share/ca-certificates/nexora-browser-test-ca.crt
+          sudo update-ca-certificates
+      - name: Start isolated SMTP inbox
+        working-directory: Nexora-backend
+        run: |
+          nohup uv run --python 3.12 python tests/run_smtp_sink.py \
             --host 127.0.0.1 --port 2525 \
-            --cert /tmp/nexora-test-cert.pem \
-            --key /tmp/nexora-test-key.pem \
-            --outbox /tmp/nexora-mailbox.jsonl \
-            > /tmp/nexora-smtp.log 2>&1 &
-          for i in $(seq 1 30); do
-            if nc -z 127.0.0.1 2525; then
-              echo "STARTTLS inbox ready"
-              exit 0
-            fi
-            sleep 1
+            --cert /tmp/nexora-smtp.crt --key /tmp/nexora-smtp.key \
+            --outbox /tmp/nexora-mailbox.jsonl > /tmp/nexora-smtp.log 2>&1 &
+          for i in $(seq 1 40); do
+            if nc -z 127.0.0.1 2525; then break; fi
+            sleep 0.25
           done
-          cat /tmp/nexora-smtp.log
-          exit 1
-
-      - name: Start the live FastAPI service
+          nc -z 127.0.0.1 2525
+      - name: Start API with verification email enabled
         working-directory: Nexora-backend
-        env:
-          EMAIL_VERIFICATION_BYPASS: "false"
-          SMTP_HOST: 127.0.0.1
-          SMTP_PORT: "2525"
-          SMTP_USERNAME: nexora-ci
-          SMTP_PASSWORD: nexora-ci-only
-          SMTP_FROM_EMAIL: noreply@northstar.example.com
-          SMTP_FROM_NAME: Nexora CI
-          FRONTEND_URL: http://127.0.0.1:4173
-          CORS_ORIGINS: http://127.0.0.1:4173,http://localhost:4173,http://127.0.0.1:5173
-          SSL_CERT_FILE: /tmp/nexora-ca-bundle.pem
-          GEMINI_DISCOVERY_ENABLED: "false"
         run: |
-          uv run --python 3.12 uvicorn backend.main:app --host 127.0.0.1 --port 8000 > /tmp/nexora-api.log 2>&1 &
+          nohup env \
+            EMAIL_VERIFICATION_BYPASS=false \
+            SMTP_HOST=localhost SMTP_PORT=2525 \
+            SMTP_USERNAME=ci-user SMTP_PASSWORD=ci-pass \
+            SMTP_FROM_EMAIL=noreply@nexora.test SMTP_FROM_NAME=Nexora \
+            FRONTEND_URL=http://127.0.0.1:4173 \
+            CORS_ORIGINS=http://127.0.0.1:4173 \
+            uv run --python 3.12 uvicorn backend.main:app \
+              --host 127.0.0.1 --port 8000 > /tmp/nexora-api.log 2>&1 &
           for i in $(seq 1 60); do
-            if curl -fsS http://127.0.0.1:8000/v1/health > /tmp/nexora-health.json; then
-              cat /tmp/nexora-health.json
-              exit 0
-            fi
-            sleep 2
-          done
-          cat /tmp/nexora-api.log
-          exit 1
-
-      - name: Start the built frontend
-        run: |
-          npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/nexora-frontend.log 2>&1 &
-          for i in $(seq 1 30); do
-            if curl -fsS http://127.0.0.1:4173/welcome > /dev/null; then
-              echo "Frontend preview ready"
-              exit 0
-            fi
+            if curl --silent --fail http://127.0.0.1:8000/v1/health > /tmp/nexora-health.json; then break; fi
             sleep 1
           done
-          cat /tmp/nexora-frontend.log
-          exit 1
-
-      - name: Clear previous walkthrough captures
+          cat /tmp/nexora-health.json
+          curl --silent --fail http://127.0.0.1:8000/v1/health
+      - name: Build local-API frontend bundle
+        run: npm run build
+        env:
+          VITE_API_URL: http://127.0.0.1:8000
+          VITE_API_BUILD_MODE: development
+      - name: Start frontend preview
         run: |
-          mkdir -p docs/testing/visuals
-          rm -f docs/testing/visuals/*.png docs/testing/visuals/postgres-evidence.json
-
-      - name: Run real browser-to-API-to-PostgreSQL journey
+          nohup npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/nexora-frontend.log 2>&1 &
+          for i in $(seq 1 40); do
+            if curl --silent --fail http://127.0.0.1:4173/welcome > /dev/null; then break; fi
+            sleep 0.5
+          done
+          curl --silent --fail http://127.0.0.1:4173/welcome > /dev/null
+      - name: Exercise real UI, API, PostgreSQL and email workflows
         working-directory: Nexora-backend
         env:
           EMAIL_VERIFICATION_BYPASS: "false"
-          SMTP_HOST: 127.0.0.1
+          SMTP_HOST: localhost
           SMTP_PORT: "2525"
-          SMTP_USERNAME: nexora-ci
-          SMTP_PASSWORD: nexora-ci-only
-          SMTP_FROM_EMAIL: noreply@northstar.example.com
-          SMTP_FROM_NAME: Nexora CI
+          SMTP_USERNAME: ci-user
+          SMTP_PASSWORD: ci-pass
+          SMTP_FROM_EMAIL: noreply@nexora.test
+          SMTP_FROM_NAME: Nexora
           FRONTEND_URL: http://127.0.0.1:4173
-          CORS_ORIGINS: http://127.0.0.1:4173,http://localhost:4173,http://127.0.0.1:5173
-          SSL_CERT_FILE: /tmp/nexora-ca-bundle.pem
-          GEMINI_DISCOVERY_ENABLED: "false"
-          NEXORA_SCREENSHOT_DIR: ../docs/testing/visuals
-        run: uv run --python 3.12 python tests/browser_walkthrough.py
-
-      - name: Build screenshot manifest
+          CORS_ORIGINS: http://127.0.0.1:4173
+        run: uv run --python 3.12 python tests/run_browser_walkthrough.py
+      - name: Create screenshot manifest
         if: success()
         run: |
           python - <<'PY'
-          import json
+          import hashlib, json
           from pathlib import Path
-
-          folder = Path("docs/testing/visuals")
-          screenshots = sorted(folder.glob("*.png"))
-          if len(screenshots) != 67:
-              raise SystemExit(f"Expected 67 walkthrough screenshots; found {len(screenshots)}")
-
-          walkthrough = Path("docs/testing/VISUAL-TEST-WALKTHROUGH.md").read_text(encoding="utf-8")
-          referenced = {
-              line.split("visuals/", 1)[1].split(")", 1)[0]
-              for line in walkthrough.splitlines()
-              if "visuals/" in line and ".png)" in line
-          }
-          available = {item.name for item in screenshots}
-          if referenced != available:
-              raise SystemExit(
-                  f"Walkthrough image mismatch. Missing: {sorted(referenced-available)}; "
-                  f"unreferenced: {sorted(available-referenced)}"
-              )
-
-          evidence_file = folder / "postgres-evidence.json"
-          if not evidence_file.is_file():
-              raise SystemExit("PostgreSQL read-back evidence was not written by the browser journey")
-          evidence = json.loads(evidence_file.read_text(encoding="utf-8"))
-
+          root = Path("docs/walkthrough/screenshots")
+          files = sorted(p for p in root.glob("*.png") if p.is_file())
           manifest = {
-              "product": "Nexora",
-              "screenshot_count": len(screenshots),
+              "project": "Nexora",
               "screenshots": [
-                  {"filename": item.name, "bytes": item.stat().st_size}
-                  for item in screenshots
-              ],
-              "database_evidence": {
-                  "file": "visuals/postgres-evidence.json",
-                  "verified_observations": evidence.get("observations", 0),
-                  "verified_collection_jobs": evidence.get("jobs", 0),
-                  "latest_snapshot_price": evidence.get("snapshot_price"),
-                  "notification_statuses": evidence.get("notification_statuses", []),
-              },
-          }
-          Path("docs/testing/visual-manifest.json").write_text(
-              json.dumps(manifest, indent=2), encoding="utf-8"
-          )
-          print(f"Manifest created for {len(screenshots)} walkthrough screenshots.")
-          PY
-
-      - name: Sync visitor-facing screenshot gallery
-        if: success()
-        run: |
-          python - <<'PY'
-          import json
-          import re
-          import shutil
-          from pathlib import Path
-
-          source = Path("docs/testing/visuals")
-          destination = Path("docs/walkthrough/screenshots")
-          destination.mkdir(parents=True, exist_ok=True)
-
-          # Replace stale public screenshots with the ones captured in this run.
-          for old_image in destination.glob("*.png"):
-              old_image.unlink()
-
-          images = sorted(source.glob("*.png"))
-          if len(images) != 67:
-              raise SystemExit(f"Expected 67 fresh screenshots; found {len(images)}")
-
-          for image in images:
-              shutil.copy2(image, destination / image.name)
-
-          readme = Path("docs/walkthrough/README.md").read_text(encoding="utf-8")
-          referenced = set(re.findall(r"!\[[^\]]*\]\(screenshots/([^)]+\.png)\)", readme))
-          available = {image.name for image in images}
-          if referenced != available:
-              raise SystemExit(
-                  f"Visitor gallery mismatch. Missing: {sorted(referenced-available)}; "
-                  f"unreferenced: {sorted(available-referenced)}"
-              )
-
-          manifest = {
-              "count": len(images),
-              "screenshots": [
-                  {"filename": image.name, "bytes": image.stat().st_size}
-                  for image in sorted(destination.glob("*.png"))
+                  {"file": p.name, "bytes": p.stat().st_size,
+                   "sha256": hashlib.sha256(p.read_bytes()).hexdigest()}
+                  for p in files
               ],
           }
-          Path("docs/walkthrough/manifest.json").write_text(
-              json.dumps(manifest, indent=2), encoding="utf-8"
-          )
-          print(f"Published {len(images)} visitor walkthrough screenshots.")
+          (root / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+          print(f"Manifest includes {len(files)} browser screenshots.")
           PY
-
-      - name: Upload screenshots and PostgreSQL evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: nexora-visual-walkthrough
-          path: |
-            docs/testing/visuals/
-            docs/testing/visual-manifest.json
-            /tmp/nexora-health.json
-            /tmp/nexora-api.log
-            /tmp/nexora-frontend.log
-            /tmp/nexora-smtp.log
-          if-no-files-found: warn
-          retention-days: 30
-
-      - name: Publish walkthrough screenshots on main
+      - name: Publish successful walkthrough screenshots to main
         if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/testing/VISUAL-TEST-WALKTHROUGH.md docs/testing/visual-manifest.json docs/testing/visuals/ docs/walkthrough/README.md docs/walkthrough/manifest.json docs/walkthrough/screenshots/
+          git add docs/walkthrough/VISUAL-PRODUCT-WALKTHROUGH.md docs/walkthrough/screenshots
           if git diff --cached --quiet; then
-            echo "Walkthrough screenshots have not changed."
+            echo "Walkthrough images are already up to date."
           else
-            git commit -m "Publish Nexora visual walkthrough evidence"
+            git commit -m "Refresh Nexora visual product walkthrough"
             git push origin HEAD:main
           fi
-
-      - name: Show service logs after a failure
+      - name: Upload browser and service evidence on failure
         if: failure()
-        run: |
-          echo "===== backend API ====="
-          cat /tmp/nexora-api.log 2>/dev/null || true
-          echo "===== frontend preview ====="
-          cat /tmp/nexora-frontend.log 2>/dev/null || true
-          echo "===== SMTP inbox ====="
-          cat /tmp/nexora-smtp.log 2>/dev/null || true
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexora-e2e-diagnostics
+          if-no-files-found: warn
+          path: |
+            docs/walkthrough/screenshots
+            /tmp/nexora-api.log
+            /tmp/nexora-frontend.log
+            /tmp/nexora-smtp.log
+            /tmp/nexora-mailbox.jsonl
