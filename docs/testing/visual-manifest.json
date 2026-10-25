@@ -8,27 +8,27 @@
     },
     {
       "filename": "01-registration-form.png",
-      "bytes": 436158
+      "bytes": 436154
     },
     {
       "filename": "02-verification-email-sent.png",
-      "bytes": 415984
+      "bytes": 415986
     },
     {
       "filename": "02b-verification-email-resent.png",
-      "bytes": 421538
+      "bytes": 421491
     },
     {
       "filename": "03-email-verification-page.png",
-      "bytes": 408001
+      "bytes": 407997
     },
     {
       "filename": "04-email-verified.png",
-      "bytes": 406163
+      "bytes": 406159
     },
     {
       "filename": "05-login.png",
-      "bytes": 424628
+      "bytes": 424624
     },
     {
       "filename": "06-dashboard-starting-workspace.png",
@@ -40,11 +40,11 @@
     },
     {
       "filename": "08-competitor-created.png",
-      "bytes": 141987
+      "bytes": 141938
     },
     {
       "filename": "09-duplicate-domain-protection.png",
-      "bytes": 167547
+      "bytes": 167544
     },
     {
       "filename": "10-source-form.png",
@@ -72,11 +72,11 @@
     },
     {
       "filename": "15-catalog-offering-created.png",
-      "bytes": 160415
+      "bytes": 160438
     },
     {
       "filename": "16-offering-details.png",
-      "bytes": 192888
+      "bytes": 192930
     },
     {
       "filename": "17-monitoring-controls.png",
@@ -84,43 +84,43 @@
     },
     {
       "filename": "18-dynamic-fields.png",
-      "bytes": 179074
+      "bytes": 179082
     },
     {
       "filename": "19-dynamic-field-form.png",
-      "bytes": 175438
+      "bytes": 175418
     },
     {
       "filename": "20-dynamic-field-created.png",
-      "bytes": 182085
+      "bytes": 182064
     },
     {
       "filename": "21-bulk-import-form.png",
-      "bytes": 191555
+      "bytes": 191542
     },
     {
       "filename": "22-bulk-import-results.png",
-      "bytes": 194635
+      "bytes": 194498
     },
     {
       "filename": "22b-bulk-import-row-errors.png",
-      "bytes": 214762
+      "bytes": 214771
     },
     {
       "filename": "23-catalog-import-export-archive.png",
-      "bytes": 182715
+      "bytes": 182622
     },
     {
       "filename": "23b-single-offering-archived.png",
-      "bytes": 172872
+      "bytes": 172852
     },
     {
       "filename": "23c-catalog-pagination.png",
-      "bytes": 181553
+      "bytes": 181446
     },
     {
       "filename": "23d-catalog-type-filter.png",
-      "bytes": 155041
+      "bytes": 155030
     },
     {
       "filename": "24-offering-match-form.png",
@@ -144,11 +144,11 @@
     },
     {
       "filename": "27-dashboard-with-market-data.png",
-      "bytes": 368854
+      "bytes": 367322
     },
     {
       "filename": "28-alert-rule-form.png",
-      "bytes": 171893
+      "bytes": 172022
     },
     {
       "filename": "29-alert-rule-created.png",
@@ -164,55 +164,55 @@
     },
     {
       "filename": "29d-circuit-breaker-alert.png",
-      "bytes": 149975
+      "bytes": 150116
     },
     {
       "filename": "30-alert-generated-and-read.png",
-      "bytes": 144765
+      "bytes": 144778
     },
     {
       "filename": "31-collection-job-history.png",
-      "bytes": 181414
+      "bytes": 179939
     },
     {
       "filename": "32-collection-job-details.png",
-      "bytes": 242067
+      "bytes": 241443
     },
     {
       "filename": "33-private-target-blocked.png",
-      "bytes": 179849
+      "bytes": 179854
     },
     {
       "filename": "34-discovery-product-created.png",
-      "bytes": 192098
+      "bytes": 191281
     },
     {
       "filename": "35-discovery-update-history.png",
-      "bytes": 202920
+      "bytes": 202917
     },
     {
       "filename": "36-workspace-settings.png",
-      "bytes": 218253
+      "bytes": 217954
     },
     {
       "filename": "37-workspace-profile-saved.png",
-      "bytes": 222589
+      "bytes": 222312
     },
     {
       "filename": "38-password-changed.png",
-      "bytes": 225284
+      "bytes": 225002
     },
     {
       "filename": "39-password-reset-requested.png",
-      "bytes": 411775
+      "bytes": 411771
     },
     {
       "filename": "40-password-reset-form.png",
-      "bytes": 402324
+      "bytes": 402322
     },
     {
       "filename": "41-password-reset-complete.png",
-      "bytes": 405800
+      "bytes": 405796
     },
     {
       "filename": "42-dashboard-after-reset.png",
@@ -228,7 +228,7 @@
     },
     {
       "filename": "45-super-admin-workspace.png",
-      "bytes": 150875
+      "bytes": 150815
     },
     {
       "filename": "45b-super-admin-source-created.png",
@@ -240,15 +240,15 @@
     },
     {
       "filename": "45d-super-admin-competitor-deleted.png",
-      "bytes": 141771
+      "bytes": 141598
     },
     {
       "filename": "45e-super-admin-alert-rule-deleted.png",
-      "bytes": 157285
+      "bytes": 141555
     },
     {
       "filename": "46-isolated-tenant-dashboard.png",
-      "bytes": 320070
+      "bytes": 315142
     },
     {
       "filename": "47-isolated-tenant-competitors.png",
@@ -264,7 +264,7 @@
     },
     {
       "filename": "50-mobile-dashboard.png",
-      "bytes": 280876
+      "bytes": 278966
     },
     {
       "filename": "51-mobile-homepage.png",
