@@ -1,23 +1,22 @@
 # Nexora end-to-end browser journey
 
-The browser-to-API-to-PostgreSQL runner lives in the paired [backend repository](https://github.com/faizansaiyed123/Nexora-backend/tree/main/tests/e2e).
+The canonical full-stack browser runner is in the paired [backend repository](https://github.com/faizansaiyed123/Nexora-backend/blob/main/tests/browser_walkthrough.py). The workflow checks out both repositories, starts the built React frontend and FastAPI service, applies PostgreSQL migrations, and connects real Redis and PostgreSQL services. It does not stub or intercept Nexora API responses.
 
-The full-stack GitHub Actions workflow checks out both repositories, provisions a disposable PostgreSQL and Redis environment, starts FastAPI plus the built frontend, and uses Playwright to follow the visible product journey. Email verification and password-reset messages go to a local STARTTLS capture inbox. The suite does not mock Nexora API responses.
+Account verification, resend verification, and password recovery use a local STARTTLS email capture inbox. The browser journey follows the visible product UI, checks actual HTTP results, and reads the important records back from PostgreSQL. It also verifies tenant boundaries and role permissions with persisted users and issued access tokens.
 
-The runner captures screenshots under `docs/testing/visuals/` and writes `postgres-evidence.json` only after independent database queries confirm the key records and state transitions. The walkthrough uses a controlled public HTML source for deterministic price movement; it is not a statement of live retail prices or production deployment certification.
+The security-sensitive account paths include invalid verification-token rejection and replaying a consumed verification or password-reset token. A reused one-time token must fail without changing the verified account state or replacing the successfully reset password.
 
-To run the browser journey locally, follow the setup and environment values in `.github/workflows/ci.yml` and execute `uv run --python 3.12 python tests/e2e/run_ui_journey.py` from the backend repository after starting the API, built frontend, PostgreSQL, Redis, and isolated STARTTLS inbox.
+The workflow captures 67 visitor-oriented screenshots in `docs/testing/visuals/`, validates that every documented image exists, writes `postgres-evidence.json` from independent database queries, synchronizes the same images into `docs/walkthrough/screenshots/`, and publishes the visitor-facing [product walkthrough](https://github.com/faizansaiyed123/Nexora-Frontend/blob/main/docs/walkthrough/README.md) only after the full journey succeeds.
 
-Each run also records browser screenshots at each workflow checkpoint and validates the final collection snapshot and notification state directly in PostgreSQL.
+The collection/discovery scenarios use controlled, structured public HTML pages so price movement and extracted fields are repeatable. Those HTML pages are fetched by the actual collection/discovery code; they are not fake frontend/API responses and their example prices are not represented as current market offers. The walkthrough is product documentation, not a certification of the production deployment.
 
-The automation is exercised in CI against the current backend main branch; screenshots are committed only after the connected browser journey and PostgreSQL read-back complete successfully.
+## Local execution
 
-The verification watcher deliberately accepts the `?token=` query string on the actual API request so it observes the real one-time-token response.
+Run from the backend repository after setting the environment and starting PostgreSQL, Redis, the FastAPI service, the built frontend, and the isolated STARTTLS inbox as shown in the frontend repository's `.github/workflows/ci.yml`:
 
-The sign-in step locates the email and current-password inputs by their explicit autocomplete purpose, avoiding ambiguity from nested password visibility controls.
+```bash
+uv run --python 3.12 playwright install chromium
+uv run --python 3.12 python tests/browser_walkthrough.py
+```
 
-The latest browser run also waits for page-level headings when the application shell repeats a title in its global header.
-
-The catalog SKU locator targets the visible textbox exactly, avoiding a name collision with the hidden offering-type option `SKU_BUNDLE`.
-
-The post-create match assertion checks the target URL hyperlink rather than generic duplicate URL text.
+Set `NEXORA_SCREENSHOT_DIR` to the frontend repository's `docs/testing/visuals` directory to write images in the same location used by CI. The browser journey finishes only after its PostgreSQL read-back assertions succeed.
