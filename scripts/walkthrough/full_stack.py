@@ -185,6 +185,7 @@ def dispatch_notifications() -> str:
 
 
 def main() -> None:
+    global COMPETITOR_NAME, SOURCE_NAME
     SCREENSHOTS.mkdir(parents=True, exist_ok=True)
     if MAILBOX.exists():
         MAILBOX.unlink()
@@ -680,12 +681,7 @@ def main() -> None:
         assert page.get_by_role("button", name="Add competitor", exact=True).count() == 0
         denied = page.request.post(
             API_URL + "/v1/competitors",
-            headers=bearer(page),
-            data=json.dumps({"name": "Analyst forbidden write", "domain": "analyst-forbidden.example"}),
-            headers_update={"Content-Type":"application/json"} if False else None,
-        ) if False else page.request.post(
-            API_URL + "/v1/competitors",
-            headers={**bearer(page), "Content-Type":"application/json"},
+            headers={**bearer(page), "Content-Type": "application/json"},
             data=json.dumps({"name": "Analyst forbidden write", "domain": "analyst-forbidden.example"}),
         )
         assert denied.status == 403, denied.text()
