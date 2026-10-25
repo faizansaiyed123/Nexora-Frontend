@@ -1,8 +1,8 @@
 # Nexora — Visual Product Walkthrough
 
-Nexora brings product catalog management, competitor coverage, price collection, website discovery, and market alerts into one workspace. This walkthrough follows a Northstar market-intelligence team from creating its workspace to collecting competitor prices, reacting to a change, and keeping access separated across organizations and roles.
+Explore how a Northstar market-intelligence team uses Nexora to organize its catalogue, connect competitor listings, follow price movements, discover additional offerings, and keep workspace access appropriate to each role.
 
-The review workspace and named catalogue records are illustrative. Account and workspace actions flow through the application API and a disposable PostgreSQL database; the price and discovery steps use structured product pages that can be fetched repeatedly. This walkthrough explains the product and does not certify a production deployment.
+The product names and example prices are illustrative, not current retail quotations. Real workspaces show their own catalogue, source configuration, observations, and alert history.
 
 ## 1. Create and secure a workspace
 
