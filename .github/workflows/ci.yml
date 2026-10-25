@@ -150,7 +150,7 @@ jobs:
           .venv/bin/python tests/fixture_server.py --host 127.0.0.1 --port 8877 > /tmp/nexora-fixtures.log 2>&1 &
           for i in $(seq 1 30); do
             if curl -fsS http://127.0.0.1:8877/fixtures/retail-price-js.html > /tmp/nexora-render-fixture.html; then
-              grep -q 'data-rendered-by="client-javascript"' /tmp/nexora-render-fixture.html
+              grep -q 'id="product-jsonld"' /tmp/nexora-render-fixture.html
               echo "Local product fixture server ready"
               exit 0
             fi
