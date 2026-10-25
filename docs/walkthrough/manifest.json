@@ -3,7 +3,7 @@
   "screenshots": [
     {
       "filename": "00-public-homepage.png",
-      "bytes": 564623
+      "bytes": 564860
     },
     {
       "filename": "01-registration-form.png",
@@ -11,11 +11,11 @@
     },
     {
       "filename": "02-verification-email-sent.png",
-      "bytes": 415808
+      "bytes": 415798
     },
     {
       "filename": "02b-verification-email-resent.png",
-      "bytes": 421254
+      "bytes": 421245
     },
     {
       "filename": "03-email-verification-page.png",
@@ -39,11 +39,11 @@
     },
     {
       "filename": "08-competitor-created.png",
-      "bytes": 135462
+      "bytes": 135560
     },
     {
       "filename": "09-duplicate-domain-protection.png",
-      "bytes": 167814
+      "bytes": 167822
     },
     {
       "filename": "10-source-form.png",
@@ -71,55 +71,55 @@
     },
     {
       "filename": "15-catalog-offering-created.png",
-      "bytes": 155117
+      "bytes": 155072
     },
     {
       "filename": "16-offering-details.png",
-      "bytes": 188958
+      "bytes": 188983
     },
     {
       "filename": "17-monitoring-controls.png",
-      "bytes": 155950
+      "bytes": 155928
     },
     {
       "filename": "18-dynamic-fields.png",
-      "bytes": 175632
+      "bytes": 175712
     },
     {
       "filename": "19-dynamic-field-form.png",
-      "bytes": 170741
+      "bytes": 170758
     },
     {
       "filename": "20-dynamic-field-created.png",
-      "bytes": 178368
+      "bytes": 178436
     },
     {
       "filename": "21-bulk-import-form.png",
-      "bytes": 188181
+      "bytes": 188214
     },
     {
       "filename": "22-bulk-import-results.png",
-      "bytes": 188882
+      "bytes": 189091
     },
     {
       "filename": "22b-bulk-import-row-errors.png",
-      "bytes": 214531
+      "bytes": 214774
     },
     {
       "filename": "23-catalog-import-export-archive.png",
-      "bytes": 176676
+      "bytes": 176889
     },
     {
       "filename": "23b-single-offering-archived.png",
-      "bytes": 167850
+      "bytes": 167929
     },
     {
       "filename": "23c-catalog-pagination.png",
-      "bytes": 181428
+      "bytes": 181543
     },
     {
       "filename": "23d-catalog-type-filter.png",
-      "bytes": 155016
+      "bytes": 155201
     },
     {
       "filename": "24-offering-match-form.png",
@@ -143,11 +143,11 @@
     },
     {
       "filename": "27-dashboard-with-market-data.png",
-      "bytes": 369285
+      "bytes": 370688
     },
     {
       "filename": "28-alert-rule-form.png",
-      "bytes": 171874
+      "bytes": 171945
     },
     {
       "filename": "29-alert-rule-created.png",
@@ -163,43 +163,43 @@
     },
     {
       "filename": "29d-circuit-breaker-alert.png",
-      "bytes": 149993
+      "bytes": 149992
     },
     {
       "filename": "30-alert-generated-and-read.png",
-      "bytes": 137746
+      "bytes": 137790
     },
     {
       "filename": "31-collection-job-history.png",
-      "bytes": 181101
+      "bytes": 182621
     },
     {
       "filename": "32-collection-job-details.png",
-      "bytes": 239843
+      "bytes": 241318
     },
     {
       "filename": "33-private-target-blocked.png",
-      "bytes": 179854
+      "bytes": 179852
     },
     {
       "filename": "34-discovery-product-created.png",
-      "bytes": 188601
+      "bytes": 189427
     },
     {
       "filename": "35-discovery-update-history.png",
-      "bytes": 197604
+      "bytes": 197607
     },
     {
       "filename": "36-workspace-settings.png",
-      "bytes": 218302
+      "bytes": 218032
     },
     {
       "filename": "37-workspace-profile-saved.png",
-      "bytes": 218358
+      "bytes": 222384
     },
     {
       "filename": "38-password-changed.png",
-      "bytes": 218404
+      "bytes": 218150
     },
     {
       "filename": "39-password-reset-requested.png",
@@ -219,7 +219,7 @@
     },
     {
       "filename": "43-analyst-workspace.png",
-      "bytes": 210362
+      "bytes": 209814
     },
     {
       "filename": "44-viewer-read-only-workspace.png",
@@ -227,7 +227,7 @@
     },
     {
       "filename": "45-super-admin-workspace.png",
-      "bytes": 156152
+      "bytes": 156677
     },
     {
       "filename": "45b-super-admin-source-created.png",
@@ -239,11 +239,11 @@
     },
     {
       "filename": "45d-super-admin-competitor-deleted.png",
-      "bytes": 147174
+      "bytes": 147078
     },
     {
       "filename": "45e-super-admin-alert-rule-deleted.png",
-      "bytes": 151128
+      "bytes": 151124
     },
     {
       "filename": "46-isolated-tenant-dashboard.png",
@@ -263,7 +263,7 @@
     },
     {
       "filename": "50-mobile-dashboard.png",
-      "bytes": 279462
+      "bytes": 279533
     },
     {
       "filename": "51-mobile-homepage.png",
