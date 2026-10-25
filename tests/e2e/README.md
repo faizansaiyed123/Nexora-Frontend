@@ -20,3 +20,6 @@ uv run --python 3.12 python tests/browser_walkthrough.py
 ```
 
 Set `NEXORA_SCREENSHOT_DIR` to the frontend repository's `docs/testing/visuals` directory to write images in the same location used by CI. The browser journey finishes only after its PostgreSQL read-back assertions succeed.
+
+
+Collection and discovery use controlled product HTML served only inside CI. The visitor screenshots display the reserved example hostname `retail.northstar.example` rather than a loopback address; CI maps that host to the isolated fixture server. The backend permits the fixed fixture paths only with its test-only environment setting, which production rejects.

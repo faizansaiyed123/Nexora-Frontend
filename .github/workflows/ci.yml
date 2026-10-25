@@ -144,14 +144,15 @@ jobs:
           cat /tmp/nexora-smtp.log
           exit 1
 
-      - name: Start isolated loopback product fixtures
+      - name: Start isolated Northstar product fixtures
         working-directory: Nexora-backend
         run: |
+          echo "127.0.0.1 retail.northstar.example" | sudo tee -a /etc/hosts > /dev/null
           .venv/bin/python tests/fixture_server.py --host 127.0.0.1 --port 8877 > /tmp/nexora-fixtures.log 2>&1 &
           for i in $(seq 1 30); do
-            if curl -fsS http://127.0.0.1:8877/fixtures/retail-price-js.html > /tmp/nexora-render-fixture.html; then
+            if curl --noproxy '*' -fsS http://retail.northstar.example:8877/fixtures/retail-price-js.html > /tmp/nexora-render-fixture.html; then
               grep -q 'id="product-jsonld"' /tmp/nexora-render-fixture.html
-              echo "Local product fixture server ready"
+              echo "Isolated Northstar product fixtures ready"
               exit 0
             fi
             sleep 1
