@@ -4,3 +4,14 @@ dist
 .env.local
 .DS_Store
 *.tsbuildinfo
+
+# Generated build and test output
+build/
+coverage/
+playwright-report/
+test-results/
+__pycache__/
+.pytest_cache/
+logs/
+storage/
+uploads/
