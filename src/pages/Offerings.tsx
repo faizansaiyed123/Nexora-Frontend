@@ -14,7 +14,13 @@ import {
 } from "lucide-react";
 import { offerings } from "../api";
 import { useAuth } from "../auth";
-import type { DynamicFieldDefinition, Offering, OfferingDetail, OfferingHistory, Pagination } from "../types";
+import type {
+  DynamicFieldDefinition,
+  Offering,
+  OfferingDetail,
+  OfferingHistory,
+  Pagination,
+} from "../types";
 import {
   Button,
   Card,
@@ -33,8 +39,21 @@ import {
 } from "../components/ui";
 
 const types = [
-  "PRODUCT","SERVICE","PLAN","SUBSCRIPTION","SAAS_PLAN","ROOM","HOTEL_ROOM",
-  "RENTAL","COURSE","PACKAGE","LISTING","BOOKING","BUNDLE","SKU_BUNDLE","CUSTOM",
+  "PRODUCT",
+  "SERVICE",
+  "PLAN",
+  "SUBSCRIPTION",
+  "SAAS_PLAN",
+  "ROOM",
+  "HOTEL_ROOM",
+  "RENTAL",
+  "COURSE",
+  "PACKAGE",
+  "LISTING",
+  "BOOKING",
+  "BUNDLE",
+  "SKU_BUNDLE",
+  "CUSTOM",
 ];
 
 type BulkImportResult = {
@@ -143,10 +162,17 @@ export default function Offerings() {
   const [importOpen, setImportOpen] = useState(false);
   const [fieldsOpen, setFieldsOpen] = useState(false);
   const [fieldCreateOpen, setFieldCreateOpen] = useState(false);
-  const [fieldForm, setFieldForm] = useState({ field_name: "", display_name: "", data_type: "STRING", unit: "", category: "GENERAL" });
+  const [fieldForm, setFieldForm] = useState({
+    field_name: "",
+    display_name: "",
+    data_type: "STRING",
+    unit: "",
+    category: "GENERAL",
+  });
   const [form, setForm] = useState<OfferingForm>({ ...emptyForm });
   const [importText, setImportText] = useState("[]");
-  const [importFeedback, setImportFeedback] = useState<BulkImportFeedback | null>(null);
+  const [importFeedback, setImportFeedback] =
+    useState<BulkImportFeedback | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -173,7 +199,10 @@ export default function Offerings() {
       setSelected([]);
     } catch (e) {
       if (generation === loadGeneration.current) {
-        show(e instanceof Error ? e.message : "Failed to load offerings", "error");
+        show(
+          e instanceof Error ? e.message : "Failed to load offerings",
+          "error",
+        );
       }
     } finally {
       if (generation === loadGeneration.current) setLoading(false);
@@ -185,7 +214,10 @@ export default function Offerings() {
     try {
       setFields(await offerings.fields());
     } catch (e) {
-      show(e instanceof Error ? e.message : "Failed to load dynamic fields", "error");
+      show(
+        e instanceof Error ? e.message : "Failed to load dynamic fields",
+        "error",
+      );
     }
   };
 
@@ -203,7 +235,10 @@ export default function Offerings() {
   }, [fieldsOpen]);
 
   const list = data?.items || [];
-  const monitored = useMemo(() => list.filter(x => x.is_monitored && !x.is_archived).length, [list]);
+  const monitored = useMemo(
+    () => list.filter((x) => x.is_monitored && !x.is_archived).length,
+    [list],
+  );
 
   const openCreate = () => {
     setEditor(null);
@@ -228,11 +263,17 @@ export default function Offerings() {
   const openDetail = async (id: string) => {
     setDetailLoading(true);
     try {
-      const [full, historyRows] = await Promise.all([offerings.get(id), offerings.history(id)]);
+      const [full, historyRows] = await Promise.all([
+        offerings.get(id),
+        offerings.history(id),
+      ]);
       setDetail(full);
       setHistory(historyRows);
     } catch (e) {
-      show(e instanceof Error ? e.message : "Failed to load offering detail", "error");
+      show(
+        e instanceof Error ? e.message : "Failed to load offering detail",
+        "error",
+      );
     } finally {
       setDetailLoading(false);
     }
@@ -271,14 +312,22 @@ export default function Offerings() {
       const parsed = JSON.parse(importText);
       const items = Array.isArray(parsed) ? parsed : parsed.items;
       if (!Array.isArray(items) || items.length < 1 || items.length > 1000) {
-        throw new Error("Import must contain between 1 and 1,000 offering objects.");
+        throw new Error(
+          "Import must contain between 1 and 1,000 offering objects.",
+        );
       }
       const result = await offerings.bulk(items);
-      const successfulCount = Number(result.successful_count ?? result.archived_count ?? 0);
+      const successfulCount = Number(
+        result.successful_count ?? result.archived_count ?? 0,
+      );
       const failedCount = Number(result.failed_count ?? 0);
-      const errors = Array.isArray(result.errors) ? result.errors as BulkImportError[] : [];
+      const errors = Array.isArray(result.errors)
+        ? (result.errors as BulkImportError[])
+        : [];
       const report: BulkImportFeedback = {
-        total_processed: Number(result.total_processed ?? successfulCount + failedCount),
+        total_processed: Number(
+          result.total_processed ?? successfulCount + failedCount,
+        ),
         successful_count: successfulCount,
         failed_count: failedCount,
         errors,
@@ -330,17 +379,27 @@ export default function Offerings() {
       });
       show("Dynamic field created.");
       setFieldCreateOpen(false);
-      setFieldForm({ field_name: "", display_name: "", data_type: "STRING", unit: "", category: "GENERAL" });
+      setFieldForm({
+        field_name: "",
+        display_name: "",
+        data_type: "STRING",
+        unit: "",
+        category: "GENERAL",
+      });
       await loadFields();
     } catch (e) {
-      show(e instanceof Error ? e.message : "Could not create dynamic field", "error");
+      show(
+        e instanceof Error ? e.message : "Could not create dynamic field",
+        "error",
+      );
     } finally {
       setSaving(false);
     }
   };
 
   const selectedCount = selected.length;
-  const allSelected = list.length > 0 && list.every(x => selected.includes(x.id));
+  const allSelected =
+    list.length > 0 && list.every((x) => selected.includes(x.id));
 
   return (
     <div className="stack">
@@ -351,15 +410,31 @@ export default function Offerings() {
           <p>Manage the canonical catalog that feeds competitive monitoring.</p>
         </div>
         <div className="toolbar-actions">
-          <Button variant="secondary" onClick={() => offerings.export("csv").catch(e => show(e.message, "error"))}>
+          <Button
+            variant="secondary"
+            onClick={() =>
+              offerings.export("csv").catch((e) => show(e.message, "error"))
+            }
+          >
             <Download size={16} /> CSV
           </Button>
-          <Button variant="secondary" onClick={() => offerings.export("json").catch(e => show(e.message, "error"))}>
+          <Button
+            variant="secondary"
+            onClick={() =>
+              offerings.export("json").catch((e) => show(e.message, "error"))
+            }
+          >
             <FileJson size={16} /> JSON
           </Button>
           {canManage && (
             <>
-              <Button variant="secondary" onClick={() => { setImportFeedback(null); setImportOpen(true); }}>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setImportFeedback(null);
+                  setImportOpen(true);
+                }}
+              >
                 <Upload size={16} /> Bulk import
               </Button>
               <Button variant="secondary" onClick={() => setFieldsOpen(true)}>
@@ -376,13 +451,21 @@ export default function Offerings() {
       <div className="filter-row">
         <label className="search-box">
           <Search size={17} />
-          <input placeholder="Search name, SKU, category…" value={q} onChange={e => setQ(e.target.value)} />
+          <input
+            placeholder="Search name, SKU, category…"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
         </label>
-        <Select value={type} onChange={e => setType(e.target.value)}>
+        <Select value={type} onChange={(e) => setType(e.target.value)}>
           <option value="">All types</option>
-          {types.map(t => <option key={t}>{t}</option>)}
+          {types.map((t) => (
+            <option key={t}>{t}</option>
+          ))}
         </Select>
-        <span className="filter-meta">{data?.total_count ?? 0} total · {monitored} monitored on this page</span>
+        <span className="filter-meta">
+          {data?.total_count ?? 0} total · {monitored} monitored on this page
+        </span>
         {canManage && selectedCount > 0 && (
           <Button variant="danger" onClick={archiveSelected} disabled={saving}>
             <Trash2 size={16} /> Archive {selectedCount}
@@ -397,17 +480,27 @@ export default function Offerings() {
               <span className="eyebrow">IMPORT SUMMARY</span>
               <h3>Bulk import results</h3>
             </div>
-            <StatusPill value={importFeedback.failed_count > 0 ? "PARTIAL" : "COMPLETED"} />
+            <StatusPill
+              value={importFeedback.failed_count > 0 ? "PARTIAL" : "COMPLETED"}
+            />
           </div>
           <p>
-            {importFeedback.total_processed} rows processed · {importFeedback.successful_count} succeeded · {importFeedback.failed_count} failed.
+            {importFeedback.total_processed} rows processed ·{" "}
+            {importFeedback.successful_count} succeeded ·{" "}
+            {importFeedback.failed_count} failed.
           </p>
           {importFeedback.errors.length > 0 ? (
             <div className="list" aria-label="Bulk import row errors">
-              {importFeedback.errors.map(rowError => (
-                <div className="list-row" key={`${rowError.index}-${rowError.sku || rowError.name || "row"}`}>
+              {importFeedback.errors.map((rowError) => (
+                <div
+                  className="list-row"
+                  key={`${rowError.index}-${rowError.sku || rowError.name || "row"}`}
+                >
                   <div>
-                    <strong>Row {rowError.index + 1}: {rowError.name || rowError.sku || "Unnamed offering"}</strong>
+                    <strong>
+                      Row {rowError.index + 1}:{" "}
+                      {rowError.name || rowError.sku || "Unnamed offering"}
+                    </strong>
                     {rowError.sku ? <span>SKU: {rowError.sku}</span> : null}
                     <span>{rowError.error}</span>
                   </div>
@@ -417,7 +510,9 @@ export default function Offerings() {
             </div>
           ) : null}
           <div className="modal-actions">
-            <Button variant="secondary" onClick={() => setImportFeedback(null)}>Dismiss import results</Button>
+            <Button variant="secondary" onClick={() => setImportFeedback(null)}>
+              Dismiss import results
+            </Button>
           </div>
         </Card>
       )}
@@ -436,15 +531,25 @@ export default function Offerings() {
                         aria-label="Select all"
                         type="checkbox"
                         checked={allSelected}
-                        onChange={e => setSelected(e.target.checked ? list.map(x => x.id) : [])}
+                        onChange={(e) =>
+                          setSelected(
+                            e.target.checked ? list.map((x) => x.id) : [],
+                          )
+                        }
                       />
                     </th>
                   )}
-                  <th>Offering</th><th>Type</th><th>Price</th><th>Market</th><th>Monitoring</th><th>Updated</th><th />
+                  <th>Offering</th>
+                  <th>Type</th>
+                  <th>Price</th>
+                  <th>Market</th>
+                  <th>Monitoring</th>
+                  <th>Updated</th>
+                  <th />
                 </tr>
               </thead>
               <tbody>
-                {list.map(o => {
+                {list.map((o) => {
                   const checked = selected.includes(o.id);
                   return (
                     <tr key={o.id}>
@@ -454,33 +559,113 @@ export default function Offerings() {
                             aria-label={`Select ${o.name}`}
                             type="checkbox"
                             checked={checked}
-                            onChange={e => setSelected(prev => e.target.checked ? [...prev, o.id] : prev.filter(id => id !== o.id))}
+                            onChange={(e) =>
+                              setSelected((prev) =>
+                                e.target.checked
+                                  ? [...prev, o.id]
+                                  : prev.filter((id) => id !== o.id),
+                              )
+                            }
                           />
                         </td>
                       )}
                       <td>
                         <div className="row-main">
-                          {o.image_url ? <img className="thumb-image" src={o.image_url} alt="" /> : <div className="thumb">{o.name[0]}</div>}
+                          {o.image_url ? (
+                            <img
+                              className="thumb-image"
+                              src={o.image_url}
+                              alt=""
+                            />
+                          ) : (
+                            <div className="thumb">{o.name[0]}</div>
+                          )}
                           <div>
-                            {canAnalyze ? <button className="link-button" onClick={() => openDetail(o.id)}>{o.name}</button> : <strong>{o.name}</strong>}
-                            <span>{o.sku || "No SKU"} · {o.category || "Uncategorized"}</span>
+                            {canAnalyze ? (
+                              <button
+                                className="link-button"
+                                onClick={() => openDetail(o.id)}
+                              >
+                                {o.name}
+                              </button>
+                            ) : (
+                              <strong>{o.name}</strong>
+                            )}
+                            <span>
+                              {o.sku || "No SKU"} ·{" "}
+                              {o.category || "Uncategorized"}
+                            </span>
                           </div>
                         </div>
                       </td>
                       <td>{o.offering_type}</td>
-                      <td><strong>{money(o.current_price, o.currency || "USD")}</strong></td>
+                      <td>
+                        <strong>
+                          {money(o.current_price, o.currency || "USD")}
+                        </strong>
+                      </td>
                       <td>{o.market}</td>
-                      <td><StatusPill value={o.is_monitored ? "MONITORED" : "PAUSED"} /></td>
+                      <td>
+                        <StatusPill
+                          value={o.is_monitored ? "MONITORED" : "PAUSED"}
+                        />
+                      </td>
                       <td>{fmtDate(o.updated_at)}</td>
                       <td>
                         <div className="row-actions">
                           {canManage && (
                             <>
-                              <button className="icon-btn" title="Edit" onClick={() => openEdit(o.id)}><Edit3 size={16} /></button>
-                              <button className="icon-btn" title="Toggle monitoring" onClick={async () => { try { await offerings.monitor(o.id); show("Monitoring state updated."); await load(); } catch (e) { show(e instanceof Error ? e.message : "Update failed", "error"); } }}>
-                                {o.is_monitored ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}
+                              <button
+                                className="icon-btn"
+                                title="Edit"
+                                onClick={() => openEdit(o.id)}
+                              >
+                                <Edit3 size={16} />
                               </button>
-                              <button className="icon-btn danger-icon" title="Archive" onClick={async () => { if (!confirm("Archive this offering?")) return; try { await offerings.archive(o.id); show("Offering archived."); await load(); } catch (e) { show(e instanceof Error ? e.message : "Archive failed", "error"); } }}>
+                              <button
+                                className="icon-btn"
+                                title="Toggle monitoring"
+                                onClick={async () => {
+                                  try {
+                                    await offerings.monitor(o.id);
+                                    show("Monitoring state updated.");
+                                    await load();
+                                  } catch (e) {
+                                    show(
+                                      e instanceof Error
+                                        ? e.message
+                                        : "Update failed",
+                                      "error",
+                                    );
+                                  }
+                                }}
+                              >
+                                {o.is_monitored ? (
+                                  <ToggleRight size={18} />
+                                ) : (
+                                  <ToggleLeft size={18} />
+                                )}
+                              </button>
+                              <button
+                                className="icon-btn danger-icon"
+                                title="Archive"
+                                onClick={async () => {
+                                  if (!confirm("Archive this offering?"))
+                                    return;
+                                  try {
+                                    await offerings.archive(o.id);
+                                    show("Offering archived.");
+                                    await load();
+                                  } catch (e) {
+                                    show(
+                                      e instanceof Error
+                                        ? e.message
+                                        : "Archive failed",
+                                      "error",
+                                    );
+                                  }
+                                }}
+                              >
                                 <Archive size={17} />
                               </button>
                             </>
@@ -495,90 +680,399 @@ export default function Offerings() {
           </div>
         </Card>
       ) : (
-        <Empty title="Your catalog is empty" detail="Add an offering manually or use Discovery to scan your website." />
+        <Empty
+          title="Your catalog is empty"
+          detail="Add an offering manually or use Discovery to scan your website."
+        />
       )}
 
-      <Modal open={editorOpen} onClose={() => setEditorOpen(false)} title={editor ? `Edit ${editor.name}` : "Add catalog offering"}>
+      <Modal
+        open={editorOpen}
+        onClose={() => setEditorOpen(false)}
+        title={editor ? `Edit ${editor.name}` : "Add catalog offering"}
+      >
         <form className="form-grid" onSubmit={save}>
-          <Input label="Name" value={form.name} required onChange={e => setForm({ ...form, name: e.target.value })} />
-          <Select label="Offering type" value={form.offering_type} onChange={e => setForm({ ...form, offering_type: e.target.value })}>
-            {types.map(t => <option key={t}>{t}</option>)}
+          <Input
+            label="Name"
+            value={form.name}
+            required
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+          />
+          <Select
+            label="Offering type"
+            value={form.offering_type}
+            onChange={(e) =>
+              setForm({ ...form, offering_type: e.target.value })
+            }
+          >
+            {types.map((t) => (
+              <option key={t}>{t}</option>
+            ))}
           </Select>
-          <Input label="SKU" value={form.sku} onChange={e => setForm({ ...form, sku: e.target.value })} />
+          <Input
+            label="SKU"
+            value={form.sku}
+            onChange={(e) => setForm({ ...form, sku: e.target.value })}
+          />
           <div className="split-fields">
-            <Input label="Current price" value={form.current_price} onChange={e => setForm({ ...form, current_price: e.target.value })} type="number" min="0" step="0.0001" />
-            <Input label="Currency" value={form.currency} onChange={e => setForm({ ...form, currency: e.target.value.toUpperCase() })} />
+            <Input
+              label="Current price"
+              value={form.current_price}
+              onChange={(e) =>
+                setForm({ ...form, current_price: e.target.value })
+              }
+              type="number"
+              min="0"
+              step="0.0001"
+            />
+            <Input
+              label="Currency"
+              value={form.currency}
+              onChange={(e) =>
+                setForm({ ...form, currency: e.target.value.toUpperCase() })
+              }
+            />
           </div>
           <div className="split-fields">
-            <Input label="Market" value={form.market} onChange={e => setForm({ ...form, market: e.target.value.toUpperCase() })} />
-            <Input label="Category" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} />
+            <Input
+              label="Market"
+              value={form.market}
+              onChange={(e) =>
+                setForm({ ...form, market: e.target.value.toUpperCase() })
+              }
+            />
+            <Input
+              label="Category"
+              value={form.category}
+              onChange={(e) => setForm({ ...form, category: e.target.value })}
+            />
           </div>
-          <Input label="Product URL" value={form.url} onChange={e => setForm({ ...form, url: e.target.value })} placeholder="https://…" />
-          <Input label="Image URL" value={form.image_url} onChange={e => setForm({ ...form, image_url: e.target.value })} />
-          <Textarea label="Description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
-          <Textarea label="Dynamic attributes (JSON)" value={form.attributes} onChange={e => setForm({ ...form, attributes: e.target.value })} />
-          <label className="check"><input type="checkbox" checked={form.is_monitored} onChange={e => setForm({ ...form, is_monitored: e.target.checked })} /> Start monitoring immediately</label>
+          <Input
+            label="Product URL"
+            value={form.url}
+            onChange={(e) => setForm({ ...form, url: e.target.value })}
+            placeholder="https://…"
+          />
+          <Input
+            label="Image URL"
+            value={form.image_url}
+            onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+          />
+          <Textarea
+            label="Description"
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+          />
+          <Textarea
+            label="Dynamic attributes (JSON)"
+            value={form.attributes}
+            onChange={(e) => setForm({ ...form, attributes: e.target.value })}
+          />
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={form.is_monitored}
+              onChange={(e) =>
+                setForm({ ...form, is_monitored: e.target.checked })
+              }
+            />{" "}
+            Start monitoring immediately
+          </label>
           <div className="modal-actions">
-            <Button variant="secondary" onClick={() => setEditorOpen(false)}>Cancel</Button>
-            <Button type="submit" disabled={saving}>{saving ? "Saving…" : editor ? "Save changes" : "Create offering"}</Button>
+            <Button variant="secondary" onClick={() => setEditorOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? "Saving…" : editor ? "Save changes" : "Create offering"}
+            </Button>
           </div>
         </form>
       </Modal>
 
-      <Modal open={!!detail} onClose={closeDetail} title={detail?.name || "Offering detail"}>
-        {detailLoading ? <Spinner /> : detail && (
-          <div className="detail-grid">
-            <div><span className="eyebrow">CURRENT PRICE</span><strong className="big-number">{money(detail.current_price, detail.currency || "USD")}</strong></div>
-            <div><span className="eyebrow">MONITORING</span><StatusPill value={detail.is_monitored ? "MONITORED" : "PAUSED"} /></div>
-            <div className="detail-block"><span>Competitor matches</span><strong>{detail.competitor_matches_count}</strong></div>
-            <div className="detail-block"><span>Min competitor price</span><strong>{money(detail.min_competitor_price, detail.currency || "USD")}</strong></div>
-            <div className="detail-block"><span>Average competitor price</span><strong>{money(detail.avg_competitor_price, detail.currency || "USD")}</strong></div>
-            <div className="detail-block"><span>Price delta</span><strong>{detail.price_delta_percent == null ? "—" : `${Number(detail.price_delta_percent).toFixed(2)}%`}</strong></div>
-            <div className="detail-block"><span>Category</span><strong>{detail.category || "—"}</strong></div>
-            <div className="detail-block"><span>SKU</span><strong>{detail.sku || "—"}</strong></div>
-            <div className="detail-block full-span"><span>Matches</span><div className="list">{detail.matches.map((m, i) => <div className="list-row" key={String(m.match_id || i)}><div><strong>{String(m.competitor_name || "Competitor")}</strong><span>{String(m.source_name || "Source")}</span></div><div className="row-end"><StatusPill value={String(m.match_status || "")} /> <a href={String(m.target_url || "#")} target="_blank" rel="noreferrer">Open</a></div></div>)}</div></div>
-            <div className="detail-block full-span"><span>Observation history</span>{history.length ? <div className="list">{history.slice(0,50).map((row,i) => <div className="list-row" key={row.offering_match_id + ":" + row.observed_at + ":" + i}><div><strong>{row.competitor_name}</strong><span>{row.source_name} · {fmtDate(row.observed_at)}</span></div><div className="row-end"><strong>{money(row.observed_price, row.currency || detail.currency || "USD")}</strong><StatusPill value={row.availability} /></div></div>)}</div> : <span className="subtle">No observations recorded yet.</span>}</div>
-            <div className="detail-block full-span"><span>Attributes</span><pre>{JSON.stringify(detail.attributes || {}, null, 2)}</pre></div>
-          </div>
+      <Modal
+        open={!!detail}
+        onClose={closeDetail}
+        title={detail?.name || "Offering detail"}
+      >
+        {detailLoading ? (
+          <Spinner />
+        ) : (
+          detail && (
+            <div className="detail-grid">
+              <div>
+                <span className="eyebrow">CURRENT PRICE</span>
+                <strong className="big-number">
+                  {money(detail.current_price, detail.currency || "USD")}
+                </strong>
+              </div>
+              <div>
+                <span className="eyebrow">MONITORING</span>
+                <StatusPill
+                  value={detail.is_monitored ? "MONITORED" : "PAUSED"}
+                />
+              </div>
+              <div className="detail-block">
+                <span>Competitor matches</span>
+                <strong>{detail.competitor_matches_count}</strong>
+              </div>
+              <div className="detail-block">
+                <span>Min competitor price</span>
+                <strong>
+                  {money(detail.min_competitor_price, detail.currency || "USD")}
+                </strong>
+              </div>
+              <div className="detail-block">
+                <span>Average competitor price</span>
+                <strong>
+                  {money(detail.avg_competitor_price, detail.currency || "USD")}
+                </strong>
+              </div>
+              <div className="detail-block">
+                <span>Price delta</span>
+                <strong>
+                  {detail.price_delta_percent == null
+                    ? "—"
+                    : `${Number(detail.price_delta_percent).toFixed(2)}%`}
+                </strong>
+              </div>
+              <div className="detail-block">
+                <span>Category</span>
+                <strong>{detail.category || "—"}</strong>
+              </div>
+              <div className="detail-block">
+                <span>SKU</span>
+                <strong>{detail.sku || "—"}</strong>
+              </div>
+              <div className="detail-block full-span">
+                <span>Matches</span>
+                <div className="list">
+                  {detail.matches.map((m, i) => (
+                    <div className="list-row" key={String(m.match_id || i)}>
+                      <div>
+                        <strong>
+                          {String(m.competitor_name || "Competitor")}
+                        </strong>
+                        <span>{String(m.source_name || "Source")}</span>
+                      </div>
+                      <div className="row-end">
+                        <StatusPill value={String(m.match_status || "")} />{" "}
+                        <a
+                          href={String(m.target_url || "#")}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Open
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="detail-block full-span">
+                <span>Observation history</span>
+                {history.length ? (
+                  <div className="list">
+                    {history.slice(0, 50).map((row, i) => (
+                      <div
+                        className="list-row"
+                        key={
+                          row.offering_match_id +
+                          ":" +
+                          row.observed_at +
+                          ":" +
+                          i
+                        }
+                      >
+                        <div>
+                          <strong>{row.competitor_name}</strong>
+                          <span>
+                            {row.source_name} · {fmtDate(row.observed_at)}
+                          </span>
+                        </div>
+                        <div className="row-end">
+                          <strong>
+                            {money(
+                              row.observed_price,
+                              row.currency || detail.currency || "USD",
+                            )}
+                          </strong>
+                          <StatusPill value={row.availability} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="subtle">No observations recorded yet.</span>
+                )}
+              </div>
+              <div className="detail-block full-span">
+                <span>Attributes</span>
+                <pre>{JSON.stringify(detail.attributes || {}, null, 2)}</pre>
+              </div>
+            </div>
+          )
         )}
       </Modal>
 
       {data && data.total_pages > 1 && (
         <div className="modal-actions" aria-label="Catalog pagination">
-          <Button variant="secondary" disabled={page <= 1 || loading} onClick={() => setPage(p => Math.max(1, p - 1))}>Previous</Button>
-          <span className="subtle">Page {page} of {data.total_pages}</span>
-          <Button variant="secondary" disabled={page >= data.total_pages || loading} onClick={() => setPage(p => Math.min(data.total_pages, p + 1))}>Next</Button>
+          <Button
+            variant="secondary"
+            disabled={page <= 1 || loading}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          >
+            Previous
+          </Button>
+          <span className="subtle">
+            Page {page} of {data.total_pages}
+          </span>
+          <Button
+            variant="secondary"
+            disabled={page >= data.total_pages || loading}
+            onClick={() => setPage((p) => Math.min(data.total_pages, p + 1))}
+          >
+            Next
+          </Button>
         </div>
       )}
 
-      <Modal open={importOpen} onClose={() => setImportOpen(false)} title="Bulk import offerings">
+      <Modal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        title="Bulk import offerings"
+      >
         <form className="form-grid" onSubmit={importBulk}>
-          <Notice>Paste a JSON array of offering objects, or an object containing an <strong>items</strong> array. Maximum 1,000 items.</Notice>
-          <Textarea label="Offering JSON" value={importText} onChange={e => setImportText(e.target.value)} />
+          <Notice>
+            Paste a JSON array of offering objects, or an object containing an{" "}
+            <strong>items</strong> array. Maximum 1,000 items.
+          </Notice>
+          <Textarea
+            label="Offering JSON"
+            value={importText}
+            onChange={(e) => setImportText(e.target.value)}
+          />
           <div className="modal-actions">
-            <Button variant="secondary" onClick={() => setImportOpen(false)}>Cancel</Button>
-            <Button type="submit" disabled={saving}>Import offerings</Button>
+            <Button variant="secondary" onClick={() => setImportOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={saving}>
+              Import offerings
+            </Button>
           </div>
         </form>
       </Modal>
 
-      <Modal open={fieldsOpen} onClose={() => setFieldsOpen(false)} title="Dynamic field definitions">
+      <Modal
+        open={fieldsOpen}
+        onClose={() => setFieldsOpen(false)}
+        title="Dynamic field definitions"
+      >
         <div className="stack">
-          <div className="modal-actions"><Button onClick={() => setFieldCreateOpen(true)}><Plus size={16} /> Add field</Button></div>
-          {fields.length ? <div className="list">{fields.map(f => <div className="list-row" key={f.id}><div><strong>{f.display_name}</strong><span>{f.field_name} · {f.data_type} · {f.category || "GENERAL"}</span></div><button className="icon-btn danger-icon" onClick={async () => { if (!confirm(`Delete field ${f.display_name}?`)) return; try { await offerings.removeField(f.id); show("Dynamic field deleted."); await loadFields(); } catch (e) { show(e instanceof Error ? e.message : "Delete failed", "error"); } }}><Trash2 size={16} /></button></div>)}</div> : <Empty title="No dynamic fields" detail="Create one when you need a tenant-specific catalog attribute." />}
+          <div className="modal-actions">
+            <Button onClick={() => setFieldCreateOpen(true)}>
+              <Plus size={16} /> Add field
+            </Button>
+          </div>
+          {fields.length ? (
+            <div className="list">
+              {fields.map((f) => (
+                <div className="list-row" key={f.id}>
+                  <div>
+                    <strong>{f.display_name}</strong>
+                    <span>
+                      {f.field_name} · {f.data_type} · {f.category || "GENERAL"}
+                    </span>
+                  </div>
+                  <button
+                    className="icon-btn danger-icon"
+                    onClick={async () => {
+                      if (!confirm(`Delete field ${f.display_name}?`)) return;
+                      try {
+                        await offerings.removeField(f.id);
+                        show("Dynamic field deleted.");
+                        await loadFields();
+                      } catch (e) {
+                        show(
+                          e instanceof Error ? e.message : "Delete failed",
+                          "error",
+                        );
+                      }
+                    }}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <Empty
+              title="No dynamic fields"
+              detail="Create one when you need a tenant-specific catalog attribute."
+            />
+          )}
         </div>
       </Modal>
 
-      <Modal open={fieldCreateOpen} onClose={() => setFieldCreateOpen(false)} title="Create dynamic field">
+      <Modal
+        open={fieldCreateOpen}
+        onClose={() => setFieldCreateOpen(false)}
+        title="Create dynamic field"
+      >
         <form onSubmit={createField}>
-          <Input label="Machine name" required value={fieldForm.field_name} onChange={e => setFieldForm({ ...fieldForm, field_name: e.target.value })} placeholder="battery_life_hours" />
-          <Input label="Display name" required value={fieldForm.display_name} onChange={e => setFieldForm({ ...fieldForm, display_name: e.target.value })} />
+          <Input
+            label="Machine name"
+            required
+            value={fieldForm.field_name}
+            onChange={(e) =>
+              setFieldForm({ ...fieldForm, field_name: e.target.value })
+            }
+            placeholder="battery_life_hours"
+          />
+          <Input
+            label="Display name"
+            required
+            value={fieldForm.display_name}
+            onChange={(e) =>
+              setFieldForm({ ...fieldForm, display_name: e.target.value })
+            }
+          />
           <div className="split-fields">
-            <Input label="Data type" value={fieldForm.data_type} onChange={e => setFieldForm({ ...fieldForm, data_type: e.target.value.toUpperCase() })} />
-            <Input label="Unit" value={fieldForm.unit} onChange={e => setFieldForm({ ...fieldForm, unit: e.target.value })} />
+            <Input
+              label="Data type"
+              value={fieldForm.data_type}
+              onChange={(e) =>
+                setFieldForm({
+                  ...fieldForm,
+                  data_type: e.target.value.toUpperCase(),
+                })
+              }
+            />
+            <Input
+              label="Unit"
+              value={fieldForm.unit}
+              onChange={(e) =>
+                setFieldForm({ ...fieldForm, unit: e.target.value })
+              }
+            />
           </div>
-          <Input label="Category" value={fieldForm.category} onChange={e => setFieldForm({ ...fieldForm, category: e.target.value })} />
-          <div className="modal-actions"><Button variant="secondary" onClick={() => setFieldCreateOpen(false)}>Cancel</Button><Button type="submit" disabled={saving}>Create field</Button></div>
+          <Input
+            label="Category"
+            value={fieldForm.category}
+            onChange={(e) =>
+              setFieldForm({ ...fieldForm, category: e.target.value })
+            }
+          />
+          <div className="modal-actions">
+            <Button
+              variant="secondary"
+              onClick={() => setFieldCreateOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={saving}>
+              Create field
+            </Button>
+          </div>
         </form>
       </Modal>
 

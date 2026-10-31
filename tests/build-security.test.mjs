@@ -22,20 +22,28 @@ test("production builds reject missing API URL", () => {
 });
 
 test("production builds reject localhost API URL", () => {
-  const result = run({ VITE_API_BUILD_MODE: "production", VITE_API_URL: "http://localhost:8000" });
+  const result = run({
+    VITE_API_BUILD_MODE: "production",
+    VITE_API_URL: "http://localhost:8000",
+  });
   assert.notEqual(result.status, 0);
 });
 
 test("production builds reject non-HTTPS API URL", () => {
-  const result = run({ VITE_API_BUILD_MODE: "production", VITE_API_URL: "http://api.example.com" });
+  const result = run({
+    VITE_API_BUILD_MODE: "production",
+    VITE_API_URL: "http://api.example.com",
+  });
   assert.notEqual(result.status, 0);
 });
 
 test("production builds accept a valid HTTPS API URL", () => {
-  const result = run({ VITE_API_BUILD_MODE: "production", VITE_API_URL: "https://api.example.com" });
+  const result = run({
+    VITE_API_BUILD_MODE: "production",
+    VITE_API_URL: "https://api.example.com",
+  });
   assert.equal(result.status, 0, result.stderr);
 });
-
 
 test("production nginx preserves security headers inside locations", () => {
   const config = readFileSync(resolve(root, "nginx.production.conf"), "utf8");

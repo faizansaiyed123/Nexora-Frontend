@@ -25,8 +25,20 @@ if (mode === "production" && parsed.protocol !== "https:") {
   process.exit(1);
 }
 
-const blockedHosts = new Set(["localhost", "127.0.0.1", "::1", "[::1]", "0.0.0.0"]);
-if (mode === "production" && (blockedHosts.has(parsed.hostname.toLowerCase()) || parsed.hostname.toLowerCase().endsWith(".localhost"))) {
-  console.error("Production builds may not use localhost/loopback as VITE_API_URL.");
+const blockedHosts = new Set([
+  "localhost",
+  "127.0.0.1",
+  "::1",
+  "[::1]",
+  "0.0.0.0",
+]);
+if (
+  mode === "production" &&
+  (blockedHosts.has(parsed.hostname.toLowerCase()) ||
+    parsed.hostname.toLowerCase().endsWith(".localhost"))
+) {
+  console.error(
+    "Production builds may not use localhost/loopback as VITE_API_URL.",
+  );
   process.exit(1);
 }

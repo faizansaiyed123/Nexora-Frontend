@@ -91,7 +91,8 @@ export default function Alerts() {
     setForm({
       name: rule.name,
       alert_type: rule.alert_type,
-      threshold_value: rule.threshold_value == null ? "" : String(rule.threshold_value),
+      threshold_value:
+        rule.threshold_value == null ? "" : String(rule.threshold_value),
       offering_id: rule.offering_id || "",
       cooldown_minutes: String(rule.cooldown_minutes),
       email: Boolean(rule.target_channels?.email),
@@ -106,7 +107,8 @@ export default function Alerts() {
       const payload = {
         name: form.name,
         alert_type: form.alert_type,
-        threshold_value: form.threshold_value === "" ? null : Number(form.threshold_value),
+        threshold_value:
+          form.threshold_value === "" ? null : Number(form.threshold_value),
         offering_id: form.offering_id || null,
         cooldown_minutes: Number(form.cooldown_minutes),
         is_active: editing?.is_active ?? true,
@@ -125,7 +127,10 @@ export default function Alerts() {
       setEditing(null);
       await load();
     } catch (e) {
-      show(e instanceof Error ? e.message : "Could not save alert rule", "error");
+      show(
+        e instanceof Error ? e.message : "Could not save alert rule",
+        "error",
+      );
     } finally {
       setSaving(false);
     }
@@ -168,7 +173,10 @@ export default function Alerts() {
         <div>
           <span className="eyebrow">SIGNAL MANAGEMENT</span>
           <h2>Alerts</h2>
-          <p>Turn price, stock, and circuit-breaker events into persistent notification history.</p>
+          <p>
+            Turn price, stock, and circuit-breaker events into persistent
+            notification history.
+          </p>
         </div>
         {canManage && (
           <Button onClick={openCreate}>
@@ -191,26 +199,44 @@ export default function Alerts() {
             </div>
             {rules.length ? (
               <div className="list">
-                {rules.map(rule => (
+                {rules.map((rule) => (
                   <div className="list-row" key={rule.id}>
                     <div>
                       <strong>{rule.name}</strong>
                       <span>
                         {rule.alert_type.replace(/_/g, " ")} ·{" "}
-                        {rule.threshold_value == null ? "no threshold" : rule.threshold_value}
+                        {rule.threshold_value == null
+                          ? "no threshold"
+                          : rule.threshold_value}
                       </span>
                     </div>
                     <div className="row-end">
-                      <StatusPill value={rule.is_active ? "ACTIVE" : "PAUSED"} />
+                      <StatusPill
+                        value={rule.is_active ? "ACTIVE" : "PAUSED"}
+                      />
                       {canManage && (
                         <>
-                          <button className="icon-btn" title="Edit rule" onClick={() => openEdit(rule)}>
+                          <button
+                            className="icon-btn"
+                            title="Edit rule"
+                            onClick={() => openEdit(rule)}
+                          >
                             <Edit3 size={16} />
                           </button>
-                          <button className="icon-btn" title={rule.is_active ? "Pause rule" : "Activate rule"} onClick={() => toggleRule(rule)}>
+                          <button
+                            className="icon-btn"
+                            title={
+                              rule.is_active ? "Pause rule" : "Activate rule"
+                            }
+                            onClick={() => toggleRule(rule)}
+                          >
                             <Bell size={15} />
                           </button>
-                          <button className="icon-btn danger-icon" title="Delete rule" onClick={() => deleteRule(rule)}>
+                          <button
+                            className="icon-btn danger-icon"
+                            title="Delete rule"
+                            onClick={() => deleteRule(rule)}
+                          >
                             <Trash2 size={16} />
                           </button>
                         </>
@@ -220,7 +246,10 @@ export default function Alerts() {
                 ))}
               </div>
             ) : (
-              <Empty title="No rules configured" detail="Create a trigger for price, stock, or source health signals." />
+              <Empty
+                title="No rules configured"
+                detail="Create a trigger for price, stock, or source health signals."
+              />
             )}
           </Card>
 
@@ -230,58 +259,76 @@ export default function Alerts() {
                 <span className="eyebrow">EVENT LOG</span>
                 <h3>Recent alerts</h3>
               </div>
-              <span className="unread">{logs.filter(log => !log.is_read).length} unread</span>
+              <span className="unread">
+                {logs.filter((log) => !log.is_read).length} unread
+              </span>
             </div>
             {logs.length ? (
               <div className="list">
-                {logs.slice(0, 30).map(log => (
-                  <div className={`alert-row ${log.is_read ? "read" : ""}`} key={log.id}>
+                {logs.slice(0, 30).map((log) => (
+                  <div
+                    className={`alert-row ${log.is_read ? "read" : ""}`}
+                    key={log.id}
+                  >
                     <div>
                       <strong>{log.title}</strong>
                       <span>{log.message}</span>
                       <small>{fmtDate(log.created_at)}</small>
                     </div>
-                    {canAnalyze && <button
-                      className="icon-btn"
-                      title={log.is_read ? "Read" : "Mark as read"}
-                      disabled={log.is_read}
-                      onClick={() => markRead(log)}
-                    >
-                      <Check size={16} />
-                    </button>}
+                    {canAnalyze && (
+                      <button
+                        className="icon-btn"
+                        title={log.is_read ? "Read" : "Mark as read"}
+                        disabled={log.is_read}
+                        onClick={() => markRead(log)}
+                      >
+                        <Check size={16} />
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
             ) : (
-              <Empty title="No alert events" detail="Triggered rules will appear here after a collection event." />
+              <Empty
+                title="No alert events"
+                detail="Triggered rules will appear here after a collection event."
+              />
             )}
           </Card>
         </div>
       )}
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? "Edit alert rule" : "Create alert rule"}>
+      <Modal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={editing ? "Edit alert rule" : "Create alert rule"}
+      >
         <form onSubmit={saveRule}>
           <Input
             label="Rule name"
             required
             value={form.name}
-            onChange={e => setForm({ ...form, name: e.target.value })}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
           />
           <Select
             label="Alert type"
             value={form.alert_type}
-            onChange={e => setForm({ ...form, alert_type: e.target.value })}
+            onChange={(e) => setForm({ ...form, alert_type: e.target.value })}
           >
-            {alertTypes.map(type => <option key={type}>{type}</option>)}
+            {alertTypes.map((type) => (
+              <option key={type}>{type}</option>
+            ))}
           </Select>
           <Select
             label="Offering scope"
             value={form.offering_id}
-            onChange={e => setForm({ ...form, offering_id: e.target.value })}
+            onChange={(e) => setForm({ ...form, offering_id: e.target.value })}
           >
             <option value="">All offerings</option>
-            {offeringsList.map(offering => (
-              <option key={offering.id} value={offering.id}>{offering.name}</option>
+            {offeringsList.map((offering) => (
+              <option key={offering.id} value={offering.id}>
+                {offering.name}
+              </option>
             ))}
           </Select>
           <div className="split-fields">
@@ -290,26 +337,32 @@ export default function Alerts() {
               type="number"
               step="0.01"
               value={form.threshold_value}
-              onChange={e => setForm({ ...form, threshold_value: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, threshold_value: e.target.value })
+              }
             />
             <Input
               label="Cooldown (minutes)"
               type="number"
               min="1"
               value={form.cooldown_minutes}
-              onChange={e => setForm({ ...form, cooldown_minutes: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, cooldown_minutes: e.target.value })
+              }
             />
           </div>
           <label className="check">
             <input
               type="checkbox"
               checked={form.email}
-              onChange={e => setForm({ ...form, email: e.target.checked })}
+              onChange={(e) => setForm({ ...form, email: e.target.checked })}
             />
             Deliver through email channel
           </label>
           <div className="modal-actions">
-            <Button variant="secondary" onClick={() => setModalOpen(false)}>Cancel</Button>
+            <Button variant="secondary" onClick={() => setModalOpen(false)}>
+              Cancel
+            </Button>
             <Button type="submit" disabled={saving}>
               {saving ? "Saving…" : editing ? "Save changes" : "Create rule"}
             </Button>
