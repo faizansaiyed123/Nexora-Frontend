@@ -1,5 +1,28 @@
-import { Children, cloneElement, useEffect, useId, useRef, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactElement, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
-import { AlertTriangle, Check, CheckCircle2, ChevronDown, Info, Loader2, Sparkles, Timer, X } from "lucide-react";
+import {
+  Children,
+  cloneElement,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ButtonHTMLAttributes,
+  type InputHTMLAttributes,
+  type ReactElement,
+  type ReactNode,
+  type SelectHTMLAttributes,
+  type TextareaHTMLAttributes,
+} from "react";
+import {
+  AlertTriangle,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  Info,
+  Loader2,
+  Sparkles,
+  Timer,
+  X,
+} from "lucide-react";
 import { formatRateLimitCountdown, useRateLimitCountdown } from "../rateLimit";
 
 type ButtonVariant = "primary" | "secondary" | "danger" | "ghost";
@@ -29,7 +52,13 @@ export function Button({
 
   return (
     <button
-      className={"btn btn-" + variant + " " + className + (rateLimited ? " is-rate-limited" : "")}
+      className={
+        "btn btn-" +
+        variant +
+        " " +
+        className +
+        (rateLimited ? " is-rate-limited" : "")
+      }
       onClick={onClick}
       type={type}
       disabled={disabled || loading || rateLimited}
@@ -38,7 +67,14 @@ export function Button({
       title={rateLimited ? `Try again in ${countdown}` : undefined}
     >
       {loading ? <Loader2 size={16} className="spin" /> : null}
-      {rateLimited ? <><Timer size={15} aria-hidden="true" /><span aria-live="polite">Try again in {countdown}</span></> : children}
+      {rateLimited ? (
+        <>
+          <Timer size={15} aria-hidden="true" />
+          <span aria-live="polite">Try again in {countdown}</span>
+        </>
+      ) : (
+        children
+      )}
     </button>
   );
 }
@@ -63,14 +99,22 @@ export function RateLimitIconButton({
 
   return (
     <button
-      className={"icon-btn rate-limit-icon-btn" + (rateLimited ? " is-rate-limited" : "")}
+      className={
+        "icon-btn rate-limit-icon-btn" + (rateLimited ? " is-rate-limited" : "")
+      }
       title={label}
       aria-label={label}
       aria-disabled={disabled || rateLimited}
       disabled={disabled || rateLimited}
       onClick={onClick}
     >
-      {rateLimited ? <span className="rate-limit-icon-countdown" aria-live="polite">{countdown}</span> : children}
+      {rateLimited ? (
+        <span className="rate-limit-icon-countdown" aria-live="polite">
+          {countdown}
+        </span>
+      ) : (
+        children
+      )}
     </button>
   );
 }
@@ -90,7 +134,10 @@ export function Input({
   const [visible, setVisible] = useState(false);
   const isPassword = props.type === "password";
   const baseId = props.id ?? useId();
-  const describedBy = [hint ? baseId + "-hint" : "", error ? baseId + "-error" : ""].filter(Boolean).join(" ") || undefined;
+  const describedBy =
+    [hint ? baseId + "-hint" : "", error ? baseId + "-error" : ""]
+      .filter(Boolean)
+      .join(" ") || undefined;
 
   return (
     <label className={"field " + (error ? "has-error" : "")}>
@@ -112,7 +159,7 @@ export function Input({
           <button
             className="input-action"
             type="button"
-            onClick={() => setVisible(value => !value)}
+            onClick={() => setVisible((value) => !value)}
             aria-label={visible ? "Hide password" : "Show password"}
             title={visible ? "Hide password" : "Show password"}
           >
@@ -120,8 +167,16 @@ export function Input({
           </button>
         ) : null}
       </span>
-      {hint ? <small id={baseId + "-hint"} className="field-hint">{hint}</small> : null}
-      {error ? <small id={baseId + "-error"} className="error-text">{error}</small> : null}
+      {hint ? (
+        <small id={baseId + "-hint"} className="field-hint">
+          {hint}
+        </small>
+      ) : null}
+      {error ? (
+        <small id={baseId + "-error"} className="error-text">
+          {error}
+        </small>
+      ) : null}
     </label>
   );
 }
@@ -138,16 +193,25 @@ export function Select({
   error?: string;
 } & SelectHTMLAttributes<HTMLSelectElement>) {
   const generatedId = useId();
-  const describedBy = [hint ? generatedId + "-hint" : "", error ? generatedId + "-error" : ""].filter(Boolean).join(" ") || undefined;
+  const describedBy =
+    [hint ? generatedId + "-hint" : "", error ? generatedId + "-error" : ""]
+      .filter(Boolean)
+      .join(" ") || undefined;
   const wrapRef = useRef<HTMLSpanElement>(null);
   const [open, setOpen] = useState(false);
-  const [internalValue, setInternalValue] = useState<string | undefined>(props.value as string | undefined);
+  const [internalValue, setInternalValue] = useState<string | undefined>(
+    props.value as string | undefined,
+  );
 
   const options = Children.toArray(children)
-    .filter((c): c is ReactElement =>
-      c !== null && typeof c === "object" && c !== undefined && "props" in (c as any)
+    .filter(
+      (c): c is ReactElement =>
+        c !== null &&
+        typeof c === "object" &&
+        c !== undefined &&
+        "props" in (c as any),
     )
-    .map(c => {
+    .map((c) => {
       const p = (c as any).props;
       const label = p.children;
       const value = p.value !== undefined ? p.value : label;
@@ -156,13 +220,16 @@ export function Select({
 
   const controlled = props.value !== undefined;
   const currentValue = controlled ? props.value : internalValue;
-  const currentOption = options.find(o => String(o.value) === String(currentValue)) || options[0];
-  const hasValue = currentValue !== undefined && currentValue !== "" && currentValue !== null;
+  const currentOption =
+    options.find((o) => String(o.value) === String(currentValue)) || options[0];
+  const hasValue =
+    currentValue !== undefined && currentValue !== "" && currentValue !== null;
 
   useEffect(() => {
     if (!open) return;
     const onDown = (event: MouseEvent) => {
-      if (!wrapRef.current || wrapRef.current.contains(event.target as Node)) return;
+      if (!wrapRef.current || wrapRef.current.contains(event.target as Node))
+        return;
       setOpen(false);
     };
     const onKey = (event: KeyboardEvent) => {
@@ -179,11 +246,15 @@ export function Select({
   const selectValue = (value: any) => {
     if (!controlled) setInternalValue(value);
     setOpen(false);
-    props.onChange?.({ target: { value } } as unknown as React.ChangeEvent<HTMLSelectElement>);
+    props.onChange?.({
+      target: { value },
+    } as unknown as React.ChangeEvent<HTMLSelectElement>);
   };
 
   const move = (dir: 1 | -1) => {
-    const idx = options.findIndex(o => String(o.value) === String(currentValue));
+    const idx = options.findIndex(
+      (o) => String(o.value) === String(currentValue),
+    );
     const next = options[(idx + dir + options.length) % options.length];
     if (next) selectValue(next.value);
   };
@@ -191,7 +262,7 @@ export function Select({
   const onKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
-      setOpen(v => !v);
+      setOpen((v) => !v);
       return;
     }
     if (event.key === "ArrowDown") {
@@ -215,7 +286,12 @@ export function Select({
         </span>
       ) : null}
       <span
-        className={"select-wrap" + (error ? " is-invalid" : "") + (hasValue ? " has-value" : "") + (open ? " is-open" : "")}
+        className={
+          "select-wrap" +
+          (error ? " is-invalid" : "") +
+          (hasValue ? " has-value" : "") +
+          (open ? " is-open" : "")
+        }
         ref={wrapRef}
       >
         <select
@@ -239,13 +315,15 @@ export function Select({
             pointerEvents: "none",
           }}
           value={controlled ? props.value : internalValue}
-          onChange={event => {
+          onChange={(event) => {
             if (!controlled) setInternalValue(event.target.value);
             props.onChange?.(event);
           }}
           {...props}
           required={false}
-        >{children}</select>
+        >
+          {children}
+        </select>
 
         <button
           type="button"
@@ -255,13 +333,15 @@ export function Select({
           aria-controls={open ? generatedId + "-listbox" : undefined}
           aria-invalid={Boolean(error)}
           disabled={props.disabled}
-          onMouseDown={event => {
+          onMouseDown={(event) => {
             event.preventDefault();
-            setOpen(v => !v);
+            setOpen((v) => !v);
           }}
           onKeyDown={onKeyDown}
         >
-          <span className="select-value">{currentOption ? String(currentOption.label) : ""}</span>
+          <span className="select-value">
+            {currentOption ? String(currentOption.label) : ""}
+          </span>
           <ChevronDown size={16} aria-hidden="true" />
         </button>
 
@@ -274,10 +354,15 @@ export function Select({
             {options.map((o, i) => (
               <li
                 key={o.value === undefined ? "opt-" + i : String(o.value)}
-                className={"select-option" + (String(o.value) === String(currentValue) ? " is-selected" : "")}
+                className={
+                  "select-option" +
+                  (String(o.value) === String(currentValue)
+                    ? " is-selected"
+                    : "")
+                }
                 role="option"
                 aria-selected={String(o.value) === String(currentValue)}
-                onMouseDown={event => {
+                onMouseDown={(event) => {
                   event.preventDefault();
                   selectValue(o.value);
                 }}
@@ -288,8 +373,16 @@ export function Select({
           </ul>
         ) : null}
       </span>
-      {hint ? <small id={generatedId + "-hint"} className="field-hint">{hint}</small> : null}
-      {error ? <small id={generatedId + "-error"} className="error-text">{error}</small> : null}
+      {hint ? (
+        <small id={generatedId + "-hint"} className="field-hint">
+          {hint}
+        </small>
+      ) : null}
+      {error ? (
+        <small id={generatedId + "-error"} className="error-text">
+          {error}
+        </small>
+      ) : null}
     </label>
   );
 }
@@ -326,7 +419,8 @@ export function Dropdown({
   useEffect(() => {
     if (!open) return;
     const onDown = (event: MouseEvent) => {
-      if (!wrapRef.current || wrapRef.current.contains(event.target as Node)) return;
+      if (!wrapRef.current || wrapRef.current.contains(event.target as Node))
+        return;
       setOpen(false);
     };
     const onKey = (event: KeyboardEvent) => {
@@ -341,10 +435,16 @@ export function Dropdown({
   }, [open]);
 
   const enhancedTrigger = cloneElement(trigger, {
-    className: [trigger.props.className, "dropdown-trigger", open ? "is-open" : ""].filter(Boolean).join(" "),
+    className: [
+      trigger.props.className,
+      "dropdown-trigger",
+      open ? "is-open" : "",
+    ]
+      .filter(Boolean)
+      .join(" "),
     onClick: (event: React.MouseEvent) => {
       trigger.props.onClick?.(event);
-      setOpen(value => !value);
+      setOpen((value) => !value);
     },
     "aria-expanded": open,
     "aria-haspopup": "menu",
@@ -353,14 +453,20 @@ export function Dropdown({
 
   return (
     <div
-      className={"dropdown" + (open ? " is-open" : "") + (direction === "up" ? " dropdown-up" : "")}
+      className={
+        "dropdown" +
+        (open ? " is-open" : "") +
+        (direction === "up" ? " dropdown-up" : "")
+      }
       ref={wrapRef}
     >
       {enhancedTrigger}
       {open ? (
         <div
           id={menuMenuId}
-          className={"dropdown-menu dropdown-menu-" + align + " " + menuClassName}
+          className={
+            "dropdown-menu dropdown-menu-" + align + " " + menuClassName
+          }
           role="menu"
           aria-orientation="vertical"
         >
@@ -392,7 +498,11 @@ export function DropdownItem({
       onClick={onClick}
       role="menuitem"
     >
-      {icon ? <span className="dropdown-item-icon" aria-hidden="true">{icon}</span> : null}
+      {icon ? (
+        <span className="dropdown-item-icon" aria-hidden="true">
+          {icon}
+        </span>
+      ) : null}
       <span>{children}</span>
     </button>
   );
@@ -433,17 +543,17 @@ export function StatusPill({ value }: { value: string }) {
     normalized.includes("error")
       ? "danger"
       : normalized.includes("warn") ||
-        normalized.includes("pending") ||
-        normalized.includes("suggest") ||
-        normalized.includes("paused")
+          normalized.includes("pending") ||
+          normalized.includes("suggest") ||
+          normalized.includes("paused")
         ? "warn"
         : normalized.includes("active") ||
-          normalized.includes("healthy") ||
-          normalized.includes("complete") ||
-          normalized.includes("verified") ||
-          normalized.includes("approv") ||
-          normalized.includes("in_stock") ||
-          normalized.includes("running")
+            normalized.includes("healthy") ||
+            normalized.includes("complete") ||
+            normalized.includes("verified") ||
+            normalized.includes("approv") ||
+            normalized.includes("in_stock") ||
+            normalized.includes("running")
           ? "success"
           : "neutral";
 
@@ -464,7 +574,13 @@ export function Card({
   className?: string;
   interactive?: boolean;
 }) {
-  return <section className={"card " + (interactive ? "card-interactive " : "") + className}>{children}</section>;
+  return (
+    <section
+      className={"card " + (interactive ? "card-interactive " : "") + className}
+    >
+      {children}
+    </section>
+  );
 }
 
 let openModalsCount = 0;
@@ -502,24 +618,32 @@ export function Modal({
   return (
     <div
       className="modal-backdrop"
-      onMouseDown={event => {
+      onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
       role="presentation"
     >
-      <div className="modal modal-enter" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div
+        className="modal modal-enter"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+      >
         <div className="modal-head">
           <div>
             <span className="eyebrow">NEXORA WORKSPACE</span>
             <h3 id="modal-title">{title}</h3>
           </div>
-          <button className="icon-btn" onClick={onClose} aria-label="Close dialog" title="Close">
+          <button
+            className="icon-btn"
+            onClick={onClose}
+            aria-label="Close dialog"
+            title="Close"
+          >
             <X size={18} />
           </button>
         </div>
-        <div className="modal-body">
-          {children}
-        </div>
+        <div className="modal-body">{children}</div>
       </div>
     </div>
   );
@@ -528,7 +652,11 @@ export function Modal({
 export function Spinner({ label = "Loading…" }: { label?: string }) {
   return (
     <div className="loading-screen" role="status" aria-live="polite">
-      <div className="loading-orbit"><span /><span /><span /></div>
+      <div className="loading-orbit">
+        <span />
+        <span />
+        <span />
+      </div>
       <strong>{label}</strong>
       <small>Syncing the latest workspace state</small>
     </div>
@@ -550,7 +678,9 @@ export function Empty({
 }) {
   return (
     <div className="empty">
-      <div className="empty-orb"><Sparkles size={20} /></div>
+      <div className="empty-orb">
+        <Sparkles size={20} />
+      </div>
       <strong>{title}</strong>
       {detail ? <span>{detail}</span> : null}
       {action ? <div className="empty-action">{action}</div> : null}
@@ -575,7 +705,10 @@ export function Notice({
           : Info;
 
   return (
-    <div className={"notice notice-" + type} role={type === "error" ? "alert" : "status"}>
+    <div
+      className={"notice notice-" + type}
+      role={type === "error" ? "alert" : "status"}
+    >
       <Icon size={17} aria-hidden="true" />
       <span>{children}</span>
     </div>
@@ -606,7 +739,10 @@ export function SectionHeader({
 }
 
 export function useToast() {
-  const [toast, setToast] = useState<{ kind: "success" | "error"; text: string } | null>(null);
+  const [toast, setToast] = useState<{
+    kind: "success" | "error";
+    text: string;
+  } | null>(null);
 
   const show = (text: string, kind: "success" | "error" = "success") => {
     setToast({ text, kind });
@@ -616,10 +752,22 @@ export function useToast() {
   return { toast, show };
 }
 
-export function Toast({ toast }: { toast: { kind: "success" | "error"; text: string } | null }) {
+export function Toast({
+  toast,
+}: {
+  toast: { kind: "success" | "error"; text: string } | null;
+}) {
   return toast ? (
-    <div className={"toast toast-" + toast.kind} role={toast.kind === "error" ? "alert" : "status"} aria-live="polite">
-      {toast.kind === "success" ? <Check size={17} /> : <AlertTriangle size={17} />}
+    <div
+      className={"toast toast-" + toast.kind}
+      role={toast.kind === "error" ? "alert" : "status"}
+      aria-live="polite"
+    >
+      {toast.kind === "success" ? (
+        <Check size={17} />
+      ) : (
+        <AlertTriangle size={17} />
+      )}
       <span>{toast.text}</span>
     </div>
   ) : null;
@@ -627,10 +775,16 @@ export function Toast({ toast }: { toast: { kind: "success" | "error"; text: str
 
 export const fmtDate = (value?: string | null) =>
   value
-    ? new Date(value).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })
+    ? new Date(value).toLocaleString([], {
+        dateStyle: "medium",
+        timeStyle: "short",
+      })
     : "—";
 
-export const money = (value: string | number | null | undefined, currency = "USD") =>
+export const money = (
+  value: string | number | null | undefined,
+  currency = "USD",
+) =>
   value == null
     ? "—"
     : new Intl.NumberFormat(undefined, {

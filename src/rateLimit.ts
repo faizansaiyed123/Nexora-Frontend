@@ -35,26 +35,29 @@ function readDeadlines(): DeadlineMap {
       if (raw) {
         const stored = JSON.parse(raw) as Record<string, unknown>;
         for (const [key, value] of Object.entries(stored)) {
-          if (typeof value === "number" && Number.isFinite(value) && value > now) {
+          if (
+            typeof value === "number" &&
+            Number.isFinite(value) &&
+            value > now
+          ) {
             result[key] = Math.max(result[key] ?? 0, value);
           }
         }
       }
-    } catch {
-    }
+    } catch {}
   }
   return result;
 }
 
 function writeDeadlines(deadlines: DeadlineMap): void {
   memoryDeadlines.clear();
-  for (const [key, deadline] of Object.entries(deadlines)) memoryDeadlines.set(key, deadline);
+  for (const [key, deadline] of Object.entries(deadlines))
+    memoryDeadlines.set(key, deadline);
   const storage = getStorage();
   if (storage) {
     try {
       storage.setItem(STORAGE_KEY, JSON.stringify(deadlines));
-    } catch {
-    }
+    } catch {}
   }
 }
 
@@ -88,7 +91,9 @@ export function formatRateLimitCountdown(totalSeconds: number): string {
 
 export function useRateLimitCountdown(path?: string): number {
   const key = path ? normalizeRateLimitKey(path) : "";
-  const [remaining, setRemaining] = useState(() => key ? getRateLimitRemaining(key) : 0);
+  const [remaining, setRemaining] = useState(() =>
+    key ? getRateLimitRemaining(key) : 0,
+  );
 
   useEffect(() => {
     if (!key) {

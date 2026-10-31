@@ -1,7 +1,13 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "./auth";
 import Shell from "./components/Shell";
-import { ForgotPassword, Login, Register, ResetPassword, VerifyEmail } from "./pages/AuthPages";
+import {
+  ForgotPassword,
+  Login,
+  Register,
+  ResetPassword,
+  VerifyEmail,
+} from "./pages/AuthPages";
 import Dashboard from "./pages/Dashboard";
 import Competitors from "./pages/Competitors";
 import Discovery from "./pages/Discovery";
@@ -30,7 +36,13 @@ function PublicOnly({ children }: { children: ReactNode }) {
 function HomeRoute() {
   const { user, loading } = useAuth();
   if (loading) return <Spinner label="Preparing Nexora…" />;
-  return user ? <Shell><Dashboard /></Shell> : <Welcome />;
+  return user ? (
+    <Shell>
+      <Dashboard />
+    </Shell>
+  ) : (
+    <Welcome />
+  );
 }
 
 function WorkspaceRoutes() {
@@ -53,13 +65,62 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<HomeRoute />} />
-      <Route path="/welcome" element={<PublicOnly><Welcome /></PublicOnly>} />
-      <Route path="/login" element={<PublicOnly><Login /></PublicOnly>} />
-      <Route path="/register" element={<PublicOnly><Register /></PublicOnly>} />
-      <Route path="/forgot-password" element={<PublicOnly><ForgotPassword /></PublicOnly>} />
-      <Route path="/reset-password" element={<PublicOnly><ResetPassword /></PublicOnly>} />
-      <Route path="/verify-email" element={<PublicOnly><VerifyEmail /></PublicOnly>} />
-      <Route path="/*" element={<Protected><WorkspaceRoutes /></Protected>} />
+      <Route
+        path="/welcome"
+        element={
+          <PublicOnly>
+            <Welcome />
+          </PublicOnly>
+        }
+      />
+      <Route
+        path="/login"
+        element={
+          <PublicOnly>
+            <Login />
+          </PublicOnly>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <PublicOnly>
+            <Register />
+          </PublicOnly>
+        }
+      />
+      <Route
+        path="/forgot-password"
+        element={
+          <PublicOnly>
+            <ForgotPassword />
+          </PublicOnly>
+        }
+      />
+      <Route
+        path="/reset-password"
+        element={
+          <PublicOnly>
+            <ResetPassword />
+          </PublicOnly>
+        }
+      />
+      <Route
+        path="/verify-email"
+        element={
+          <PublicOnly>
+            <VerifyEmail />
+          </PublicOnly>
+        }
+      />
+      <Route
+        path="/*"
+        element={
+          <Protected>
+            <WorkspaceRoutes />
+          </Protected>
+        }
+      />
     </Routes>
   );
 }

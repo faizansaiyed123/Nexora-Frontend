@@ -1,4 +1,7 @@
-export type RefreshStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
+export type RefreshStorage = Pick<
+  Storage,
+  "getItem" | "setItem" | "removeItem"
+>;
 
 export interface RefreshLease {
   owner: string;
@@ -13,7 +16,8 @@ export function readRefreshLease(
     const raw = storage.getItem(key);
     if (!raw) return null;
     const value = JSON.parse(raw) as Partial<RefreshLease>;
-    return typeof value.owner === "string" && typeof value.expiresAt === "number"
+    return typeof value.owner === "string" &&
+      typeof value.expiresAt === "number"
       ? { owner: value.owner, expiresAt: value.expiresAt }
       : null;
   } catch {
@@ -34,10 +38,7 @@ export function tryAcquireRefreshLease(
   }
 
   try {
-    storage.setItem(
-      key,
-      JSON.stringify({ owner, expiresAt: now + leaseMs }),
-    );
+    storage.setItem(key, JSON.stringify({ owner, expiresAt: now + leaseMs }));
     return readRefreshLease(storage, key)?.owner === owner;
   } catch {
     return false;
@@ -53,6 +54,5 @@ export function releaseRefreshLease(
     if (readRefreshLease(storage, key)?.owner === owner) {
       storage.removeItem(key);
     }
-  } catch {
-  }
+  } catch {}
 }
