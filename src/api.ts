@@ -279,6 +279,15 @@ export async function api<T>(
   return (await res.json()) as T;
 }
 export async function downloadFile(path: string) {
+  if (DEMO_MODE) {
+    const blob = new Blob(["name,current_price,currency\nApex Pro 14 Laptop,1249.00,USD\nAero Wireless Headphones,259.00,USD\n"], { type: "text/csv" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = path.includes("json") ? "nexora-demo-export.json" : "nexora-demo-export.csv";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    return;
+  }
   const res = await authed(path);
   if (!res.ok) throw await buildApiError(path, res, "Export failed");
   const blob = await res.blob();
