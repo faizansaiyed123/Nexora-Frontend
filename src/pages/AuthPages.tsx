@@ -131,6 +131,11 @@ export function Login() {
       detail="Sign in to your private Nexora workspace and get a focused view of pricing, sources, jobs and alerts."
     >
       <Card className="auth-card">
+        {import.meta.env.VITE_DEMO_MODE !== "false" ? (
+          <Notice type="success">
+            Demo workspace: use <strong>demo@nexora.app</strong> with any password. Try <strong>analyst@nexora.app</strong> or <strong>viewer@nexora.app</strong> to preview role permissions.
+          </Notice>
+        ) : null}
         <div className="auth-card-kicker">
           <span className="auth-kicker-dot" /> Workspace access
         </div>
