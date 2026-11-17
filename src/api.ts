@@ -21,6 +21,9 @@ import {
   releaseRefreshLease,
 } from "./refreshLock";
 import { reportRateLimit } from "./rateLimit";
+import { demoApi } from "./demoApi";
+
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE !== "false";
 
 const API_URL = (
   import.meta.env.VITE_API_URL || "http://localhost:8000"
@@ -269,6 +272,7 @@ export async function api<T>(
   init: RequestInit = {},
   rateLimitKey: string = path,
 ): Promise<T> {
+  if (DEMO_MODE) return demoApi<T>(path, init);
   const res = await authed(path, init);
   if (!res.ok) throw await buildApiError(path, res, undefined, rateLimitKey);
   if (res.status === 204) return undefined as T;
