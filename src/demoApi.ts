@@ -165,7 +165,7 @@ export async function demoApi<T>(path:string, init:RequestInit={}):Promise<T> {
     const created=(data.items||[]).map((x:Record<string,unknown>)=>{const o={...x,id:id("off"),client_id:client.id,is_archived:false,is_monitored:true,created_via:"DEMO",created_at:now(),updated_at:now(),attributes:x.attributes||{}} as Offering;offerings.unshift(o);return o;});
     return response({created_count:created.length,failed_count:0,items:created}) as T;
   }
-  if(clean==="/v1/offerings/fields") return response([]) as T;
+  if(clean==="/v1/offerings/fields") {\n    if(method==="GET") return response([]) as T;\n    if(method==="POST") return response({...data,id:id("field"),client_id:client.id,created_at:now(),is_selected:true,is_required:false,is_comparable:true,confidence:"HIGH"}) as T;\n  }\n  if(clean==="/v1/offerings/bulk-archive" && method==="POST"){\n    for(const oid of (data.offering_ids||[])){ const o=offerings.find(x=>x.id===oid); if(o) o.is_archived=true; }\n    return response({archived_count:(data.offering_ids||[]).length}) as T;\n  }
   const om=clean.match(/^\/v1\/offerings\/([^/]+)$/);
   if(om){const o=offerings.find(x=>x.id===om[1]); if(!o) return response(undefined) as T;
     if(method==="GET") return response(offeringDetail(o)) as T;
@@ -177,7 +177,7 @@ export async function demoApi<T>(path:string, init:RequestInit={}):Promise<T> {
 
   if(clean==="/v1/offering-matches" && method==="GET") return response(matches) as T;
   if(clean==="/v1/offering-matches" && method==="POST"){const m={...data,id:id("match"),match_status:"CONFIRMED",confidence_score:.96,is_active:true,created_at:now(),updated_at:now()} as Match;matches.unshift(m);return response(m) as T;}
-  if(clean.startsWith("/v1/offering-matches/")) return response(undefined) as T;
+  if(clean.startsWith("/v1/offering-matches/")) {\n    const m=matches.find(v=>v.id===clean.split("/")[3]);\n    if(method==="PATCH" && m){Object.assign(m,data,{updated_at:now()});return response(m) as T;}\n    if(method==="DELETE"){const i=matches.findIndex(v=>v.id===clean.split("/")[3]);if(i>=0)matches.splice(i,1);return response(undefined) as T;}\n    return response(undefined) as T;\n  }
 
   if(clean==="/v1/collections/run" && method==="POST"){
     const q=new URLSearchParams(path.split("?")[1]||""); const mid=q.get("offering_match_id")||"match-pro-north";
