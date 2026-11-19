@@ -90,8 +90,8 @@ export default function Welcome() {
             <div className="nh-hero-copy">
               <p className="nh-kicker">Competitive price intelligence</p>
               <h1>
-                Follow competitor prices.
-                <span>Keep the context.</span>
+                Understand the market.
+                <span>Follow competitor prices.</span>
               </h1>
               <p className="nh-lede">
                 Nexora connects the offerings you track with competitor
