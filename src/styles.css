@@ -3216,11 +3216,32 @@ td a {
 
 @media (max-width: 900px) {
   .nh-header-inner {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    row-gap: 10px;
+  }
+
+  .nh-brand {
+    grid-column: 1;
+    grid-row: 1;
   }
 
   .nh-nav {
-    display: none;
+    display: flex;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-content: flex-start;
+    gap: 22px;
+    padding-bottom: 4px;
+  }
+
+  .nh-nav a {
+    font-size: 12px;
+  }
+
+  .nh-header-actions {
+    grid-column: 2;
+    grid-row: 1;
   }
 
   .nh-hero > .nh-container {
@@ -3257,6 +3278,15 @@ td a {
   .nh-header-inner {
     min-height: 74px;
     gap: 14px;
+  }
+
+  .nh-nav {
+    gap: 18px;
+    padding-bottom: 3px;
+  }
+
+  .nh-nav a {
+    font-size: 11px;
   }
 
   .nh-brand {
