@@ -3013,6 +3013,11 @@ td a {
   gap: 10px;
   padding-inline: 21px;
   font-size: 13px;
+  text-decoration: none;
+}
+
+.nh-header-cta {
+  text-decoration: none;
 }
 
 .nh-secondary-cta {
